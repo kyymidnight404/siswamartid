@@ -13,10 +13,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="{{ asset('css/siswamart-theme.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/siswamart-theme.css') }}?v={{ file_exists(public_path('css/siswamart-theme.css')) ? filemtime(public_path('css/siswamart-theme.css')) : time() }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
     @if($isHome)
-        <link rel="stylesheet" href="{{ asset('css/homepage.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/homepage.css') }}?v={{ file_exists(public_path('css/homepage.css')) ? filemtime(public_path('css/homepage.css')) : time() }}">
     @endif
 </head>
 <body class="bg-[var(--color-bg)] text-[var(--color-text)] min-h-screen antialiased flex flex-col {{ $isHome ? 'home-page' : 'public-site-page' }}"
@@ -34,14 +34,14 @@
             {{-- 1. Beranda --}}
             <a href="{{ route('public.home') }}"
                id="nav-beranda"
-               class="text-sm lg:text-base font-extrabold tracking-wide transition-colors {{ request()->routeIs('public.home') ? 'text-[var(--ink)] bg-white/20 px-3 py-1 rounded-full' : 'text-white hover:text-[var(--ink)]' }}">
+               class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-sm lg:text-base font-extrabold tracking-wide transition-colors {{ request()->routeIs('public.home') ? 'text-[var(--ink)] bg-white/20 is-active' : 'text-[var(--ink)] hover:text-[var(--ink)]' }}">
                 Beranda
             </a>
 
             {{-- 2. Kategori --}}
             <a href="{{ route('public.kategori.index') }}"
                id="nav-kategori"
-               class="text-sm lg:text-base font-extrabold tracking-wide transition-colors {{ request()->routeIs('public.kategori.*') ? 'text-[var(--ink)] bg-white/20 px-3 py-1 rounded-full' : 'text-white hover:text-[var(--ink)]' }}">
+               class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-sm lg:text-base font-extrabold tracking-wide transition-colors {{ request()->routeIs('public.kategori.*') ? 'text-[var(--ink)] bg-white/20 is-active' : 'text-[var(--ink)] hover:text-[var(--ink)]' }}">
                 Kategori
             </a>
 
@@ -56,14 +56,14 @@
             {{-- 4. Cara Memesan --}}
             <a href="{{ route('public.cara_pemesanan') }}"
                id="nav-cara-pemesanan"
-               class="text-sm lg:text-base font-extrabold tracking-wide transition-colors {{ request()->routeIs('public.cara_pemesanan') ? 'text-[var(--ink)] bg-white/20 px-3 py-1 rounded-full' : 'text-white hover:text-[var(--ink)]' }}">
+               class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-sm lg:text-base font-extrabold tracking-wide transition-colors {{ request()->routeIs('public.cara_pemesanan') ? 'text-[var(--ink)] bg-white/20 is-active' : 'text-[var(--ink)] hover:text-[var(--ink)]' }}">
                 Cara Memesan
             </a>
 
             {{-- 5. Tentang Kami --}}
             <a href="{{ route('public.tentang_kami') }}"
                id="nav-tentang-kami"
-               class="text-sm lg:text-base font-extrabold tracking-wide transition-colors {{ request()->routeIs('public.tentang_kami') ? 'text-[var(--ink)] bg-white/20 px-3 py-1 rounded-full' : 'text-white hover:text-[var(--ink)]' }}">
+               class="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-sm lg:text-base font-extrabold tracking-wide transition-colors {{ request()->routeIs('public.tentang_kami') ? 'text-[var(--ink)] bg-white/20 is-active' : 'text-[var(--ink)] hover:text-[var(--ink)]' }}">
                 Tentang Kami
             </a>
 
@@ -250,20 +250,20 @@
                 @if(auth()->user()->role === 'admin')
                     <a href="{{ route('admin.dashboard') }}"
                        id="mobile-nav-admin-dashboard"
-                       class="flex items-center justify-center px-4 py-2.5 mt-2 rounded-xl text-sm font-extrabold text-white bg-[var(--ink)] hover:bg-[var(--ink)] transition-colors shadow-sm">
+                       class="flex items-center justify-center px-4 py-2.5 mt-2 rounded-xl text-sm font-extrabold text-[var(--cream)] hover:text-[var(--ink)] bg-[var(--ink)] hover:bg-[var(--cream)] transition-colors shadow-sm">
                         Dashboard Admin
                     </a>
                 @elseif(auth()->user()->role === 'penjual')
                     <a href="{{ route('penjual.dashboard') }}"
                        id="mobile-nav-penjual-dashboard"
-                       class="flex items-center justify-center px-4 py-2.5 mt-2 rounded-xl text-sm font-extrabold text-white bg-[var(--ink)] hover:bg-[var(--ink)] transition-colors shadow-sm">
+                       class="flex items-center justify-center px-4 py-2.5 mt-2 rounded-xl text-sm font-extrabold text-[var(--cream)] hover:text-[var(--ink)] bg-[var(--ink)] hover:bg-[var(--cream)] transition-colors shadow-sm">
                         Toko Saya
                     </a>
                 @endif
             @else
                 <a href="{{ route('login') }}"
                    id="mobile-nav-login"
-                   class="flex items-center justify-center px-4 py-2.5 mt-2 rounded-xl text-sm font-extrabold text-white bg-[var(--ink)] hover:bg-[var(--ink)] transition-colors shadow-sm">
+                   class="flex items-center justify-center px-4 py-2.5 mt-2 rounded-xl text-sm font-extrabold text-[var(--cream)] hover:text-[var(--ink)] bg-[var(--ink)] hover:bg-[var(--cream)] transition-colors shadow-sm">
                     Masuk
                 </a>
             @endauth

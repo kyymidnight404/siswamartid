@@ -23,6 +23,10 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::creating(function (User $user): void {
+            if (! \Illuminate\Support\Facades\Schema::hasColumn('users', 'username')) {
+                return;
+            }
+
             if (filled($user->username)) {
                 return;
             }

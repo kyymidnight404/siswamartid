@@ -8,6 +8,7 @@ use App\Models\Produk;
 use App\Services\AdminNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -38,6 +39,12 @@ class ProdukController extends Controller
     {
         $penjualId = $this->getPenjualId();
         $status = $request->query('status');
+        $search = $request->query('search');
+        $kategoriId = $request->query('kategori_id');
+        $stok = $request->query('stok');
+        $perPage = $request->query('per_page', 10);
+        $hasPendingAction = Schema::hasColumn('produk', 'pending_action');
+
         $allowedStatuses = ['aktif', 'pending', 'ditolak'];
         if (!in_array($status, $allowedStatuses, true)) {
             $status = null;
@@ -46,29 +53,51 @@ class ProdukController extends Controller
         $sellerProducts = Produk::where('penjual_id', $penjualId);
         $statusCounts = collect([
             'all' => (clone $sellerProducts)->count(),
-            'aktif' => (clone $sellerProducts)->where('status', 'aktif')->whereNull('pending_action')->count(),
-            'pending' => (clone $sellerProducts)->where(function ($query) {
-                $query->where('status', 'pending')->orWhereNotNull('pending_action');
+            'aktif' => (clone $sellerProducts)->where('status', 'aktif')->when($hasPendingAction, fn ($q) => $q->whereNull('pending_action'))->count(),
+            'pending' => (clone $sellerProducts)->where(function ($query) use ($hasPendingAction) {
+                $query->where('status', 'pending');
+                if ($hasPendingAction) {
+                    $query->orWhereNotNull('pending_action');
+                }
             })->count(),
-            'ditolak' => (clone $sellerProducts)->whereNull('pending_action')->where(function ($query) {
+            'ditolak' => (clone $sellerProducts)->when($hasPendingAction, fn ($q) => $q->whereNull('pending_action'))->where(function ($query) {
                 $query->where('status', 'ditolak')->orWhereNotNull('alasan_ditolak');
             })->count(),
         ]);
 
-        $produk = Produk::with('kategori')
+        $query = Produk::with('kategori')
             ->where('penjual_id', $penjualId)
-            ->when($status === 'pending', fn ($query) => $query->where(function ($inner) {
-                $inner->where('status', 'pending')->orWhereNotNull('pending_action');
+            ->when($status === 'pending', fn ($q) => $q->where(function ($inner) use ($hasPendingAction) {
+                $inner->where('status', 'pending');
+                if ($hasPendingAction) {
+                    $inner->orWhereNotNull('pending_action');
+                }
             }))
-            ->when($status === 'aktif', fn ($query) => $query->where('status', 'aktif')->whereNull('pending_action'))
-            ->when($status === 'ditolak', fn ($query) => $query->whereNull('pending_action')->where(function ($inner) {
+            ->when($status === 'aktif', fn ($q) => $q->where('status', 'aktif')->when($hasPendingAction, fn ($inner) => $inner->whereNull('pending_action')))
+            ->when($status === 'ditolak', fn ($q) => $q->when($hasPendingAction, fn ($inner) => $inner->whereNull('pending_action'))->where(function ($inner) {
                 $inner->where('status', 'ditolak')->orWhereNotNull('alasan_ditolak');
             }))
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+            ->when($search, fn ($q) => $q->where(function ($inner) use ($search) {
+                $inner->where('nama', 'like', "%{$search}%")
+                      ->orWhere('deskripsi', 'like', "%{$search}%");
+            }))
+            ->when($kategoriId, fn ($q) => $q->where('kategori_id', $kategoriId))
+            ->when($stok, function ($q) use ($stok) {
+                $val = ($stok === 'ready') ? 'tersedia' : $stok;
+                $q->where('stok', $val);
+            })
+            ->latest();
 
-        return view('penjual.produk.index', compact('produk', 'status', 'statusCounts'));
+        if ($perPage === 'all' || $perPage === 'semua') {
+            $perPageCount = max(1, (clone $query)->count());
+        } else {
+            $perPageCount = in_array((int) $perPage, [10, 25, 50], true) ? (int) $perPage : 10;
+        }
+
+        $produk = $query->paginate($perPageCount)->withQueryString();
+        $kategoris = Kategori::orderBy('nama')->get();
+
+        return view('penjual.produk.index', compact('produk', 'status', 'statusCounts', 'search', 'kategoriId', 'stok', 'kategoris', 'perPage'));
     }
 
     /**
@@ -138,6 +167,7 @@ class ProdukController extends Controller
                 'description' => auth()->user()->name . ' menambahkan produk "' . $produk->nama . '".',
                 'activity' => 'produk.ditambahkan',
                 'actor' => auth()->user()->name,
+                'seller_id' => $penjualId,
                 'entity_type' => 'produk',
                 'entity_id' => $produk->id,
                 'url' => route('admin.produk.show', $produk),
@@ -244,6 +274,7 @@ class ProdukController extends Controller
                 'description' => auth()->user()->name . ' meminta penghapusan produk "' . $produkName . '".',
                 'activity' => 'produk.hapus_diminta',
                 'actor' => auth()->user()->name,
+                'seller_id' => $penjualId,
                 'entity_type' => 'produk',
                 'entity_id' => $produk->id,
                 'url' => route('admin.produk.show', $produk),

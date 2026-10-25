@@ -12,8 +12,12 @@ Route::get('/kategori', [\App\Http\Controllers\Public\KategoriController::class,
 Route::get('/kategori/{kategori:slug}', [\App\Http\Controllers\Public\KategoriController::class, 'show'])->name('public.kategori.show');
 
 Route::get('/produk', [\App\Http\Controllers\Public\ProdukController::class, 'index'])->name('public.produk.index');
-Route::get('/produk/{produk:slug}', [\App\Http\Controllers\Public\ProdukController::class, 'show'])->name('public.produk.show');
-Route::get('/produk/{produk:slug}/whatsapp', [\App\Http\Controllers\Public\ProdukController::class, 'trackWhatsapp'])->name('public.produk.whatsapp');
+Route::get('/produk/{produk:slug}', [\App\Http\Controllers\Public\ProdukController::class, 'show'])
+    ->name('public.produk.show')
+    ->middleware('throttle:60,1');
+Route::get('/produk/{produk:slug}/whatsapp', [\App\Http\Controllers\Public\ProdukController::class, 'trackWhatsapp'])
+    ->name('public.produk.whatsapp')
+    ->middleware('throttle:30,1');
 
 Route::view('/cara-pemesanan', 'public.cara-pemesanan')->name('public.cara_pemesanan');
 Route::view('/tentang-kami', 'public.tentang-kami')->name('public.tentang_kami');

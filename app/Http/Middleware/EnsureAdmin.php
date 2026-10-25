@@ -23,6 +23,16 @@ class EnsureAdmin
             abort(403, 'Akses ditolak. Halaman ini khusus untuk Admin.');
         }
 
+        if (! Auth::user()->is_active) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->withErrors([
+                'email' => 'Akun admin Anda sedang dinonaktifkan. Silakan hubungi super administrator.',
+            ]);
+        }
+
         return $next($request);
     }
 }

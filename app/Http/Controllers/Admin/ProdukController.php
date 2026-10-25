@@ -10,6 +10,7 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use App\Services\AdminNotificationService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class ProdukController extends Controller
@@ -19,29 +20,64 @@ class ProdukController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Produk::with(['penjual.user', 'kategori'])
-            ->latest();
-
+        $search = $request->query('search');
         $status = $request->query('status');
+        $kategoriId = $request->query('kategori_id');
+        $perPage = $request->query('per_page', 10);
+
+        $query = Produk::with(['penjual.user', 'kategori']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('deskripsi', 'like', "%{$search}%")
+                  ->orWhereHas('penjual', function ($p) use ($search) {
+                      $p->where('nama_toko', 'like', "%{$search}%")
+                        ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%"));
+                  });
+            });
+        }
+
+        if ($kategoriId) {
+            $query->where('kategori_id', $kategoriId);
+        }
+
         $validStatuses = ['pending', 'aktif', 'ditolak', 'draft'];
+        $hasPendingAction = Schema::hasColumn('produk', 'pending_action');
 
         if ($status === 'pending') {
-            $query->where(function ($pending) {
-                $pending->where('status', 'pending')->orWhereNotNull('pending_action');
+            $query->where(function ($pending) use ($hasPendingAction) {
+                $pending->where('status', 'pending');
+                if ($hasPendingAction) {
+                    $pending->orWhereNotNull('pending_action');
+                }
             });
         } elseif ($status && in_array($status, $validStatuses, true)) {
             $query->where('status', $status);
-            if (in_array($status, ['aktif', 'ditolak'], true)) {
+            if ($hasPendingAction && in_array($status, ['aktif', 'ditolak'], true)) {
                 $query->whereNull('pending_action');
             }
         }
 
-        $produk = $query->paginate(15)->withQueryString();
-        $pendingCount = Produk::where(function ($pending) {
-            $pending->where('status', 'pending')->orWhereNotNull('pending_action');
+        $query->latest();
+
+        if ($perPage === 'all' || $perPage === 'semua') {
+            $perPageCount = max(1, (clone $query)->count());
+        } else {
+            $perPageCount = in_array((int) $perPage, [10, 25, 50], true) ? (int) $perPage : 10;
+        }
+
+        $produk = $query->paginate($perPageCount)->withQueryString();
+        $pendingCount = Produk::where(function ($pending) use ($hasPendingAction) {
+            $pending->where('status', 'pending');
+            if ($hasPendingAction) {
+                $pending->orWhereNotNull('pending_action');
+            }
         })->count();
 
-        return view('admin.produk.index', compact('produk', 'status', 'pendingCount'));
+        $kategoris = Kategori::orderBy('nama')->get();
+
+        return view('admin.produk.index', compact('produk', 'status', 'pendingCount', 'search', 'kategoriId', 'kategoris', 'perPage'));
     }
 
     /**
@@ -74,11 +110,31 @@ class ProdukController extends Controller
 
             if ($validated['decision'] === 'approve' && $action === 'delete') {
                 $photoToDelete = $produk->foto_utama;
+                $produkNama = $produk->nama;
+                $sellerId = $produk->penjual_id;
+                $sellerName = $produk->penjual?->user?->name ?? 'Penjual';
+                $produkId = $produk->id;
+
                 DB::transaction(function () use ($produk) {
                     $produk->delete();
                 });
                 if ($photoToDelete) {
                     Storage::disk('public')->delete($photoToDelete);
+                }
+
+                try {
+                    $notificationService->notifyAdmins([
+                        'title' => 'Produk dihapus',
+                        'description' => 'Produk "' . $produkNama . '" disetujui untuk dihapus dari katalog.',
+                        'activity' => 'produk.dihapus',
+                        'actor' => $sellerName,
+                        'seller_id' => $sellerId,
+                        'entity_type' => 'produk',
+                        'entity_id' => $produkId,
+                        'url' => route('admin.produk.index'),
+                    ]);
+                } catch (\Throwable $e) {
+                    // Logged silently
                 }
 
                 return redirect()->route('admin.produk.index')
@@ -170,6 +226,11 @@ class ProdukController extends Controller
      */
     public function destroy(Produk $produk, AdminNotificationService $notificationService): RedirectResponse
     {
+        $sellerId = $produk->penjual_id;
+        $sellerName = $produk->penjual?->user?->name ?? 'Penjual';
+        $produkNama = $produk->nama;
+        $produkId = $produk->id;
+
         // Delete image if exists
         if ($produk->foto_utama && \Illuminate\Support\Facades\Storage::disk('public')->exists($produk->foto_utama)) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($produk->foto_utama);
@@ -179,11 +240,12 @@ class ProdukController extends Controller
 
         $notificationService->notifyAdmins([
             'title' => 'Produk dihapus',
-            'description' => 'Produk "' . $produk->nama . '" dihapus oleh ' . auth()->user()->name . '.',
+            'description' => 'Produk "' . $produkNama . '" dihapus oleh ' . auth()->user()->name . '.',
             'activity' => 'produk.dihapus',
-            'actor' => auth()->user()->name,
+            'actor' => $sellerName,
+            'seller_id' => $sellerId,
             'entity_type' => 'produk',
-            'entity_id' => $produk->id,
+            'entity_id' => $produkId,
             'url' => route('admin.produk.index'),
         ], auth()->id());
 

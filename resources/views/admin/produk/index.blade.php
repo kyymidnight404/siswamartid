@@ -18,10 +18,10 @@
             ['label' => 'Ditolak', 'status' => 'ditolak', 'count' => null],
         ];
     @endphp
-    <nav aria-label="Filter moderasi produk" class="mb-6 flex flex-wrap gap-2 rounded-[24px] border-2 border-[var(--ink)] bg-[var(--white-warm)] p-2 shadow-[3px_3px_0_var(--ink)]">
+    <nav aria-label="Filter moderasi produk" class="mb-4 flex flex-wrap gap-2 rounded-[24px] border-2 border-[var(--ink)] bg-[var(--white-warm)] p-2 shadow-[3px_3px_0_var(--ink)]">
         @foreach($moderationTabs as $tab)
             @php($isActive = $status === $tab['status'])
-            <a href="{{ $tab['status'] ? route('admin.produk.index', ['status' => $tab['status']]) : route('admin.produk.index') }}"
+            <a href="{{ route('admin.produk.index', array_filter(['status' => $tab['status'], 'search' => request('search'), 'kategori_id' => request('kategori_id'), 'per_page' => request('per_page')])) }}"
                @if($isActive) aria-current="page" @endif
                class="inline-flex min-h-11 items-center justify-center gap-3 rounded-full border-2 px-4 py-2 text-sm font-bold transition duration-150 hover:-translate-y-0.5 focus-visible:outline-none {{ $isActive ? 'border-[var(--ink)] bg-[var(--brand)] text-[var(--ink)]' : 'border-transparent bg-transparent text-[var(--ink-soft)] hover:border-[var(--ink)] hover:bg-[var(--cream-2)]' }}">
                 <span>{{ $tab['label'] }}</span>
@@ -31,6 +31,46 @@
             </a>
         @endforeach
     </nav>
+
+    {{-- Search & Kategori Filter Toolbar --}}
+    <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <form method="GET" action="{{ route('admin.produk.index') }}" class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            @if($status)
+                <input type="hidden" name="status" value="{{ $status }}">
+            @endif
+            <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+
+            {{-- Search Input --}}
+            <div class="relative min-w-[240px] flex-1 sm:flex-initial">
+                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text"
+                       name="search"
+                       value="{{ request('search') }}"
+                       placeholder="Cari produk, deskripsi, toko..."
+                       class="form-input !h-10 !text-xs !pl-10 !py-2 w-full">
+            </div>
+
+            {{-- Kategori Filter --}}
+            <select name="kategori_id" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--bg-surface)]">
+                <option value="">Semua Kategori</option>
+                @foreach($kategoris as $kat)
+                    <option value="{{ $kat->id }}" {{ (string) request('kategori_id') === (string) $kat->id ? 'selected' : '' }}>
+                        {{ $kat->nama }}
+                    </option>
+                @endforeach
+            </select>
+
+            <button type="submit" class="btn-primary !h-10 !text-xs !py-2 !px-4">
+                Cari
+            </button>
+
+            @if(request('search') || request('kategori_id'))
+                <a href="{{ route('admin.produk.index', array_filter(['status' => $status, 'per_page' => request('per_page', 10)])) }}" class="btn-outline !h-10 !text-xs !py-2 !px-3" title="Reset Filter">
+                    Reset
+                </a>
+            @endif
+        </form>
+    </div>
 
     <div class="admin-card">
         <div class="overflow-x-auto">
@@ -81,7 +121,7 @@
                         <td class="px-5 py-4">
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{{ route('admin.produk.show', $p) }}" class="btn-outline text-xs px-3 py-1.5">Review</a>
-                                
+
                                 @if($p->status === 'pending' && !$p->pending_action)
                                 <form method="POST" action="{{ route('admin.produk.updateStatus', $p) }}" class="inline-block">
                                     @csrf @method('PATCH')
@@ -95,16 +135,14 @@
                     @empty
                     <tr>
                         <td colspan="5" class="px-5 py-12 text-center text-[var(--text-muted)]">
-                            Belum ada produk yang perlu dicek.
+                            Belum ada produk yang sesuai pencarian / filter.
                         </td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        <div class="p-4 border-t border-[var(--border-color)]">
-            {{ $produk->links() }}
-        </div>
+        <x-admin.table-pagination :paginator="$produk" />
     </div>
 
 @endsection

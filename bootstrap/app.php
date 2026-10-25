@@ -14,13 +14,20 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Trust all proxies (penting untuk HTTPS di reverse proxy / hosting cPanel / DirectAdmin / Cloudflare)
-        $middleware->trustProxies(at: '*');
+        // Konfigurasi trusted proxy (mendukung environment TRUSTED_PROXIES untuk Cloudflare/reverse proxy)
+        $trustedProxies = env('TRUSTED_PROXIES', '*');
+        if ($trustedProxies === '*' || empty($trustedProxies)) {
+            $middleware->trustProxies(at: '*');
+        } else {
+            $proxies = array_map('trim', explode(',', (string) $trustedProxies));
+            $middleware->trustProxies(at: $proxies);
+        }
 
-        // Daftarkan middleware role sebagai alias
+        // Daftarkan middleware role dan status aktif sebagai alias
         $middleware->alias([
             'admin'   => \App\Http\Middleware\EnsureAdmin::class,
             'penjual' => \App\Http\Middleware\EnsurePenjual::class,
+            'active'  => \App\Http\Middleware\EnsureUserIsActive::class,
         ]);
 
         // Redirect user yang sudah login bila mengakses route guest (spt /login)

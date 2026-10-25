@@ -17,6 +17,53 @@
         </div>
     </section>
 
+    {{-- Search & Filter Toolbar --}}
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <form method="GET" action="{{ route('admin.komentar.index') }}" class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+
+            {{-- Search Input --}}
+            <div class="relative min-w-[240px] flex-1 sm:flex-initial">
+                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text"
+                       name="search"
+                       value="{{ request('search') }}"
+                       placeholder="Cari ulasan, pengunjung, produk, toko..."
+                       class="form-input !h-10 !text-xs !pl-10 !py-2 w-full">
+            </div>
+
+            {{-- Kategori Filter --}}
+            <select name="kategori_id" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--bg-surface)]">
+                <option value="">Semua Kategori</option>
+                @foreach($kategoris as $kat)
+                    <option value="{{ $kat->id }}" {{ (string) request('kategori_id') === (string) $kat->id ? 'selected' : '' }}>
+                        {{ $kat->nama }}
+                    </option>
+                @endforeach
+            </select>
+
+            {{-- Rating Filter --}}
+            <select name="rating" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--bg-surface)]">
+                <option value="">Semua Rating</option>
+                @for($r = 5; $r >= 1; $r--)
+                    <option value="{{ $r }}" {{ (string) request('rating') === (string) $r ? 'selected' : '' }}>
+                        ⭐ {{ $r }} Bintang
+                    </option>
+                @endfor
+            </select>
+
+            <button type="submit" class="btn-primary !h-10 !text-xs !py-2 !px-4">
+                Cari
+            </button>
+
+            @if(request('search') || request('kategori_id') || request('rating'))
+                <a href="{{ route('admin.komentar.index', ['per_page' => request('per_page', 10)]) }}" class="btn-outline !h-10 !text-xs !py-2 !px-3" title="Reset Filter">
+                    Reset
+                </a>
+            @endif
+        </form>
+    </div>
+
     @if(session('success'))
         <div class="admin-card border-2 border-emerald-700 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900" role="status">
             {{ session('success') }}
@@ -33,6 +80,11 @@
                             <span class="inline-flex items-center gap-1 rounded-full border border-amber-500 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-900" aria-label="Rating {{ $ulasan->rating }} dari 5">
                                 <span aria-hidden="true">★</span> {{ $ulasan->rating }}/5
                             </span>
+                            @if($ulasan->produk?->kategori)
+                                <span class="text-[10px] bg-[var(--color-primary)] text-[var(--border-color)] border border-[var(--border-color)] font-bold px-2 py-0.5 rounded-full inline-block">
+                                    {{ $ulasan->produk->kategori->nama }}
+                                </span>
+                            @endif
                             <time class="text-xs text-[var(--text-muted)]" datetime="{{ $ulasan->created_at?->toIso8601String() }}">
                                 {{ $ulasan->created_at?->timezone(config('app.timezone'))->format('d M Y, H:i') ?? 'Waktu tidak tersedia' }}
                             </time>
@@ -57,14 +109,14 @@
             </article>
         @empty
             <div class="admin-card px-5 py-12 text-center">
-                <h3 class="font-bold text-[var(--text-main)]">Belum ada ulasan</h3>
+                <h3 class="font-bold text-[var(--text-main)]">Belum ada ulasan yang sesuai pencarian / filter</h3>
                 <p class="mt-1 text-sm text-[var(--text-muted)]">Ulasan yang lolos pemeriksaan otomatis akan tampil di sini.</p>
             </div>
         @endforelse
     </section>
 
-    @if($komentarList->hasPages())
-        <div class="admin-card p-4">{{ $komentarList->links() }}</div>
-    @endif
+    <div class="admin-card overflow-hidden">
+        <x-admin.table-pagination :paginator="$komentarList" />
+    </div>
 </div>
 @endsection

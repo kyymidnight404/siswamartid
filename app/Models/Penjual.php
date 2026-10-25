@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Penjual extends Model
 {
@@ -60,5 +61,13 @@ class Penjual extends Model
     public function produk(): HasMany
     {
         return $this->hasMany(Produk::class);
+    }
+
+    /**
+     * Ulasan dari seluruh produk milik penjual ini.
+     */
+    public function ulasan(): HasManyThrough
+    {
+        return $this->hasManyThrough(Ulasan::class, Produk::class, 'penjual_id', 'produk_id');
     }
 }

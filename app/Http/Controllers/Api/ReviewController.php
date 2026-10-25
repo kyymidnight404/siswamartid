@@ -15,7 +15,7 @@ class ReviewController extends ApiController
      */
     public function index(Produk $product)
     {
-        abort_if($product->status !== 'aktif', 404);
+        abort_if($product->status !== 'aktif' || ! ($product->penjual?->user?->is_active), 404);
 
         $reviews = $product->ulasan()
             ->publicVisible()
@@ -39,7 +39,7 @@ class ReviewController extends ApiController
         Produk $product,
         CommentModerationService $moderation
     ) {
-        abort_if($product->status !== 'aktif', 404);
+        abort_if($product->status !== 'aktif' || ! ($product->penjual?->user?->is_active), 404);
 
         $validated = $request->validate([
             'guest_username' => ['required', 'string', 'max:100'],
@@ -64,8 +64,15 @@ class ReviewController extends ApiController
         $comment = trim($comment);
 
         /*
-         * Moderasi komentar.
+         * Moderasi nama pengguna dan komentar.
          */
+        $userModerated = $moderation->moderate($guestUsername);
+        if ($userModerated['detected']) {
+            throw ValidationException::withMessages([
+                'guest_username' => 'Nama pengguna ulasan mengandung kata yang tidak pantas.',
+            ]);
+        }
+
         $moderated = $moderation->moderate($comment);
 
         if ($moderated['detected']) {

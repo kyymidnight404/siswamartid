@@ -44,6 +44,10 @@
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            max-height: 100vh;
         }
         .sidebar-section-title {
             font-size: 0.7rem;
@@ -125,16 +129,85 @@
         /* Forms */
         .form-input {
             width: 100%;
-            background: var(--bg-body);
-            border: 2px solid var(--input-border);
+            background: var(--bg-surface);
+            border: 2px solid var(--border-color);
             color: var(--text-main);
-            border-radius: 12px;
-            padding: 10px 14px;
+            border-radius: 16px;
+            padding: 10px 16px;
             font-size: 0.875rem;
+            font-weight: 500;
             box-shadow: 2px 2px 0px 0px var(--border-color);
             transition: all 0.2s;
+            box-sizing: border-box;
+        }
+        input.form-input:not([type="checkbox"]):not([type="radio"]) {
+            height: 48px;
+            min-height: 48px;
+            max-height: 48px;
+            line-height: 20px;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            padding-left: 16px;
+            padding-right: 16px;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+        select.form-input {
+            height: 48px;
+            min-height: 48px;
+            max-height: 48px;
+            line-height: 22px;
+            padding-top: 11px;
+            padding-bottom: 11px;
+            padding-left: 16px;
+            padding-right: 36px;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+        :is(div,label).form-input {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 48px;
+            min-height: 48px;
+            max-height: 48px;
+            padding-top: 0;
+            padding-bottom: 0;
+            padding-left: 12px;
+            padding-right: 14px;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+        textarea.form-input {
+            padding: 14px 16px;
+            line-height: 1.6;
+            box-sizing: border-box;
+        }
+        .form-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.85;
+            line-height: normal;
         }
         .form-input:focus { outline: none; background: var(--bg-surface); transform: translate(-2px, -2px); box-shadow: 4px 4px 0px 0px var(--border-color); }
+        label.form-input,
+        label.form-input:hover,
+        label.form-input:active,
+        label.form-input:focus,
+        label.form-input:focus-within {
+            transform: none !important;
+            transition: none !important;
+            animation: none !important;
+            box-shadow: 2px 2px 0px 0px var(--border-color) !important;
+            background: var(--bg-surface) !important;
+            border-color: var(--border-color) !important;
+            outline: none !important;
+            cursor: pointer !important;
+        }
+        label.form-input * {
+            transform: none !important;
+            transition: none !important;
+            animation: none !important;
+        }
 
         /* Buttons */
         .btn-primary {
@@ -214,13 +287,13 @@
         .badge-pending { background: #fef7e0; color: #b06000; }
         .badge-ditolak { background: #fce8e6; color: #c5221f; }
     </style>
-    <link rel="stylesheet" href="{{ asset('css/siswamart-theme.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/siswamart-theme.css') }}?v={{ file_exists(public_path('css/siswamart-theme.css')) ? filemtime(public_path('css/siswamart-theme.css')) : time() }}">
 </head>
 <body class="seller-dashboard flex min-h-screen">
     
 
     {{-- ── Sidebar ── --}}
-    <aside class="app-sidebar hidden lg:flex">
+    <aside class="app-sidebar hidden lg:flex sticky top-0 h-screen max-h-screen">
         <div class="h-16 flex items-center px-6 border-b border-[var(--border-color)]">
             <a href="/" class="flex items-center group transition-transform hover:scale-105 text-xl font-black tracking-tight drop-shadow-sm">
                 <span class="text-[var(--text-main)]">Siswa</span><span class="text-[#ea580c]">Mart</span>

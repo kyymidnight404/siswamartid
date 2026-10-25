@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -17,14 +18,49 @@ class PenjualController extends Controller
     /**
      * Tampilkan daftar seluruh Penjual.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $penjual = User::with('penjual')
-            ->where('role', 'penjual')
-            ->latest()
-            ->paginate(15);
+        $search = $request->query('search');
+        $status = $request->query('status');
+        $perPage = $request->query('per_page', 10);
 
-        return view('admin.penjual.index', compact('penjual'));
+        $query = User::with('penjual')
+            ->where('role', 'penjual');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhereHas('penjual', function ($p) use ($search) {
+                      $p->where('nama_toko', 'like', "%{$search}%")
+                        ->orWhere('nomor_whatsapp', 'like', "%{$search}%")
+                        ->orWhere('lokasi_kelas', 'like', "%{$search}%")
+                        ->orWhere('nisn', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($status === 'aktif') {
+            $query->where('is_active', true);
+        } elseif ($status === 'nonaktif') {
+            $query->where('is_active', false);
+        } elseif ($status === 'buka') {
+            $query->whereHas('penjual', fn ($p) => $p->where('status_toko', 'buka'));
+        } elseif ($status === 'tutup') {
+            $query->whereHas('penjual', fn ($p) => $p->where('status_toko', 'tutup'));
+        }
+
+        $query->latest();
+
+        if ($perPage === 'all' || $perPage === 'semua') {
+            $perPageCount = max(1, (clone $query)->count());
+        } else {
+            $perPageCount = in_array((int) $perPage, [10, 25, 50], true) ? (int) $perPage : 10;
+        }
+
+        $penjual = $query->paginate($perPageCount)->withQueryString();
+
+        return view('admin.penjual.index', compact('penjual', 'search', 'status', 'perPage'));
     }
 
     /**
@@ -159,11 +195,15 @@ class PenjualController extends Controller
         $penjual->load('penjual');
 
         if ($penjual->penjual) {
+            $hasPendingAction = Schema::hasColumn('produk', 'pending_action');
             $penjual->penjual->loadCount([
                 'produk',
                 'produk as produk_aktif_count' => fn ($query) => $query->where('status', 'aktif'),
-                'produk as produk_pending_count' => fn ($query) => $query->where(function ($pending) {
-                    $pending->where('status', 'pending')->orWhereNotNull('pending_action');
+                'produk as produk_pending_count' => fn ($query) => $query->where(function ($pending) use ($hasPendingAction) {
+                    $pending->where('status', 'pending');
+                    if ($hasPendingAction) {
+                        $pending->orWhereNotNull('pending_action');
+                    }
                 }),
                 'produk as produk_ditolak_count' => fn ($query) => $query->where('status', 'ditolak'),
             ]);
@@ -182,6 +222,11 @@ class PenjualController extends Controller
         abort_unless($penjual->role === 'penjual', 404);
 
         $penjual->update(['is_active' => ! $penjual->is_active]);
+
+        // Cabut seluruh Sanctum token aktif jika akun dinonaktifkan
+        if (! $penjual->is_active) {
+            $penjual->tokens()->delete();
+        }
 
         $status = $penjual->is_active ? 'diaktifkan' : 'dinonaktifkan';
 

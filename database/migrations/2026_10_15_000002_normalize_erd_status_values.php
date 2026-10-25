@@ -25,12 +25,17 @@ return new class extends Migration
             throw new RuntimeException('Rating ulasan di luar rentang 1–5; data perlu diperiksa sebelum normalisasi.');
         }
 
+        // Perluas enum terlebih dahulu agar nilai baru diizinkan
+        Schema::table('produk', function (Blueprint $table) {
+            $table->enum('stok', ['ready', 'tersedia', 'po', 'habis'])->default('tersedia')->change();
+            $table->enum('status', ['draft', 'pending', 'aktif', 'ditolak'])->default('pending')->change();
+        });
+
         DB::table('produk')->where('stok', 'ready')->update(['stok' => 'tersedia']);
         DB::table('penjual')->update(['status_toko' => DB::raw('LOWER(status_toko)')]);
 
         Schema::table('produk', function (Blueprint $table) {
             $table->enum('stok', ['tersedia', 'po', 'habis'])->default('tersedia')->change();
-            $table->enum('status', ['draft', 'pending', 'aktif', 'ditolak'])->default('pending')->change();
         });
 
         Schema::table('penjual', function (Blueprint $table) {
@@ -44,6 +49,12 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Perluas enum terlebih dahulu agar nilai lama diizinkan sebelum update data
+        Schema::table('produk', function (Blueprint $table) {
+            $table->enum('stok', ['ready', 'tersedia', 'po', 'habis'])->default('ready')->change();
+            $table->enum('status', ['draft', 'pending', 'aktif', 'ditolak'])->default('pending')->change();
+        });
+
         DB::table('produk')->where('stok', 'tersedia')->update(['stok' => 'ready']);
         DB::table('produk')->where('status', 'draft')->update(['status' => 'pending']);
         DB::table('penjual')->update([

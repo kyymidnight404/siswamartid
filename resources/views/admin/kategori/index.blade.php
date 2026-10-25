@@ -32,11 +32,29 @@
         </button>
     </div>
 
-    {{-- Search --}}
-    <div class="mb-6 flex">
-        <form action="{{ route('admin.categories.index') }}" method="GET" class="w-full sm:w-1/2 md:w-1/3 flex gap-2">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kategori..." class="form-input" />
-            <button type="submit" class="btn-primary" style="padding: 8px 12px">Cari</button>
+    {{-- Search Toolbar --}}
+    <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <form action="{{ route('admin.categories.index') }}" method="GET" class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+
+            <div class="relative min-w-[240px] flex-1 sm:flex-initial">
+                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text"
+                       name="search"
+                       value="{{ request('search') }}"
+                       placeholder="Cari kategori..."
+                       class="form-input !h-10 !text-xs !pl-10 !py-2 w-full">
+            </div>
+
+            <button type="submit" class="btn-primary !h-10 !text-xs !py-2 !px-4">
+                Cari
+            </button>
+
+            @if(request('search'))
+                <a href="{{ route('admin.categories.index', ['per_page' => request('per_page', 10)]) }}" class="btn-outline !h-10 !text-xs !py-2 !px-3" title="Reset Pencarian">
+                    Reset
+                </a>
+            @endif
         </form>
     </div>
 
@@ -63,7 +81,6 @@
                         <th class="px-5 py-4 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider w-16 text-center">No</th>
                         <th class="px-5 py-4 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider text-center">Ikon</th>
                         <th class="px-5 py-4 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Nama Kategori</th>
-                        <th class="px-5 py-4 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Slug</th>
                         <th class="px-5 py-4 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider text-center">Jumlah Produk</th>
                         <th class="px-5 py-4 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Dibuat</th>
                         <th class="px-5 py-4 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider text-right">Aksi</th>
@@ -82,9 +99,6 @@
                         <td class="px-5 py-4">
                             <div class="font-semibold text-[var(--text-main)]">{{ $kategori->nama }}</div>
                         </td>
-                        <td class="px-5 py-4">
-                            <code class="text-xs bg-[var(--bg-surface)] border border-[var(--border-color)] px-2 py-1 rounded text-[var(--text-muted)]">{{ $kategori->slug }}</code>
-                        </td>
                         <td class="px-5 py-4 text-center">
                             <span class="inline-flex items-center justify-center bg-[var(--color-primary-light)] text-[var(--text-main)] border border-[var(--border-color)] font-bold px-2 py-0.5 rounded-full text-xs">
                                 {{ $kategori->produk_count }}
@@ -95,7 +109,7 @@
                         </td>
                         <td class="px-5 py-4">
                             <div class="flex items-center justify-end gap-2">
-                                <button type="button" data-kategori-id="{{ $kategori->id }}" data-kategori-nama="{{ $kategori->nama }}" data-kategori-slug="{{ $kategori->slug }}" data-kategori-icon="{{ $categoryIcon }}" onclick="openEditModalFromButton(this)"
+                                <button type="button" data-kategori-id="{{ $kategori->id }}" data-kategori-nama="{{ $kategori->nama }}" data-kategori-icon="{{ $categoryIcon }}" onclick="openEditModalFromButton(this)"
                                    class="btn-outline text-xs px-2.5 py-1">
                                     Edit
                                 </button>
@@ -111,7 +125,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-5 py-12">
+                        <td colspan="6" class="px-5 py-12">
                             <div class="flex flex-col items-center justify-center text-[var(--text-muted)]">
                                 <svg class="w-16 h-16 mb-4 text-[var(--color-primary)] opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                                 <p class="font-bold text-lg text-[var(--text-main)] mb-1">Belum ada kategori</p>
@@ -123,9 +137,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="p-4 border-t border-[var(--border-color)]">
-            {{ $kategoris->links() }}
-        </div>
+        <x-admin.table-pagination :paginator="$kategoris" />
     </div>
 
     {{-- Modal Create --}}
@@ -140,7 +152,7 @@
                         <h3 class="text-lg leading-6 font-bold text-[var(--text-main)] mb-4" id="modal-title">Tambah Kategori Baru</h3>
                         <div class="mb-4">
                             <label for="nama" class="block text-sm font-bold text-[var(--text-main)] mb-1">Nama Kategori <span class="text-[#ea4335]">*</span></label>
-                            <input type="text" name="nama" id="nama" class="form-input" placeholder="Contoh: Makanan & Minuman" required oninput="generateSlug(this.value, 'slug')">
+                            <input type="text" name="nama" id="nama" class="form-input" placeholder="Contoh: Makanan & Minuman" required>
                         </div>
                         <div class="mb-4">
                             <label for="icon" class="block text-sm font-bold text-[var(--text-main)] mb-1">Ikon Kategori <span class="text-[#ea4335]">*</span></label>
@@ -156,11 +168,6 @@
                                 </select>
                             </div>
                             <p class="mt-1 text-xs text-[var(--text-muted)]">Pilih ikon yang tersedia di katalog SiswaMart.</p>
-                        </div>
-                        <div class="mb-4">
-                            <label for="slug" class="block text-sm font-bold text-[var(--text-main)] mb-1">Slug <span class="text-[var(--text-muted)] font-normal">(Otomatis)</span></label>
-                            <input type="text" name="slug" id="slug" class="form-input bg-gray-100 cursor-not-allowed" readonly placeholder="Otomatis terisi">
-                            <p class="text-[10px] text-[var(--text-muted)] mt-1">Slug digunakan untuk URL kategori (contoh: makanan-minuman).</p>
                         </div>
                     </div>
                     <div class="bg-[var(--bg-hover)] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t-2 border-[var(--border-color)]">
@@ -189,7 +196,7 @@
                         <h3 class="text-lg leading-6 font-bold text-[var(--text-main)] mb-4" id="modal-title">Edit Kategori</h3>
                         <div class="mb-4">
                             <label for="edit_nama" class="block text-sm font-bold text-[var(--text-main)] mb-1">Nama Kategori <span class="text-[#ea4335]">*</span></label>
-                            <input type="text" name="nama" id="edit_nama" class="form-input" required oninput="generateSlug(this.value, 'edit_slug')">
+                            <input type="text" name="nama" id="edit_nama" class="form-input" required>
                         </div>
                         <div class="mb-4">
                             <label for="edit_icon" class="block text-sm font-bold text-[var(--text-main)] mb-1">Ikon Kategori <span class="text-[#ea4335]">*</span></label>
@@ -203,11 +210,6 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
-                        <div class="mb-4">
-                            <label for="edit_slug" class="block text-sm font-bold text-[var(--text-main)] mb-1">Slug</label>
-                            <input type="text" name="slug" id="edit_slug" class="form-input" required>
-                            <p class="text-[10px] text-[var(--text-muted)] mt-1">Slug bisa kamu ubah manual jika diperlukan.</p>
                         </div>
                     </div>
                     <div class="bg-[var(--bg-hover)] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t-2 border-[var(--border-color)]">
@@ -232,11 +234,10 @@
             document.getElementById(modalId).classList.add('hidden');
         }
 
-        function openEditModal(id, nama, slug, icon) {
+        function openEditModal(id, nama, icon) {
             const form = document.getElementById('editForm');
             form.action = `/admin/categories/${id}`;
             document.getElementById('edit_nama').value = nama;
-            document.getElementById('edit_slug').value = slug;
             const iconSelect = document.getElementById('edit_icon');
             iconSelect.value = icon;
             previewCategoryIcon(iconSelect, 'edit_icon_preview');
@@ -244,21 +245,11 @@
         }
 
         function openEditModalFromButton(button) {
-            openEditModal(button.dataset.kategoriId, button.dataset.kategoriNama, button.dataset.kategoriSlug, button.dataset.kategoriIcon);
+            openEditModal(button.dataset.kategoriId, button.dataset.kategoriNama, button.dataset.kategoriIcon);
         }
 
         function previewCategoryIcon(select, previewId) {
             document.getElementById(previewId).src = `/${select.value}`;
-        }
-
-        function generateSlug(text, targetId) {
-            const slug = text.toString().toLowerCase()
-                .replace(/\s+/g, '-')           // Replace spaces with -
-                .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-                .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-                .replace(/^-+/, '')             // Trim - from start of text
-                .replace(/-+$/, '');            // Trim - from end of text
-            document.getElementById(targetId).value = slug;
         }
     </script>
 

@@ -116,7 +116,11 @@ class LaporanController extends Controller
         $events = $this->sellerProductEvents($start, $end);
         $eventCounts = [];
         foreach ($events as $event) {
-            $eventCounts[$event['seller_id']][$event['activity']] = ($eventCounts[$event['seller_id']][$event['activity']] ?? 0) + 1;
+            $act = $event['activity'];
+            if ($act === 'produk.hapus_diminta') {
+                $act = 'produk.dihapus';
+            }
+            $eventCounts[$event['seller_id']][$act] = ($eventCounts[$event['seller_id']][$act] ?? 0) + 1;
         }
 
         $periodViews = ProdukViewLog::query()
@@ -147,24 +151,96 @@ class LaporanController extends Controller
             ->get()
             ->keyBy('penjual_id');
 
+        // Total ulasan dan rating kumulatif per penjual
+        $cumulativeReviews = DB::table('ulasan')
+            ->join('produk', 'produk.id', '=', 'ulasan.produk_id')
+            ->where(function ($query) {
+                $query->where('ulasan.moderation_status', 'approved')
+                      ->whereNotIn('ulasan.status', ['disembunyikan', 'ditolak', 'dihapus', 'rejected'])
+                      ->orWhere(function ($legacy) {
+                          $legacy->whereNull('ulasan.moderation_status')
+                                 ->whereIn('ulasan.status', ['aktif', 'disetujui', 'disensor']);
+                      });
+            })
+            ->select('produk.penjual_id')
+            ->selectRaw('COUNT(ulasan.id) as total_ulasan')
+            ->selectRaw('ROUND(AVG(ulasan.rating), 1) as avg_rating')
+            ->groupBy('produk.penjual_id')
+            ->get()
+            ->keyBy('penjual_id');
+
+        // Produk baru dibuat dalam periode
+        $recentProductsBySeller = Produk::whereBetween('created_at', [$start, $end])
+            ->select('id', 'penjual_id', 'nama', 'created_at', 'status')
+            ->get()
+            ->groupBy('penjual_id');
+
+        $hasPendingAction = Schema::hasColumn('produk', 'pending_action');
+
+        // Produk diajukan hapus dalam periode
+        $pendingDeleteBySeller = $hasPendingAction
+            ? Produk::where('pending_action', 'delete')
+                ->whereBetween('updated_at', [$start, $end])
+                ->select('id', 'penjual_id', 'nama', 'updated_at')
+                ->get()
+                ->groupBy('penjual_id')
+            : collect();
+
         $sellers = Penjual::with('user')
             ->withCount('produk')
-            ->withCount(['produk as produk_aktif_count' => fn ($query) => $query->where('status', 'aktif')])
+            ->withCount(['produk as produk_aktif_count' => function ($query) use ($hasPendingAction) {
+                $query->where('status', 'aktif');
+                if ($hasPendingAction) {
+                    $query->whereNull('pending_action');
+                }
+            }])
+            ->withCount(['produk as produk_pending_count' => function ($query) use ($hasPendingAction) {
+                $query->where('status', 'pending');
+                if ($hasPendingAction) {
+                    $query->orWhereNotNull('pending_action');
+                }
+            }])
             ->withSum('produk', 'views')
             ->get()
-            ->map(function (Penjual $seller) use ($periodViews, $periodReviews, $eventCounts) {
+            ->map(function (Penjual $seller) use (
+                $periodViews,
+                $periodReviews,
+                $cumulativeReviews,
+                $eventCounts,
+                $recentProductsBySeller,
+                $pendingDeleteBySeller
+            ) {
                 $views = $periodViews->get($seller->id);
                 $reviews = $periodReviews->get($seller->id);
+                $cumul = $cumulativeReviews->get($seller->id);
+
                 $seller->period_views = (int) ($views->view_count ?? 0);
                 $seller->period_reviews = (int) ($reviews->review_count ?? 0);
                 $seller->period_rating = $reviews?->average_rating !== null ? round((float) $reviews->average_rating, 1) : null;
-                $seller->period_added = $eventCounts[$seller->id]['produk.ditambahkan'] ?? 0;
-                $seller->period_deleted = $eventCounts[$seller->id]['produk.dihapus'] ?? 0;
+
+                // Ulasan & Rating kumulatif toko
+                $seller->total_ulasan = (int) ($cumul->total_ulasan ?? 0);
+                $seller->avg_rating = $cumul?->avg_rating !== null ? (float) $cumul->avg_rating : null;
+
+                // Produk baru diupload pada periode
+                $dbAdded = $recentProductsBySeller->get($seller->id)?->count() ?? 0;
+                $notifAdded = $eventCounts[$seller->id]['produk.ditambahkan'] ?? 0;
+                $seller->period_added = max($dbAdded, $notifAdded);
+                $seller->produk_baru_minggu = $seller->period_added;
+                $seller->recent_products = $recentProductsBySeller->get($seller->id) ?? collect();
+
+                // Produk dihapus pada periode
+                $notifDeleted = $eventCounts[$seller->id]['produk.dihapus'] ?? 0;
+                $pendingDelCount = $pendingDeleteBySeller->get($seller->id)?->count() ?? 0;
+                $seller->period_deleted = max($notifDeleted, $pendingDelCount);
+                $seller->produk_dihapus_minggu = $seller->period_deleted;
+                $seller->pending_deleted_products = $pendingDeleteBySeller->get($seller->id) ?? collect();
+
                 $seller->period_edits_requested = $eventCounts[$seller->id]['produk.diedit'] ?? 0;
 
                 return $seller;
             })
-            ->sortByDesc('period_views')
+            ->sortByDesc('produk_count')
             ->values();
 
         $topProducts = Produk::with('penjual')
@@ -176,16 +252,24 @@ class LaporanController extends Controller
             ->limit(10)
             ->get();
 
+        $totalUlasanSemua = $sellers->sum('total_ulasan');
+        $sellersWithRating = $sellers->whereNotNull('avg_rating');
+        $avgRatingSemua = $sellersWithRating->count() > 0
+            ? round($sellersWithRating->avg('avg_rating'), 1)
+            : null;
+
         return [
             'total_sellers' => $sellers->count(),
-            'products_added' => $events->where('activity', 'produk.ditambahkan')->count(),
-            'products_deleted' => $events->where('activity', 'produk.dihapus')->count(),
+            'products_added' => max($events->where('activity', 'produk.ditambahkan')->count(), $sellers->sum('period_added')),
+            'products_deleted' => max($events->whereIn('activity', ['produk.dihapus', 'produk.hapus_diminta'])->count(), $sellers->sum('period_deleted')),
             'edits_requested' => $events->where('activity', 'produk.diedit')->count(),
             'views' => $sellers->sum('period_views'),
             'reviews' => $sellers->sum('period_reviews'),
             'sellers' => $sellers,
             'top_products' => $topProducts,
             'events' => $events->take(12),
+            'total_ulasan_semua' => $totalUlasanSemua,
+            'avg_rating_semua' => $avgRatingSemua,
         ];
     }
 
@@ -210,9 +294,9 @@ class LaporanController extends Controller
             $data = json_decode($row->data, true) ?: [];
             $activity = $data['activity'] ?? null;
             $actor = trim($data['actor'] ?? '');
-            $sellerId = $sellerIdsByName->get(mb_strtolower($actor));
+            $sellerId = $data['seller_id'] ?? $sellerIdsByName->get(mb_strtolower($actor));
 
-            if (! in_array($activity, ['produk.ditambahkan', 'produk.dihapus', 'produk.diedit'], true) || ! $sellerId) {
+            if (! in_array($activity, ['produk.ditambahkan', 'produk.dihapus', 'produk.hapus_diminta', 'produk.diedit'], true) || ! $sellerId) {
                 continue;
             }
 

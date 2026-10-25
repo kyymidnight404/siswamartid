@@ -16,6 +16,42 @@
         </a>
     </div>
 
+    {{-- Search & Status Filter Toolbar --}}
+    <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <form method="GET" action="{{ route('admin.penjual.index') }}" class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+
+            {{-- Search Input --}}
+            <div class="relative min-w-[240px] flex-1 sm:flex-initial">
+                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text"
+                       name="search"
+                       value="{{ request('search') }}"
+                       placeholder="Cari toko, nama, email, kelas..."
+                       class="form-input !h-10 !text-xs !pl-10 !py-2 w-full">
+            </div>
+
+            {{-- Status Filter --}}
+            <select name="status" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--bg-surface)]">
+                <option value="">Semua Status</option>
+                <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Akun Aktif</option>
+                <option value="nonaktif" {{ request('status') === 'nonaktif' ? 'selected' : '' }}>Akun Nonaktif</option>
+                <option value="buka" {{ request('status') === 'buka' ? 'selected' : '' }}>Toko Buka</option>
+                <option value="tutup" {{ request('status') === 'tutup' ? 'selected' : '' }}>Toko Tutup</option>
+            </select>
+
+            <button type="submit" class="btn-primary !h-10 !text-xs !py-2 !px-4">
+                Cari
+            </button>
+
+            @if(request('search') || request('status'))
+                <a href="{{ route('admin.penjual.index', ['per_page' => request('per_page', 10)]) }}" class="btn-outline !h-10 !text-xs !py-2 !px-3" title="Reset Filter">
+                    Reset
+                </a>
+            @endif
+        </form>
+    </div>
+
     <div class="admin-card">
         <div class="overflow-x-auto">
             <table class="w-full text-sm text-left">
@@ -62,7 +98,7 @@
                                       class="seller-confirm-form" data-confirm-kind="status"
                                       data-seller-label="{{ $p->penjual?->nama_toko ?? $p->name }}">
                                     @csrf @method('PATCH')
-                                    <button type="submit" 
+                                    <button type="submit"
                                             class="btn-outline text-xs px-2.5 py-1 {{ $p->is_active ? 'text-[#ea4335] border-[#ea4335] hover:bg-[#fce8e6]' : 'text-[#34a853] border-[#34a853] hover:bg-[#e6f4ea]' }}">
                                         {{ $p->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
@@ -89,16 +125,14 @@
                     @empty
                     <tr>
                         <td colspan="4" class="px-5 py-12 text-center text-[var(--text-muted)]">
-                            Belum ada akun penjual. Buat akun pertama untuk mulai mengelola toko.
+                            Belum ada akun penjual yang sesuai pencarian / filter.
                         </td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        <div class="p-4 border-t border-[var(--border-color)]">
-            {{ $penjual->links() }}
-        </div>
+        <x-admin.table-pagination :paginator="$penjual" />
     </div>
 
     <style>

@@ -20,18 +20,24 @@ class KategoriController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $perPage = $request->query('per_page', 10);
         
-        $kategoris = Kategori::withCount('produk')
+        $query = Kategori::withCount('produk')
             ->when($search, function ($query, $search) {
                 return $query->where('nama', 'like', "%{$search}%");
             })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->withQueryString();
+            ->orderBy('created_at', 'desc');
 
+        if ($perPage === 'all' || $perPage === 'semua') {
+            $perPageCount = max(1, (clone $query)->count());
+        } else {
+            $perPageCount = in_array((int) $perPage, [10, 25, 50], true) ? (int) $perPage : 10;
+        }
+
+        $kategoris = $query->paginate($perPageCount)->withQueryString();
         $iconOptions = self::ICON_OPTIONS;
 
-        return view('admin.kategori.index', compact('kategoris', 'search', 'iconOptions'));
+        return view('admin.kategori.index', compact('kategoris', 'search', 'iconOptions', 'perPage'));
     }
 
     public function store(Request $request)
@@ -54,13 +60,12 @@ class KategoriController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:100|unique:kategori,nama,' . $category->id,
-            'slug' => 'required|string|max:100|unique:kategori,slug,' . $category->id,
             'icon' => ['required', 'string', Rule::in(array_keys(self::ICON_OPTIONS))],
         ]);
 
         $category->update([
             'nama' => $request->nama,
-            'slug' => Str::slug($request->slug), // allow slug update
+            'slug' => Str::slug($request->nama),
             'icon' => $request->icon,
         ]);
 

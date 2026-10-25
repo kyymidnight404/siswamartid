@@ -17,7 +17,7 @@ class UlasanController extends Controller
      */
     public function store(Request $request, Produk $produk, CommentModerationService $moderationService, AdminNotificationService $notificationService): RedirectResponse
     {
-        abort_if($produk->status !== 'aktif', 404);
+        abort_if($produk->status !== 'aktif' || ! ($produk->penjual?->user?->is_active), 404);
 
         $validated = $request->validate([
             'guest_username' => ['required', 'string', 'max:100'],
@@ -27,13 +27,18 @@ class UlasanController extends Controller
 
         $originalText = $validated['komentar'] ?? '';
 
-        // Tolak sebelum penyimpanan jika isi ulasan mengandung kata terlarang.
-        $modResult = $moderationService->moderate($originalText);
+        // Tolak sebelum penyimpanan jika nama pengguna atau isi ulasan mengandung kata terlarang.
+        $usernameMod = $moderationService->moderate($validated['guest_username']);
+        $commentMod  = $moderationService->moderate($originalText);
 
-        if ($modResult['detected']) {
+        if ($usernameMod['detected'] || $commentMod['detected']) {
+            $warningMsg = $usernameMod['detected']
+                ? 'Nama pengguna ulasan mengandung kata yang tidak pantas. Silakan perbaiki lalu kirim kembali.'
+                : 'Ulasan tidak terkirim karena mengandung kata yang tidak pantas. Silakan perbaiki isi ulasan lalu kirim kembali.';
+
             return redirect()->to(route('public.produk.show', $produk->slug) . '#ulasan')
                 ->withInput()
-                ->with('review_warning', 'Ulasan tidak terkirim karena mengandung kata yang tidak pantas. Silakan perbaiki isi ulasan lalu kirim kembali.');
+                ->with('review_warning', $warningMsg);
         }
 
         $ulasan = Ulasan::create([

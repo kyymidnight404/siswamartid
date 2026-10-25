@@ -17,14 +17,14 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Authentication
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/register', [AuthController::class, 'register']);
 
 // Products
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
-Route::post('/products/{product}/whatsapp', [ProductController::class, 'trackWhatsapp']);
-Route::post('/products/{product}/view', [ProductController::class, 'trackView']);
+Route::post('/products/{product}/whatsapp', [ProductController::class, 'trackWhatsapp'])->middleware('throttle:30,1');
+Route::post('/products/{product}/view', [ProductController::class, 'trackView'])->middleware('throttle:60,1');
 
 // Categories
 Route::get('/categories', [CategoryController::class, 'index']);
@@ -49,7 +49,7 @@ Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     // Authentication
     Route::post('/logout', [AuthController::class, 'logout']);

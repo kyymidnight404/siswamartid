@@ -17,3 +17,6 @@ yarn-error.log
 /.vscode
 /storage/app/backups/
 *.zip
+
+# Local database backups
+/database/backups/

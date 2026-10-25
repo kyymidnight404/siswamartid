@@ -17,20 +17,20 @@
             <div class="admin-card p-6">
                 <form method="POST" action="{{ route('penjual.produk.store') }}" enctype="multipart/form-data" class="space-y-6" id="produkForm">
                     @csrf
-                    
+
                     <h3 class="text-sm font-bold text-[var(--text-main)] border-b border-[var(--border-color)] pb-2 mb-4 uppercase tracking-widest">Detail Produk</h3>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-[var(--text-main)] mb-1.5">Nama Produk</label>
-                        <input type="text" name="nama" value="{{ old('nama') }}" required class="form-input">
+                        <input type="text" name="nama" value="{{ old('nama') }}" required class="form-input" placeholder="Masukkan nama produk">
                         @error('nama') <p class="text-[#ea4335] text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
-                    
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
                             <label class="block text-sm font-medium text-[var(--text-main)] mb-1.5">Kategori</label>
                             <select name="kategori_id" required class="form-input">
-                                <option value="" disabled selected>Pilih Kategori</option>
+                                <option value="" disabled {{ old('kategori_id') ? '' : 'selected' }}>Pilih Kategori</option>
                                 @foreach($kategori as $k)
                                     <option value="{{ $k->id }}" {{ old('kategori_id') == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
                                 @endforeach
@@ -39,39 +39,71 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-[var(--text-main)] mb-1.5">Harga (Rp)</label>
-                            <input type="number" name="harga" value="{{ old('harga') }}" required min="0" class="form-input">
+                            <input type="number" name="harga" value="{{ old('harga') }}" required min="0" class="form-input" placeholder="Contoh: 15000">
                             @error('harga') <p class="text-[#ea4335] text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-[var(--text-main)] mb-1.5">Deskripsi Produk</label>
                         <textarea name="deskripsi" rows="5" required class="form-input" placeholder="Ceritakan rasa, bahan, varian, atau porsinya...">{{ old('deskripsi') }}</textarea>
                         @error('deskripsi') <p class="text-[#ea4335] text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
-                    
+
                     <h3 class="text-sm font-bold text-[var(--text-main)] border-b border-[var(--border-color)] pb-2 mt-8 mb-4 uppercase tracking-widest">Foto & Ketersediaan</h3>
-                    
+
                     <div>
-                        <label class="block text-sm font-medium text-[var(--text-main)] mb-1.5">Foto Produk <span class="text-xs text-[var(--text-muted)] font-normal">(Opsional)</span></label>
-                        <input type="file" name="foto_utama" accept="image/*" class="w-full text-sm text-[var(--text-muted)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--bg-active)] file:text-[#1a73e8] hover:file:bg-[#d2e3fc] transition cursor-pointer">
-                        <p class="text-xs text-[var(--text-muted)] mt-1">JPG, PNG, atau WEBP. Maksimal 2MB.</p>
+                        <label for="foto_utama" class="block text-sm font-medium text-[var(--text-main)] mb-1.5">Foto Produk <span class="text-xs text-[var(--text-muted)] font-normal">(Opsional)</span></label>
+
+                        <div class="relative">
+                            <label for="foto_utama" class="form-input flex items-center justify-between cursor-pointer select-none" id="foto_upload_box">
+                                <div class="flex items-center gap-3 overflow-hidden min-w-0 pr-2">
+                                    <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black bg-[var(--color-primary)] text-[var(--border-color)] border-2 border-[var(--border-color)] flex-shrink-0">
+                                        <svg class="w-4 h-4 text-[var(--border-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        Pilih Foto
+                                    </span>
+                                    <span id="foto_nama_label" class="text-sm font-medium text-[var(--text-muted)] truncate">
+                                        Belum ada file dipilih
+                                    </span>
+                                </div>
+                                <div class="flex items-center pr-1 text-[var(--text-muted)] opacity-60 flex-shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                                </div>
+                            </label>
+                            <input type="file" name="foto_utama" id="foto_utama" accept="image/png,image/jpeg,image/jpg,image/webp" class="sr-only" onchange="previewFotoUtama(this)">
+                        </div>
+
+                        <!-- Preview Container -->
+                        <div id="foto_preview_wrapper" class="hidden mt-3 p-3 bg-[var(--bg-surface)] border-2 border-[var(--border-color)] rounded-2xl shadow-[2px_2px_0px_0px_var(--border-color)] flex items-center justify-between">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <img id="foto_preview_img" src="#" alt="Preview Foto" class="w-12 h-12 rounded-xl object-cover border-2 border-[var(--border-color)] flex-shrink-0 shadow-[2px_2px_0px_0px_var(--border-color)]">
+                                <div class="min-w-0">
+                                    <p id="foto_preview_name" class="text-xs font-bold text-[var(--text-main)] truncate"></p>
+                                    <p id="foto_preview_size" class="text-[10px] text-[var(--text-muted)]"></p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="hapusFotoUtama()" class="text-xs font-extrabold text-[#DC2626] hover:bg-[#fee2e2] px-3 py-1.5 rounded-full border border-[#DC2626] transition-colors">
+                                Hapus
+                            </button>
+                        </div>
+
+                        <p class="text-xs text-[var(--text-muted)] mt-1.5">JPG, PNG, atau WEBP. Maksimal 2MB.</p>
                         @error('foto_utama') <p class="text-[#ea4335] text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-[var(--text-main)] mb-1.5">Status Ketersediaan</label>
                         <div class="flex gap-4">
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="stok" value="tersedia" {{ old('stok', 'tersedia') === 'tersedia' ? 'checked' : '' }} class="w-4 h-4 text-[#1a73e8] border-[var(--border-color)] focus:ring-[#1a73e8]">
+                                <input type="radio" name="stok" value="tersedia" {{ old('stok', 'tersedia') === 'tersedia' ? 'checked' : '' }} class="w-4 h-4 accent-[var(--color-primary)] border-[var(--border-color)]">
                                 <span class="text-sm text-[var(--text-main)]">Ready (Tersedia)</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="stok" value="po" {{ old('stok') === 'po' ? 'checked' : '' }} class="w-4 h-4 text-[#1a73e8] border-[var(--border-color)] focus:ring-[#1a73e8]">
+                                <input type="radio" name="stok" value="po" {{ old('stok') === 'po' ? 'checked' : '' }} class="w-4 h-4 accent-[var(--color-primary)] border-[var(--border-color)]">
                                 <span class="text-sm text-[var(--text-main)]">Pre-Order</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="stok" value="habis" {{ old('stok') === 'habis' ? 'checked' : '' }} class="w-4 h-4 text-[#1a73e8] border-[var(--border-color)] focus:ring-[#1a73e8]">
+                                <input type="radio" name="stok" value="habis" {{ old('stok') === 'habis' ? 'checked' : '' }} class="w-4 h-4 accent-[var(--color-primary)] border-[var(--border-color)]">
                                 <span class="text-sm text-[var(--text-main)]">Habis</span>
                             </label>
                         </div>
@@ -80,11 +112,11 @@
                 </form>
             </div>
         </div>
-        
+
         <div class="space-y-6">
             <div class="admin-card">
-                <div class="admin-card-header bg-[#e8f0fe] border-b-[#1a73e8]/20">
-                    <h3 class="text-sm font-bold text-[#1a73e8]">Publikasi</h3>
+                <div class="admin-card-header bg-[var(--cream-2)] border-b-[var(--border-color)]">
+                    <h3 class="text-sm font-extrabold text-[var(--ink)]">Publikasi</h3>
                 </div>
                 <div class="p-5">
                     <p class="text-xs text-[var(--text-muted)] mb-5 leading-relaxed">Produkmu akan masuk status <span class="font-bold">Pending (Menunggu Moderasi)</span>. Admin akan mengeceknya sebelum produk tampil di katalog.</p>
@@ -92,21 +124,67 @@
                         Kirim Produk
                     </button>
                     <div class="mt-3 text-center">
-                        <a href="{{ route('penjual.produk.index') }}" class="text-xs text-[#1a73e8] hover:underline font-medium">Batal</a>
+                        <a href="{{ route('penjual.produk.index') }}" class="text-xs text-[var(--ink-soft)] hover:text-[var(--brand)] hover:underline font-bold">Batal</a>
                     </div>
                 </div>
             </div>
-            
-            <div class="bg-[#fef7e0] border border-[#fbbc04] rounded-2xl p-4">
+
+            <div class="bg-[#FFF8E8] border-2 border-[var(--border-color)] rounded-2xl p-4 shadow-[2px_2px_0px_0px_var(--border-color)]">
                 <div class="flex items-start gap-3">
-                    <svg class="w-5 h-5 text-[#b06000] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <svg class="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <div>
-                        <p class="text-sm font-semibold text-[#b06000]">Catatan</p>
-                        <p class="text-xs text-[#b06000]/80 mt-0.5">Transaksi dilakukan langsung dengan pembeli. Pastikan nomor WhatsApp di profilmu sudah benar.</p>
+                        <p class="text-sm font-bold text-[var(--text-main)]">Catatan</p>
+                        <p class="text-xs text-[var(--text-muted)] mt-0.5">Transaksi dilakukan langsung dengan pembeli. Pastikan nomor WhatsApp di profilmu sudah benar.</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script>
+        function previewFotoUtama(input) {
+            const file = input.files && input.files[0];
+            const label = document.getElementById('foto_nama_label');
+            const previewWrapper = document.getElementById('foto_preview_wrapper');
+            const previewImg = document.getElementById('foto_preview_img');
+            const previewName = document.getElementById('foto_preview_name');
+            const previewSize = document.getElementById('foto_preview_size');
+
+            if (file) {
+                label.textContent = file.name;
+                label.classList.remove('text-[var(--text-muted)]');
+                label.classList.add('text-[var(--text-main)]', 'font-bold');
+
+                if (previewWrapper && previewImg) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImg.src = e.target.result;
+                        previewName.textContent = file.name;
+                        previewSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+                        previewWrapper.classList.remove('hidden');
+                    }
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        function hapusFotoUtama() {
+            const input = document.getElementById('foto_utama');
+            const label = document.getElementById('foto_nama_label');
+            const previewWrapper = document.getElementById('foto_preview_wrapper');
+            const previewImg = document.getElementById('foto_preview_img');
+
+            input.value = '';
+            label.textContent = 'Belum ada file dipilih';
+            label.classList.add('text-[var(--text-muted)]');
+            label.classList.remove('text-[var(--text-main)]', 'font-bold');
+
+            if (previewWrapper) {
+                previewWrapper.classList.add('hidden');
+            }
+            if (previewImg) {
+                previewImg.src = '#';
+            }
+        }
+    </script>
 @endsection

@@ -14,7 +14,40 @@
 
     <x-auth-session-status class="mb-3 text-xs font-medium text-green-600" :status="session('status')" />
 
-    {{-- Google OAuth Button (Pilihan Utama di Atas) --}}
+    {{-- Form Login Username & Password --}}
+    <form method="POST" action="{{ route('login') }}" class="space-y-3.5">
+        @csrf
+
+        <div>
+            <label for="email" class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Username atau Email</label>
+            <input id="email" type="text" name="email" value="{{ old('email') }}" required autofocus autocomplete="username"
+                   class="form-input" placeholder="Masukkan username atau email">
+            <x-input-error :messages="$errors->get('email')" class="mt-1.5 text-xs font-medium text-[#b42318]" />
+        </div>
+
+        <div>
+            <label for="password" class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Password</label>
+            <input id="password" type="password" name="password" required autocomplete="current-password"
+                   class="form-input" placeholder="Masukkan password">
+            <x-input-error :messages="$errors->get('password')" class="mt-1.5 text-xs font-medium text-[#b42318]" />
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+            <label for="remember_me" class="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
+                <input id="remember_me" type="checkbox" name="remember" class="h-4 w-4 rounded border-2 border-[var(--ink)] accent-[var(--brand)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ink)]">
+                <span>Ingat saya di perangkat ini</span>
+            </label>
+        </div>
+
+        <button type="submit" class="btn-primary w-full justify-center py-3 text-sm font-bold">Masuk</button>
+    </form>
+
+    {{-- Divider --}}
+    <div class="my-4 text-center text-xs font-semibold text-[var(--ink-soft)]">
+        atau dengan Google
+    </div>
+
+    {{-- Google OAuth Button --}}
     <a href="{{ route('google.redirect') }}" class="auth-google-button btn-outline flex w-full items-center justify-center gap-3 rounded-full px-5 py-3 text-center text-sm font-bold shadow-[2px_2px_0_var(--ink)]" aria-label="Lanjutkan dengan Google">
         <span class="auth-google-icon inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white shadow-xs">
             <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 48 48">
@@ -35,48 +68,6 @@
             <span>{{ $googleMessage }}</span>
         </div>
     @endif
-
-    {{-- Divider --}}
-    <div class="my-4 flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]" aria-hidden="true">
-        <span class="h-px flex-1 bg-[var(--border-color)]"></span>
-        <span class="text-xs font-semibold text-[var(--ink-soft)]">atau dengan email</span>
-        <span class="h-px flex-1 bg-[var(--border-color)]"></span>
-    </div>
-
-    {{-- Form Login Email & Password --}}
-    <form method="POST" action="{{ route('login') }}" class="space-y-3.5">
-        @csrf
-
-        <div>
-            <label for="email" class="mb-1.5 block text-xs font-bold text-[var(--text-main)]">Email</label>
-            <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username"
-                   class="form-input" placeholder="email@gmail.com">
-            <x-input-error :messages="$errors->get('email')" class="mt-1.5 text-xs font-medium text-[#b42318]" />
-        </div>
-
-        <div>
-            <div class="mb-1.5 flex items-center justify-between gap-3">
-                <label for="password" class="block text-xs font-bold text-[var(--text-main)]">Password</label>
-                @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="rounded text-xs font-bold text-[var(--brand)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ink)]">
-                        Lupa password?
-                    </a>
-                @endif
-            </div>
-            <input id="password" type="password" name="password" required autocomplete="current-password"
-                   class="form-input" placeholder="Masukkan password">
-            <x-input-error :messages="$errors->get('password')" class="mt-1.5 text-xs font-medium text-[#b42318]" />
-        </div>
-
-        <div class="flex items-center justify-between pt-1">
-            <label for="remember_me" class="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
-                <input id="remember_me" type="checkbox" name="remember" class="h-4 w-4 rounded border-2 border-[var(--ink)] accent-[var(--brand)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ink)]">
-                <span>Ingat saya di perangkat ini</span>
-            </label>
-        </div>
-
-        <button type="submit" class="btn-primary w-full justify-center py-3 text-sm font-bold">Masuk</button>
-    </form>
 
     <aside class="mt-4 text-center text-xs leading-normal text-[var(--ink-soft)]">
         Login khusus untuk <strong class="text-[var(--ink)]">penjual terdaftar</strong> & <strong class="text-[var(--ink)]">Admin</strong>.
