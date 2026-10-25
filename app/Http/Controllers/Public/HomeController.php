@@ -20,6 +20,21 @@ class HomeController extends Controller
         $search = request()->input('q');
         $selectedKategori = request()->input('kategori');
 
+        // Etalase hero hanya membutuhkan tiga produk terbaru yang tampil publik.
+        $produkHero = Produk::publicVisible()
+            ->select(['id', 'penjual_id', 'kategori_id', 'nama', 'slug', 'harga', 'foto_utama'])
+            ->with([
+                'kategori:id,nama,slug',
+                'penjual:id,nama_toko,nomor_whatsapp',
+            ])
+            ->withAvg(['ulasan' => fn ($query) => $query->publicVisible()], 'rating')
+            ->latest('id')
+            ->limit(3)
+            ->get();
+        $hargaMinimumAktif = $produkHero->isNotEmpty()
+            ? Produk::publicVisible()->min('harga')
+            : null;
+
         // 1. Kategori
         $kategoriList = Kategori::withCount([
             'produk as produk_aktif_count' => fn ($query) => $query->publicVisible(),
@@ -80,7 +95,9 @@ class HomeController extends Controller
             'totalKategori',
             'produkMobile',
             'search',
-            'selectedKategori'
+            'selectedKategori',
+            'produkHero',
+            'hargaMinimumAktif'
         ));
     }
 }

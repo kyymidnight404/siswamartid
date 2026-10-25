@@ -40,6 +40,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/laporan/ulasan', [\App\Http\Controllers\Admin\LaporanController::class, 'ulasan'])->name('laporan.ulasan');
     Route::get('/laporan/penjual/pdf', [\App\Http\Controllers\Admin\LaporanController::class, 'penjualPdf'])->name('laporan.penjual.pdf');
     Route::get('/laporan/ulasan/pdf', [\App\Http\Controllers\Admin\LaporanController::class, 'ulasanPdf'])->name('laporan.ulasan.pdf');
+    Route::get('/laporan/penjual/sheet', [\App\Http\Controllers\Admin\LaporanController::class, 'penjualSheet'])->name('laporan.penjual.sheet');
+    Route::get('/laporan/ulasan/sheet', [\App\Http\Controllers\Admin\LaporanController::class, 'ulasanSheet'])->name('laporan.ulasan.sheet');
     Route::get('/laporan/pdf', [\App\Http\Controllers\Admin\LaporanController::class, 'pdf'])->name('laporan.pdf');
 
     // Manajemen Penjual

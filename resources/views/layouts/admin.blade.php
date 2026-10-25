@@ -11,37 +11,18 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         [x-cloak] { display: none !important; }
-        :root {
-            --color-primary:       #FF7A00;
-            --color-primary-dark:  #E66A00;
-            --bg-body:             #FFF8E8;
-            --text-main:           #241A14;
-            --bg-surface:          #FFFCF5;
-            --border-color:        #241A14;
-            --text-muted:          #64748B;
-            --bg-hover:            #FFF8E8;
-            --bg-active:           #FF7A00;
-            --text-active:         #241A14;
-            --input-border:        #241A14;
-
-            /* Status colors */
-            --color-success: #5B8C51;
-            --color-warning: #FFD84D;
-            --color-danger: #DC2626;
-        }
-
         * { font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; box-sizing: border-box; }
         .font-display { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; }
-        body { background: var(--bg-body); color: var(--text-main); }
+        body { background: var(--sm-bg); color: var(--sm-ink); }
 
         /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #bdc1c6; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--sm-ink) 25%, transparent); border-radius: 3px; }
 
         /* ── Sidebar ── */
         .app-sidebar {
-            background: var(--bg-surface);
-            border-right: 1px solid var(--border-color);
+            background: var(--sm-surface);
+            border-right: 1px solid var(--sm-border);
             width: 256px;
             flex-shrink: 0;
             display: flex;
@@ -54,7 +35,7 @@
         .sidebar-section-title {
             font-size: 0.7rem;
             font-weight: 600;
-            color: var(--text-muted);
+            color: var(--sm-text-muted);
             letter-spacing: 0.08em;
             text-transform: uppercase;
             padding: 16px 16px 6px;
@@ -68,32 +49,32 @@
             margin: 4px 12px;
             font-size: 0.875rem;
             font-weight: 700;
-            color: var(--text-muted);
+            color: var(--sm-text-muted);
             transition: all 0.15s;
             text-decoration: none;
             border: 2px solid transparent;
         }
         .sidebar-link svg { flex-shrink: 0; }
         .sidebar-link:hover {
-            background: var(--color-primary-light);
-            color: var(--text-main);
-            border-color: var(--border-color);
+            background: var(--sm-primary-soft);
+            color: var(--sm-ink);
+            border-color: var(--sm-border);
             transform: translate(-2px, -2px);
-            box-shadow: 4px 4px 0px 0px var(--border-color);
+            box-shadow: 4px 4px 0px 0px var(--sm-border);
         }
         .sidebar-link.active {
-            background: var(--bg-active);
-            color: var(--bg-surface);
+            background: var(--sm-primary);
+            color: var(--sm-surface);
             font-weight: 800;
-            border: 2px solid var(--border-color);
-            box-shadow: 2px 2px 0px 0px var(--border-color);
+            border: 2px solid var(--sm-border);
+            box-shadow: 2px 2px 0px 0px var(--sm-border);
         }
-        .sidebar-link.active svg { color: var(--bg-surface); }
+        .sidebar-link.active svg { color: var(--sm-surface); }
 
         /* ── Topbar ── */
         .app-topbar {
-            background: var(--bg-surface);
-            border-bottom: 1px solid var(--border-color);
+            background: var(--sm-surface);
+            border-bottom: 1px solid var(--sm-border);
             height: 64px;
             display: flex;
             align-items: center;
@@ -106,39 +87,39 @@
 
         /* ── Cards & Tables ── */
         .admin-card {
-            background: var(--bg-surface);
-            border: 2px solid var(--border-color);
+            background: var(--sm-surface);
+            border: 2px solid var(--sm-border);
             border-radius: 24px;
-            box-shadow: 4px 4px 0px 0px var(--border-color);
+            box-shadow: 4px 4px 0px 0px var(--sm-border);
             overflow: hidden;
         }
         .admin-card-header {
             padding: 16px 20px;
-            border-bottom: 2px solid var(--border-color);
+            border-bottom: 2px solid var(--sm-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .stat-card {
-            background: var(--bg-surface);
-            border: 2px solid var(--border-color);
+            background: var(--sm-surface);
+            border: 2px solid var(--sm-border);
             border-radius: 24px;
-            box-shadow: 4px 4px 0px 0px var(--border-color);
+            box-shadow: 4px 4px 0px 0px var(--sm-border);
             padding: 20px;
         }
 
         /* Forms */
         .form-input {
             width: 100%;
-            background: var(--bg-body);
-            border: 2px solid var(--input-border);
-            color: var(--text-main);
+            background: var(--sm-bg);
+            border: 2px solid var(--sm-border);
+            color: var(--sm-ink);
             border-radius: 16px;
             padding: 10px 16px;
             font-size: 0.875rem;
             font-weight: 500;
-            box-shadow: 2px 2px 0px 0px var(--border-color);
+            box-shadow: 2px 2px 0px 0px var(--sm-border);
             transition: all 0.2s;
             box-sizing: border-box;
         }
@@ -186,11 +167,11 @@
             box-sizing: border-box;
         }
         .form-input::placeholder {
-            color: var(--text-muted);
+            color: var(--sm-text-muted);
             opacity: 0.85;
             line-height: normal;
         }
-        .form-input:focus { outline: none; background: var(--bg-surface); transform: translate(-2px, -2px); box-shadow: 4px 4px 0px 0px var(--border-color); }
+        .form-input:focus { outline: none; background: var(--sm-surface); transform: translate(-2px, -2px); box-shadow: 4px 4px 0px 0px var(--sm-border); }
         label.form-input,
         label.form-input:hover,
         label.form-input:active,
@@ -199,9 +180,9 @@
             transform: none !important;
             transition: none !important;
             animation: none !important;
-            box-shadow: 2px 2px 0px 0px var(--border-color) !important;
-            background: var(--bg-surface) !important;
-            border-color: var(--border-color) !important;
+            box-shadow: 2px 2px 0px 0px var(--sm-border) !important;
+            background: var(--sm-surface) !important;
+            border-color: var(--sm-border) !important;
             outline: none !important;
             cursor: pointer !important;
         }
@@ -213,8 +194,8 @@
 
         /* Buttons */
         .btn-primary {
-            background: var(--color-primary);
-            color: var(--border-color);
+            background: var(--sm-primary);
+            color: var(--sm-border);
             font-weight: 800;
             font-size: 0.875rem;
             padding: 8px 16px;
@@ -223,19 +204,19 @@
             align-items: center;
             gap: 8px;
             transition: all 0.2s;
-            border: 2px solid var(--border-color);
-            box-shadow: 4px 4px 0px 0px var(--border-color);
+            border: 2px solid var(--sm-border);
+            box-shadow: 4px 4px 0px 0px var(--sm-border);
         }
         .btn-primary:hover {
-            background: var(--color-primary-dark);
+            background: var(--sm-primary-hover);
             transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px 0px var(--border-color);
+            box-shadow: 6px 6px 0px 0px var(--sm-border);
         }
 
         .btn-outline {
-            background: var(--bg-surface);
-            color: var(--text-main);
-            border: 2px solid var(--border-color);
+            background: var(--sm-surface);
+            color: var(--sm-ink);
+            border: 2px solid var(--sm-border);
             font-weight: 800;
             font-size: 0.875rem;
             padding: 8px 16px;
@@ -244,12 +225,12 @@
             align-items: center;
             gap: 8px;
             transition: all 0.2s;
-            box-shadow: 4px 4px 0px 0px var(--border-color);
+            box-shadow: 4px 4px 0px 0px var(--sm-border);
         }
         .btn-outline:hover {
-            background: var(--color-primary-light);
+            background: var(--sm-primary-soft);
             transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px 0px var(--border-color);
+            box-shadow: 6px 6px 0px 0px var(--sm-border);
         }
 
         /* Flash */
@@ -257,9 +238,9 @@
             position: fixed;
             bottom: 24px;
             left: 24px;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            box-shadow: 4px 4px 0 var(--ink);
+            background: var(--sm-surface);
+            border: 1px solid var(--sm-border);
+            box-shadow: 4px 4px 0 var(--sm-ink);
             padding: 12px 20px;
             border-radius: 8px;
             display: flex;
@@ -267,7 +248,7 @@
             gap: 12px;
             font-size: 0.875rem;
             font-weight: 500;
-            color: var(--text-main);
+            color: var(--sm-ink);
             z-index: 9999;
             animation: slideUp 0.3s ease-out forwards;
         }
@@ -285,18 +266,18 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .badge-aktif { background: #e6f4ea; color: #137333; }
-        .badge-pending { background: #fef7e0; color: #b06000; }
-        .badge-ditolak { background: #fce8e6; color: #c5221f; }
+        .badge-aktif { background: var(--sm-primary-soft); color: var(--sm-primary); }
+        .badge-pending { background: var(--sm-primary-soft); color: var(--sm-ink); }
+        .badge-ditolak { background: var(--sm-primary-soft); color: var(--sm-ink); }
 
         /* Notification Dropdown Custom Refinements */
         .admin-notification-dropdown {
             width: min(380px, calc(100vw - 24px)) !important;
             max-width: 380px !important;
-            background: #FFFDF8 !important;
-            border: 1.5px solid rgba(58, 36, 23, 0.2) !important;
+            background: var(--sm-surface) !important;
+            border: 1.5px solid color-mix(in srgb, var(--sm-ink) 20%, transparent) !important;
             border-radius: 16px !important;
-            box-shadow: 0 12px 30px -4px rgba(58, 36, 23, 0.16), 0 4px 12px -2px rgba(58, 36, 23, 0.08) !important;
+            box-shadow: 0 12px 30px -4px color-mix(in srgb, var(--sm-ink) 16%, transparent), 0 4px 12px -2px color-mix(in srgb, var(--sm-ink) 8%, transparent) !important;
             max-height: 420px !important;
             flex-direction: column !important;
             overflow: hidden !important;
@@ -313,8 +294,8 @@
             align-items: center !important;
             justify-content: space-between !important;
             padding: 12px 16px !important;
-            background: #FFFBF4 !important;
-            border-bottom: 1px solid rgba(58, 36, 23, 0.1) !important;
+            background: var(--sm-surface) !important;
+            border-bottom: 1px solid color-mix(in srgb, var(--sm-ink) 10%, transparent) !important;
             flex-shrink: 0 !important;
         }
         .notification-header-action {
@@ -328,7 +309,7 @@
             border-radius: 0 !important;
             font-size: 11px !important;
             font-weight: 700 !important;
-            color: #FF7A00 !important;
+            color: var(--sm-primary) !important;
             cursor: pointer !important;
             display: inline-flex !important;
             align-items: center !important;
@@ -340,7 +321,7 @@
             background: transparent !important;
             box-shadow: none !important;
             transform: none !important;
-            color: #B34A00 !important;
+            color: var(--sm-primary-hover) !important;
             text-decoration: underline !important;
         }
         .admin-notification-list {
@@ -355,8 +336,8 @@
         }
         .admin-notification-list::-webkit-scrollbar { width: 5px !important; }
         .admin-notification-list::-webkit-scrollbar-track { background: transparent !important; }
-        .admin-notification-list::-webkit-scrollbar-thumb { background: rgba(58, 36, 23, 0.18) !important; border-radius: 999px !important; }
-        .admin-notification-list::-webkit-scrollbar-thumb:hover { background: rgba(58, 36, 23, 0.35) !important; }
+        .admin-notification-list::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--sm-ink) 18%, transparent) !important; border-radius: 999px !important; }
+        .admin-notification-list::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--sm-ink) 35%, transparent) !important; }
         .notification-item-card {
             display: block !important;
             width: 100% !important;
@@ -368,30 +349,30 @@
             height: auto !important;
             margin: 0 !important;
             cursor: pointer !important;
-            box-shadow: 0 1px 3px rgba(58, 36, 23, 0.05) !important;
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--sm-ink) 5%, transparent) !important;
             transform: none !important;
             transition: all 0.15s ease-in-out !important;
-            color: var(--ink) !important;
+            color: var(--sm-ink) !important;
         }
         .notification-item-card.is-unread {
-            background-color: #FFF9EE !important;
-            border: 1px solid rgba(255, 122, 0, 0.3) !important;
-            border-left: 3.5px solid #FF7A00 !important;
+            background-color: var(--sm-bg) !important;
+            border: 1px solid color-mix(in srgb, var(--sm-primary) 30%, transparent) !important;
+            border-left: 3.5px solid var(--sm-primary) !important;
         }
         .notification-item-card.is-read {
-            background-color: #FFFFFF !important;
-            border: 1px solid rgba(58, 36, 23, 0.1) !important;
-            border-left: 3.5px solid rgba(58, 36, 23, 0.15) !important;
+            background-color: var(--sm-surface) !important;
+            border: 1px solid color-mix(in srgb, var(--sm-ink) 10%, transparent) !important;
+            border-left: 3.5px solid color-mix(in srgb, var(--sm-ink) 15%, transparent) !important;
         }
         .notification-item-card:hover {
-            background-color: #FFF4E3 !important;
-            border-color: rgba(255, 122, 0, 0.45) !important;
-            box-shadow: 0 4px 10px rgba(58, 36, 23, 0.08) !important;
+            background-color: var(--sm-primary-soft) !important;
+            border-color: color-mix(in srgb, var(--sm-primary) 45%, transparent) !important;
+            box-shadow: 0 4px 10px color-mix(in srgb, var(--sm-ink) 8%, transparent) !important;
             transform: translateY(-1px) !important;
         }
         .notification-item-card:active {
             transform: translateY(0) !important;
-            box-shadow: 0 1px 2px rgba(58, 36, 23, 0.05) !important;
+            box-shadow: 0 1px 2px color-mix(in srgb, var(--sm-ink) 5%, transparent) !important;
         }
         .notification-icon-btn {
             width: 40px !important;
@@ -408,15 +389,14 @@
 <body class="admin-dashboard flex min-h-screen">
 
     {{-- ── Sidebar ── --}}
-    <aside class="app-sidebar hidden lg:flex sticky top-0 h-screen max-h-screen">
-        <div class="h-16 flex items-center px-6 border-b border-[var(--border-color)]">
-            <a href="/" class="flex items-center group transition-transform hover:scale-105 text-xl font-black tracking-tight drop-shadow-sm">
-                <span class="text-[var(--text-main)]">Siswa</span><span class="text-[#ea580c]">Mart</span>
-            </a>
+    <div class="dashboard-sidebar-backdrop" data-sidebar-close aria-hidden="true"></div>
+    <aside class="app-sidebar hidden lg:flex sticky top-0 h-screen max-h-screen" id="dashboardSidebar">
+        <div class="h-16 flex items-center px-6 border-b border-[var(--sm-border)]">
+            <x-brand-logo :href="route('public.home')" label="SiswaMart — Beranda" />
         </div>
 
         <nav class="flex-1 overflow-y-auto py-4">
-            <div class="sidebar-section-title">Menu Utama</div>
+            <div class="sidebar-section-title">Menu utama</div>
             <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                 Dashboard
@@ -446,19 +426,19 @@
         </nav>
 
         {{-- User info --}}
-        <div class="p-4 border-t-2 border-[var(--border-color)] flex-shrink-0">
+        <div class="p-4 border-t-2 border-[var(--sm-border)] flex-shrink-0">
             <div class="flex items-center gap-3 mb-3">
-                <div class="w-9 h-9 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-[var(--border-color)] border-2 border-[var(--border-color)] font-bold text-sm shadow-[2px_2px_0px_0px_var(--border-color)]">
+                <div class="w-9 h-9 rounded-full bg-[var(--sm-primary-soft)] flex items-center justify-center text-[var(--sm-ink)] border-2 border-[var(--sm-border)] font-bold text-sm shadow-[2px_2px_0px_0px_var(--sm-border)]">
                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                 </div>
                 <div class="min-w-0">
-                    <p class="text-sm font-bold text-[var(--ink)] truncate">{{ Auth::user()->name }}</p>
-                    <p class="text-[var(--ink-soft)] font-semibold text-xs capitalize">Admin SiswaMart</p>
+                    <p class="sidebar-user-name text-sm font-bold truncate">{{ Auth::user()->name }}</p>
+                    <p class="text-[var(--sm-text-muted)] font-semibold text-xs capitalize">Admin SiswaMart</p>
                 </div>
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button class="w-full text-xs font-bold text-[#d93025] hover:bg-[#fce8e6] border-2 border-[#d93025] py-1.5 rounded-full shadow-[2px_2px_0px_0px_#d93025] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_#d93025]">Keluar</button>
+                <button class="sidebar-logout-button w-full text-xs font-bold border-2 py-1.5 rounded-full transition-all">Keluar</button>
             </form>
         </div>
     </aside>
@@ -468,11 +448,11 @@
         {{-- Topbar --}}
         <header class="app-topbar">
             <div class="flex items-center gap-3 w-full mx-auto">
-                <button class="p-2 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-muted)] lg:hidden flex-shrink-0">
+                <button type="button" class="p-2 rounded-full hover:bg-[var(--sm-primary-soft)] text-[var(--sm-text-muted)] lg:hidden flex-shrink-0" data-sidebar-toggle aria-label="Buka menu" aria-controls="dashboardSidebar" aria-expanded="false">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 <div class="flex-1 min-w-0">
-                    <h1 class="font-display font-black tracking-tight text-xl text-[var(--text-main)] truncate">@yield('page-title', 'Admin Panel')</h1>
+                    <h1 class="font-display font-black tracking-tight text-xl text-[var(--sm-ink)] truncate">@yield('page-title', 'Admin Panel')</h1>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
                     @php
@@ -485,40 +465,40 @@
 
                             if (str_contains($act, 'ulasan') || str_contains($tit, 'ulasan')) {
                                 return [
-                                    'bg' => 'bg-[#FFE79F]/60 text-[#B8860B] border border-[#FFE79F]',
+                                    'bg' => 'bg-[var(--sm-primary-soft)]/60 text-[var(--sm-primary)] border border-[var(--sm-primary-soft)]',
                                     'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>'
                                 ];
                             }
                             if (str_contains($act, 'edit') || str_contains($tit, 'perubahan')) {
                                 return [
-                                    'bg' => 'bg-[#FFEBCB] text-[#B34A00] border border-[#F8C9B0]',
+                                    'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-primary-hover)] border border-[var(--sm-primary-soft)]',
                                     'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>'
                                 ];
                             }
                             if (str_contains($act, 'hapus') || str_contains($tit, 'hapus')) {
                                 return [
-                                    'bg' => 'bg-[#FCE8E6] text-[#C5221F] border border-[#F4D2CC]',
+                                    'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
                                     'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
                                 ];
                             }
                             if (str_contains($act, 'status') || str_contains($tit, 'diperbarui')) {
                                 return [
-                                    'bg' => 'bg-[#E3D9FB] text-[#8B6BD0] border border-[#D5C6F8]',
+                                    'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
                                     'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>'
                                 ];
                             }
                             return [
-                                'bg' => 'bg-[#B9E6D9] text-[#2F7F6F] border border-[#A5DFD0]',
+                                'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
                                 'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>'
                             ];
                         };
                     @endphp
                     <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
-                        <button type="button" @click.stop="open = !open" class="notification-icon-btn relative w-10 h-10 rounded-full bg-[var(--bg-surface)] text-[var(--text-main)] border-2 border-[var(--border-color)] flex items-center justify-center shadow-[2px_2px_0px_0px_var(--border-color)] hover:-translate-y-0.5 transition-all" aria-label="Notifikasi" :aria-expanded="open.toString()">
+                        <button type="button" @click.stop="open = !open" class="notification-icon-btn relative w-10 h-10 rounded-full bg-[var(--sm-surface)] text-[var(--sm-ink)] border-2 border-[var(--sm-border)] flex items-center justify-center shadow-[2px_2px_0px_0px_var(--sm-border)] hover:-translate-y-0.5 transition-all" aria-label="Notifikasi" :aria-expanded="open.toString()">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                             </svg>
-                            <span id="adminNotificationCount" class="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-[#ea4335] text-white text-[10px] font-black flex items-center justify-center border-2 border-[var(--bg-surface)] {{ $unreadNotificationCount > 0 ? '' : 'hidden' }}">{{ $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount }}</span>
+                            <span id="adminNotificationCount" class="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-[var(--sm-accent)] text-[var(--sm-on-accent)] text-[10px] font-black flex items-center justify-center border-2 border-[var(--sm-surface)] {{ $unreadNotificationCount > 0 ? '' : 'hidden' }}">{{ $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount }}</span>
                         </button>
 
                         <div x-show="open"
@@ -534,8 +514,8 @@
 
                             <div class="admin-notification-header">
                                 <div class="flex items-center gap-2">
-                                    <h2 class="text-sm font-extrabold text-[#3A2417]">Notifikasi</h2>
-                                    <span id="adminNotificationBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FF7A00]/15 text-[#B34A00] {{ $unreadNotificationCount > 0 ? '' : 'hidden' }}">
+                                    <h2 class="text-sm font-extrabold text-[var(--sm-ink)]">Notifikasi</h2>
+                                    <span id="adminNotificationBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--sm-primary)]/15 text-[var(--sm-primary-hover)] {{ $unreadNotificationCount > 0 ? '' : 'hidden' }}">
                                         <span id="adminNotificationBadgeText">{{ $unreadNotificationCount }} baru</span>
                                     </span>
                                 </div>
@@ -564,17 +544,17 @@
                                                 </div>
                                                 <div class="min-w-0 flex-1">
                                                     <div class="flex items-center justify-between gap-2">
-                                                        <h3 class="text-xs font-bold text-[#3A2417] truncate leading-tight">
+                                                        <h3 class="text-xs font-bold text-[var(--sm-ink)] truncate leading-tight">
                                                             {{ $notificationData['title'] ?? 'Aktivitas baru' }}
                                                         </h3>
                                                         @unless($notification->read_at)
-                                                            <span class="w-2 h-2 rounded-full bg-[#FF7A00] flex-shrink-0" title="Belum dibaca"></span>
+                                                            <span class="w-2 h-2 rounded-full bg-[var(--sm-primary)] flex-shrink-0" title="Belum dibaca"></span>
                                                         @endunless
                                                     </div>
-                                                    <p class="text-[12px] text-[#6B4E3D] mt-1 leading-snug line-clamp-2 break-words">
+                                                    <p class="text-[12px] text-[var(--sm-ink)] mt-1 leading-snug line-clamp-2 break-words">
                                                         {{ $notificationData['description'] ?? '' }}
                                                     </p>
-                                                    <div class="flex items-center gap-1 mt-1.5 text-[10px] font-medium text-[#8C6D58]">
+                                                    <div class="flex items-center gap-1 mt-1.5 text-[10px] font-medium text-[var(--sm-ink)]">
                                                         <svg class="w-3 h-3 opacity-60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
@@ -586,19 +566,19 @@
                                     </form>
                                 @empty
                                     <div class="px-4 py-8 text-center flex flex-col items-center justify-center">
-                                        <div class="w-10 h-10 rounded-full bg-[#FFEBCB] text-[#FF7A00] flex items-center justify-center mb-2">
+                                        <div class="w-10 h-10 rounded-full bg-[var(--sm-primary-soft)] text-[var(--sm-primary)] flex items-center justify-center mb-2">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                             </svg>
                                         </div>
-                                        <p class="text-xs font-bold text-[#3A2417]">Belum ada notifikasi</p>
-                                        <p class="text-[11px] text-[#6B4E3D] mt-0.5">Semua notifikasi baru akan tampil di sini</p>
+                                        <p class="text-xs font-bold text-[var(--sm-ink)]">Belum ada notifikasi</p>
+                                        <p class="text-[11px] text-[var(--sm-ink)] mt-0.5">Semua notifikasi baru akan tampil di sini</p>
                                     </div>
                                 @endforelse
                             </div>
                         </div>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-[var(--color-primary-light)] text-[var(--text-main)] border-2 border-[var(--border-color)] font-bold text-sm flex items-center justify-center shadow-[2px_2px_0px_0px_var(--border-color)]">
+                    <div class="w-10 h-10 rounded-full bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border-2 border-[var(--sm-border)] font-bold text-sm flex items-center justify-center shadow-[2px_2px_0px_0px_var(--sm-border)]">
                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                     </div>
                 </div>
@@ -608,13 +588,13 @@
         {{-- Flash Messages --}}
         @if(session('success'))
         <div id="adminFlash" class="admin-flash">
-            <svg class="w-4 h-4 text-[#34a853] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <svg class="w-4 h-4 text-[var(--sm-primary)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
             {{ session('success') }}
         </div>
         @endif
         @if(session('error'))
         <div id="adminFlash" class="admin-flash">
-            <svg class="w-4 h-4 text-[#ea4335] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            <svg class="w-4 h-4 text-[var(--sm-primary)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
             {{ session('error') }}
         </div>
         @endif
@@ -627,6 +607,23 @@
     </div>
 
     <script>
+        (() => {
+            const toggle = document.querySelector('[data-sidebar-toggle]');
+            const close = document.querySelector('[data-sidebar-close]');
+            const setSidebarOpen = (isOpen) => {
+                document.body.classList.toggle('mobile-sidebar-open', isOpen);
+                toggle?.setAttribute('aria-expanded', String(isOpen));
+            };
+            toggle?.addEventListener('click', () => setSidebarOpen(!document.body.classList.contains('mobile-sidebar-open')));
+            close?.addEventListener('click', () => setSidebarOpen(false));
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') setSidebarOpen(false);
+            });
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 1024) setSidebarOpen(false);
+            });
+        })();
+
         // Auto-hide flash
         setTimeout(() => {
             const el = document.getElementById('adminFlash');
@@ -641,37 +638,37 @@
         const notificationUrl = @json(route('admin.notifications.poll'));
         const notificationReadUrl = @json(route('admin.notifications.read', ['notification' => '__ID__']));
         const notificationCsrfToken = @json(csrf_token());
-        const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[char]));
+        const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&var(--sm-ink);','"':'&quot;'}[char]));
 
         const getNotificationIconJs = (activity, title) => {
             const act = (activity || '').toLowerCase();
             const tit = (title || '').toLowerCase();
             if (act.includes('ulasan') || tit.includes('ulasan')) {
                 return {
-                    bg: 'bg-[#FFE79F]/60 text-[#B8860B] border border-[#FFE79F]',
+                    bg: 'bg-[var(--sm-primary-soft)]/60 text-[var(--sm-primary)] border border-[var(--sm-primary-soft)]',
                     svg: '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>'
                 };
             }
             if (act.includes('edit') || tit.includes('perubahan')) {
                 return {
-                    bg: 'bg-[#FFEBCB] text-[#B34A00] border border-[#F8C9B0]',
+                    bg: 'bg-[var(--sm-primary-soft)] text-[var(--sm-primary-hover)] border border-[var(--sm-primary-soft)]',
                     svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>'
                 };
             }
             if (act.includes('hapus') || tit.includes('hapus')) {
                 return {
-                    bg: 'bg-[#FCE8E6] text-[#C5221F] border border-[#F4D2CC]',
+                    bg: 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
                     svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
                 };
             }
             if (act.includes('status') || tit.includes('diperbarui')) {
                 return {
-                    bg: 'bg-[#E3D9FB] text-[#8B6BD0] border border-[#D5C6F8]',
+                    bg: 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
                     svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>'
                 };
             }
             return {
-                bg: 'bg-[#B9E6D9] text-[#2F7F6F] border border-[#A5DFD0]',
+                bg: 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
                 svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>'
             };
         };
@@ -681,7 +678,7 @@
             const icon = getNotificationIconJs(data.activity, data.title);
             const isUnread = !item.read_at;
             const actionUrl = notificationReadUrl.replace('__ID__', encodeURIComponent(item.id));
-            const unreadDot = isUnread ? '<span class="w-2 h-2 rounded-full bg-[#FF7A00] flex-shrink-0" title="Belum dibaca"></span>' : '';
+            const unreadDot = isUnread ? '<span class="w-2 h-2 rounded-full bg-[var(--sm-primary)] flex-shrink-0" title="Belum dibaca"></span>' : '';
 
             return `
                 <form method="POST" action="${actionUrl}" class="block w-full m-0 p-0">
@@ -693,11 +690,11 @@
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center justify-between gap-2">
-                                    <h3 class="text-xs font-bold text-[#3A2417] truncate leading-tight">${escapeHtml(data.title || 'Aktivitas baru')}</h3>
+                                    <h3 class="text-xs font-bold text-[var(--sm-ink)] truncate leading-tight">${escapeHtml(data.title || 'Aktivitas baru')}</h3>
                                     ${unreadDot}
                                 </div>
-                                <p class="text-[12px] text-[#6B4E3D] mt-1 leading-snug line-clamp-2 break-words">${escapeHtml(data.description || '')}</p>
-                                <div class="flex items-center gap-1 mt-1.5 text-[10px] font-medium text-[#8C6D58]">
+                                <p class="text-[12px] text-[var(--sm-ink)] mt-1 leading-snug line-clamp-2 break-words">${escapeHtml(data.description || '')}</p>
+                                <div class="flex items-center gap-1 mt-1.5 text-[10px] font-medium text-[var(--sm-ink)]">
                                     <svg class="w-3 h-3 opacity-60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -735,13 +732,13 @@
                         ? data.notifications.map(renderNotificationItemJs).join('')
                         : `
                             <div class="px-4 py-8 text-center flex flex-col items-center justify-center">
-                                <div class="w-10 h-10 rounded-full bg-[#FFEBCB] text-[#FF7A00] flex items-center justify-center mb-2">
+                                <div class="w-10 h-10 rounded-full bg-[var(--sm-primary-soft)] text-[var(--sm-primary)] flex items-center justify-center mb-2">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                     </svg>
                                 </div>
-                                <p class="text-xs font-bold text-[#3A2417]">Belum ada notifikasi</p>
-                                <p class="text-[11px] text-[#6B4E3D] mt-0.5">Semua notifikasi baru akan tampil di sini</p>
+                                <p class="text-xs font-bold text-[var(--sm-ink)]">Belum ada notifikasi</p>
+                                <p class="text-[11px] text-[var(--sm-ink)] mt-0.5">Semua notifikasi baru akan tampil di sini</p>
                             </div>
                         `;
                 }
@@ -752,7 +749,6 @@
         setInterval(refreshAdminNotifications, 10000);
     </script>
 @unless(request()->routeIs('admin.dashboard'))
-    <x-back-floating :fallback="route('admin.dashboard')" />
 @endunless
 </body>
 </html>

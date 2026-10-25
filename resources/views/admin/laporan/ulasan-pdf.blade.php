@@ -5,14 +5,14 @@
     <title>Rekap Ulasan SiswaMart</title>
     <style>
         @page { margin: 28px 30px; }
-        body { font-family: DejaVu Sans, sans-serif; color: #34251b; font-size: 10px; }
+        body { font-family: DejaVu Sans, sans-serif; color: var(--sm-ink); font-size: 10px; }
         h1 { margin: 0 0 5px; font-size: 20px; }
-        .muted { color: #6d625b; }
-        .summary { margin: 18px 0; padding: 10px; border: 1px solid #b8a99b; background: #fff6e5; }
+        .muted { color: var(--sm-text-muted); }
+        .summary { margin: 18px 0; padding: 10px; border: 1px solid var(--sm-text-muted); background: var(--sm-primary-soft); }
         .summary span { display: inline-block; margin-right: 28px; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 1px solid #c9beb5; padding: 7px; text-align: left; vertical-align: top; word-wrap: break-word; }
-        th { background: #ffebcb; }
+        th, td { border: 1px solid var(--sm-text-muted); padding: 7px; text-align: left; vertical-align: top; word-wrap: break-word; }
+        th { background: var(--sm-primary-soft); color: var(--sm-ink); }
         .rating { white-space: nowrap; }
         .comment { white-space: pre-wrap; }
     </style>

@@ -17,7 +17,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
     </head>
     <body class="account-page font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
+        <div class="min-h-screen bg-[var(--sm-primary-soft)]">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
@@ -38,7 +38,6 @@
             <span>© {{ now()->year }} SiswaMart · Produk karya siswa SMKN 11 Bandung</span>
             <a href="https://wa.me/6285724494193" target="_blank" rel="noopener noreferrer">Hubungi SiswaMart · WhatsApp</a>
         </footer>
-        <x-back-floating />
     </body>
 </html>
 

@@ -9,7 +9,7 @@
         }
         body {
             font-family: DejaVu Sans, sans-serif;
-            color: #241A14;
+            color: var(--sm-ink);
             font-size: 9px;
             line-height: 1.35;
         }
@@ -26,32 +26,32 @@
         .brand-title {
             font-size: 18px;
             font-weight: bold;
-            color: #FF7A00;
+            color: var(--sm-primary);
             margin: 0;
             letter-spacing: -0.5px;
         }
         .brand-title span {
-            color: #241A14;
+            color: var(--sm-ink);
         }
         .report-title {
             font-size: 13px;
             font-weight: bold;
-            color: #241A14;
+            color: var(--sm-ink);
             margin-top: 2px;
             text-transform: uppercase;
         }
         .period-info {
             font-size: 9px;
-            color: #64748B;
+            color: var(--sm-text-muted);
             margin-top: 2px;
         }
         .meta-box {
             text-align: right;
             font-size: 8.5px;
-            color: #64748B;
+            color: var(--sm-text-muted);
         }
         .divider {
-            border-bottom: 2px solid #FF7A00;
+            border-bottom: 2px solid var(--sm-primary);
             margin: 6px 0 12px 0;
         }
 
@@ -62,8 +62,8 @@
             margin-bottom: 12px;
         }
         .summary-card {
-            background: #FFFDF9;
-            border: 1px solid #C9BEB5;
+            background: var(--sm-surface);
+            border: 1px solid var(--sm-border);
             padding: 6px 8px;
             vertical-align: top;
         }
@@ -71,21 +71,21 @@
             font-size: 7.5px;
             font-weight: bold;
             text-transform: uppercase;
-            color: #64748B;
+            color: var(--sm-text-muted);
             margin-bottom: 2px;
         }
         .summary-value {
             font-size: 14px;
             font-weight: bold;
-            color: #241A14;
+            color: var(--sm-ink);
         }
 
         .section-title {
             font-size: 10px;
             font-weight: bold;
             text-transform: uppercase;
-            color: #241A14;
-            border-left: 3px solid #FF7A00;
+            color: var(--sm-ink);
+            border-left: 3px solid var(--sm-primary);
             padding-left: 6px;
             margin: 12px 0 6px 0;
         }
@@ -98,7 +98,7 @@
         }
         .data-table th,
         .data-table td {
-            border: 1px solid #C9BEB5;
+            border: 1px solid var(--sm-border);
             padding: 4.5px 6px;
             text-align: left;
             vertical-align: top;
@@ -106,18 +106,18 @@
             font-size: 8px;
         }
         .data-table th {
-            background: #FFEBCB;
+            background: var(--sm-primary-soft);
             font-weight: bold;
             font-size: 7.5px;
             text-transform: uppercase;
-            color: #241A14;
+            color: var(--sm-ink);
         }
         .text-center { text-align: center !important; }
         .text-right { text-align: right !important; }
         .font-bold { font-weight: bold; }
-        .text-muted { color: #64748B; }
-        .text-emerald { color: #15803D; font-weight: bold; }
-        .text-rose { color: #B91C1C; font-weight: bold; }
+        .text-muted { color: var(--sm-text-muted); }
+        .text-emerald { color: var(--sm-primary); font-weight: bold; }
+        .text-rose { color: var(--sm-ink); font-weight: bold; }
 
         .two-col-table {
             width: 100%;
@@ -135,9 +135,9 @@
         .footer {
             margin-top: 14px;
             padding-top: 6px;
-            border-top: 1px solid #C9BEB5;
+            border-top: 1px solid var(--sm-border);
             font-size: 7.5px;
-            color: #64748B;
+            color: var(--sm-text-muted);
         }
     </style>
 </head>
@@ -183,11 +183,11 @@
             </td>
             <td class="summary-card" style="width: 16.6%;">
                 <div class="summary-label">Total Dilihat</div>
-                <div class="summary-value" style="color: #1A73E8;">{{ number_format($sellerReport['views']) }}</div>
+                <div class="summary-value" style="color: var(--sm-primary);">{{ number_format($sellerReport['views']) }}</div>
             </td>
             <td class="summary-card" style="width: 16.6%;">
                 <div class="summary-label">Ulasan Baru</div>
-                <div class="summary-value" style="color: #B45309;">{{ number_format($sellerReport['reviews']) }}</div>
+                <div class="summary-value" style="color: var(--sm-on-accent);">{{ number_format($sellerReport['reviews']) }}</div>
             </td>
         </tr>
     </table>
@@ -217,9 +217,9 @@
                         <span class="text-muted" style="font-size: 7.5px;">{{ $seller->user?->name ?? 'Akun Penjual' }}</span>
                     </td>
                     <td class="text-center">{{ $seller->produk_aktif_count ?? 0 }} / {{ $seller->produk_count }}</td>
-                    <td class="text-right font-bold" style="color: #1A73E8;">{{ number_format($seller->period_views) }}</td>
+                    <td class="text-right font-bold" style="color: var(--sm-primary);">{{ number_format($seller->period_views) }}</td>
                     <td class="text-center">{{ number_format($seller->period_reviews) }}</td>
-                    <td class="text-center font-bold" style="color: #B45309;">
+                    <td class="text-center font-bold" style="color: var(--sm-on-accent);">
                         {{ $seller->period_rating !== null ? number_format($seller->period_rating, 1) . ' / 5' : '—' }}
                     </td>
                     <td class="text-center text-emerald">+{{ $seller->period_added }}</td>
@@ -259,7 +259,7 @@
                                     <strong>{{ $prod->nama }}</strong><br>
                                     <span class="text-muted" style="font-size: 7.5px;">{{ $prod->penjual?->nama_toko ?? 'Penjual tidak tersedia' }}</span>
                                 </td>
-                                <td class="text-right font-bold" style="color: #1A73E8;">{{ number_format($prod->period_views) }}</td>
+                                <td class="text-right font-bold" style="color: var(--sm-primary);">{{ number_format($prod->period_views) }}</td>
                                 <td class="text-center">{{ $prod->period_reviews }}</td>
                             </tr>
                         @empty

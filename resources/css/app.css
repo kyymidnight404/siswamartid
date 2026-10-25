@@ -3,51 +3,22 @@
 @import "tailwindcss";
 
 /* ─── Design Tokens ────────────────────────────────────────────── */
+/* Color tokens live in public/css/siswamart-theme.css (:root --sm-*). */
 @layer base {
     :root {
-        --ink: #3A2417;
-        --ink-soft: #6B4E3D;
-        --cream: #FFF6E5;
-        --cream-2: #FFEBCB;
-        --white-warm: #FFFBF4;
-        --brand: #FF7A00;
-        --brand-ink: #B34A00;
-        --brand-display: #E36A00;
-        --lavender: #E3D9FB;
-        --peach: #F8C9B0;
-        --mint: #B9E6D9;
-        --butter: #FFE79F;
-        --green: #4E7344;
-        --accent-purple: #8B6BD0;
-        --accent-teal: #2F7F6F;
-        --accent-gold: #B8860B;
-        --success-bg: #BFE8C8;
-        --warning-bg: #FFD54A;
         --border-w: 2.5px;
-        --border: var(--border-w) solid var(--ink);
+        --border: var(--border-w) solid var(--sm-ink);
         --r-card: 28px;
         --r-tile: 28px;
         --r-block: 36px;
         --r-input: 18px;
         --r-pill: 999px;
-        --shadow: 4px 4px 0 var(--ink);
-        --shadow-hover: 6px 6px 0 var(--ink);
-        --shadow-active: 2px 2px 0 var(--ink);
+        --shadow: 4px 4px 0 var(--sm-ink);
+        --shadow-hover: 6px 6px 0 var(--sm-ink);
+        --shadow-active: 2px 2px 0 var(--sm-ink);
         --container: 1200px;
         --gutter: clamp(16px, 4vw, 24px);
         --section-gap: clamp(40px, 6vw, 80px);
-        --color-primary: var(--brand);
-        --color-primary-dark: var(--brand-ink);
-        --color-primary-light: var(--cream-2);
-        --color-primary-border: var(--butter);
-        --color-bg: var(--cream);
-        --color-surface: var(--white-warm);
-        --color-text: var(--ink);
-        --color-text-muted: var(--ink-soft);
-        --color-border: var(--ink);
-        --color-success: var(--green);
-        --color-warning: var(--warning-bg);
-        --color-danger: #9C3329;
     }
 
     html {
@@ -56,8 +27,8 @@
     }
 
     body {
-        background-color: var(--color-bg);
-        color: var(--color-text);
+        background-color: var(--sm-bg);
+        color: var(--sm-ink);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
@@ -70,114 +41,128 @@
     /* Product card hover effect */
     .product-card {
         border-radius: 24px;
-        background-color: var(--color-surface);
-        border: 2px solid var(--color-border);
-        box-shadow: 4px 4px 0px 0px var(--color-border);
+        background-color: var(--sm-surface);
+        border: 2px solid var(--sm-border);
+        box-shadow: 4px 4px 0px 0px var(--sm-border);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         overflow: hidden;
     }
+
     .product-card:hover {
         transform: translate(-4px, -4px);
-        box-shadow: 8px 8px 0px 0px var(--color-border);
+        box-shadow: 8px 8px 0px 0px var(--sm-border);
     }
 
     /* Category Card */
     .category-card {
         border-radius: 32px;
-        border: 2px solid var(--color-border);
-        box-shadow: 4px 4px 0px 0px var(--color-border);
+        border: 2px solid var(--sm-border);
+        box-shadow: 4px 4px 0px 0px var(--sm-border);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         overflow: hidden;
     }
+
     .category-card:hover {
         transform: translate(-4px, -4px);
-        box-shadow: 8px 8px 0px 0px var(--color-border);
+        box-shadow: 8px 8px 0px 0px var(--sm-border);
     }
 
     /* Primary Button */
     .btn-primary {
-        background-color: var(--color-primary);
-        color: var(--color-border);
+        background-color: var(--sm-accent);
+        color: var(--sm-on-accent);
         font-weight: 800;
-        border: 2px solid var(--color-border);
-        border-radius: 9999px; /* pill shape */
-        box-shadow: 4px 4px 0px 0px var(--color-border);
+        border: 2px solid var(--sm-border);
+        border-radius: 9999px;
+        /* pill shape */
+        box-shadow: 4px 4px 0px 0px var(--sm-border);
         transition: all 0.2s ease;
     }
+
     .btn-primary:hover {
-        background-color: var(--color-primary-dark);
+        background-color: var(--sm-accent-hover);
         transform: translate(-2px, -2px);
-        box-shadow: 6px 6px 0px 0px var(--color-border);
+        box-shadow: 6px 6px 0px 0px var(--sm-border);
     }
 
     /* Search input */
     .search-input {
         border-radius: 9999px;
-        border: 2px solid var(--color-border);
-        box-shadow: 2px 2px 0px 0px var(--color-border);
+        border: 2px solid var(--sm-border);
+        box-shadow: 2px 2px 0px 0px var(--sm-border);
         transition: all 0.2s ease;
     }
+
     .search-input:focus {
         outline: none;
-        box-shadow: 4px 4px 0px 0px var(--color-border);
+        box-shadow: 4px 4px 0px 0px var(--sm-border);
         transform: translate(-2px, -2px);
     }
 
     /* Category chip (filter bar) */
     .cat-chip {
-        background-color: var(--color-surface);
-        color: var(--color-text);
-        border: 2px solid var(--color-border);
+        background-color: var(--sm-surface);
+        color: var(--sm-ink);
+        border: 2px solid var(--sm-border);
         border-radius: 9999px;
-        box-shadow: 2px 2px 0px 0px var(--color-border);
+        box-shadow: 2px 2px 0px 0px var(--sm-border);
         font-weight: 700;
         transition: all 0.15s ease;
     }
+
     .cat-chip.active {
-        background-color: var(--color-primary);
-        color: var(--color-border);
-        box-shadow: inset 2px 2px 0 var(--ink);
+        background-color: var(--sm-primary);
+        color: var(--sm-border);
+        box-shadow: inset 2px 2px 0 var(--sm-ink);
         transform: translate(2px, 2px);
     }
+
     .cat-chip:not(.active):hover {
-        background-color: var(--color-primary-border);
+        background-color: var(--sm-primary-soft);
         transform: translate(-2px, -2px);
-        box-shadow: 4px 4px 0px 0px var(--color-border);
+        box-shadow: 4px 4px 0px 0px var(--sm-border);
     }
 
     /* WhatsApp CTA button */
     .wa-btn {
-        background-color: var(--color-success);
-        color: var(--color-surface);
+        background-color: var(--sm-primary);
+        color: var(--sm-surface);
         font-weight: 800;
-        border: 2px solid var(--color-border);
+        border: 2px solid var(--sm-border);
         border-radius: 9999px;
-        box-shadow: 4px 4px 0px 0px var(--color-border);
+        box-shadow: 4px 4px 0px 0px var(--sm-border);
         transition: all 0.2s ease;
     }
+
     .wa-btn:hover {
-        background-color: #4A7A41;
+        background-color: var(--sm-accent-hover);
         transform: translate(-2px, -2px);
-        box-shadow: 6px 6px 0px 0px var(--color-border);
+        box-shadow: 6px 6px 0px 0px var(--sm-border);
     }
 
     /* Image placeholder */
     .img-placeholder {
-        background-color: var(--color-surface);
-        border-bottom: 2px solid var(--color-border);
+        background-color: var(--sm-surface);
+        border-bottom: 2px solid var(--sm-border);
         display: flex;
         align-items: center;
         justify-content: center;
         flex-direction: column;
-        color: var(--color-border);
+        color: var(--sm-border);
     }
 
 }
 
 /* ─── Utilities ────────────────────────────────────────────────── */
 @layer utilities {
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
 
     .line-clamp-2 {
         display: -webkit-box;
@@ -185,6 +170,7 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+
     .line-clamp-3 {
         display: -webkit-box;
         -webkit-line-clamp: 3;
@@ -214,6 +200,6 @@
         min-height: 9rem;
         border-width: 3px;
         border-radius: 22px;
-        box-shadow: 4px 4px 0 var(--color-border);
+        box-shadow: 4px 4px 0 var(--sm-border);
     }
 }

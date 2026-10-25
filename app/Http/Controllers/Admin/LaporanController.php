@@ -8,6 +8,7 @@ use App\Models\Produk;
 use App\Models\ProdukViewLog;
 use App\Models\Ulasan;
 use App\Notifications\AdminActivityNotification;
+use App\Support\XlsxWriter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LaporanController extends Controller
 {
@@ -92,6 +94,66 @@ class LaporanController extends Controller
         return Pdf::loadView('admin.laporan.penjual-pdf', compact(
             'period', 'periodLabel', 'start', 'end', 'sellerReport'
         ))->setPaper('a4', 'landscape')->download($filename);
+    }
+
+    public function penjualSheet(Request $request, XlsxWriter $writer): BinaryFileResponse
+    {
+        $period = $this->selectedPeriod($request);
+        [$start, $end] = $this->periodRange($period);
+        $sellerReport = $this->sellerPerformance($start, $end);
+        $headers = [
+            'Nama Penjual', 'Nama Toko', 'Total Produk', 'Produk Aktif', 'Menunggu Moderasi',
+            'Produk Ditambahkan', 'Produk Dihapus', 'Permintaan Edit', 'Dilihat', 'Ulasan Baru', 'Rating Rata-rata',
+        ];
+        $rows = $sellerReport['sellers']->map(fn (Penjual $seller) => [
+            (string) ($seller->user?->name ?? ''),
+            (string) ($seller->nama_toko ?? ''),
+            (string) $seller->produk_count,
+            (string) $seller->produk_aktif_count,
+            (string) $seller->produk_pending_count,
+            (string) $seller->period_added,
+            (string) $seller->period_deleted,
+            (string) $seller->period_edits_requested,
+            (string) $seller->period_views,
+            (string) $seller->period_reviews,
+            $seller->avg_rating === null ? '' : (string) $seller->avg_rating,
+        ])->all();
+
+        $path = tempnam(storage_path('app'), 'rekap-kinerja-penjual-');
+        if ($path === false) abort(500, 'File ekspor tidak dapat dibuat.');
+        $writer->write($path, $headers, $rows, 'Rekap Kinerja Penjual SiswaMart');
+
+        return response()->download($path, 'rekap-kinerja-penjual-' . $period . '-' . $start->format('Ymd') . '.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    public function ulasanSheet(Request $request, XlsxWriter $writer): BinaryFileResponse
+    {
+        $period = $this->selectedPeriod($request);
+        [$start, $end, $periodLabel] = $this->periodRange($period);
+        $reviews = Ulasan::with(['produk.penjual'])
+            ->publicVisible()
+            ->whereBetween('created_at', [$start, $end])
+            ->orderBy('created_at')
+            ->get();
+        $headers = ['Tanggal', 'Pengulas', 'Rating', 'Produk', 'Penjual', 'Ulasan'];
+        $rows = $reviews->map(fn (Ulasan $review) => [
+            (string) ($review->created_at?->format('d/m/Y H:i') ?? ''),
+            (string) ($review->guest_username ?: 'Pengunjung'),
+            (string) $review->rating,
+            (string) ($review->produk?->nama ?? 'Produk telah dihapus'),
+            (string) ($review->produk?->penjual?->nama_toko ?? 'Penjual tidak tersedia'),
+            (string) ($review->public_content ?: 'Tidak ada teks ulasan.'),
+        ])->all();
+
+        $path = tempnam(storage_path('app'), 'rekap-ulasan-');
+        if ($path === false) abort(500, 'File ekspor tidak dapat dibuat.');
+        $writer->write($path, $headers, $rows, 'Rekap Ulasan SiswaMart - ' . $periodLabel);
+
+        return response()->download($path, 'rekap-ulasan-' . $period . '-' . $start->format('Ymd') . '.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 
     public function pdf(Request $request): Response

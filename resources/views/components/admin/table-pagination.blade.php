@@ -1,11 +1,11 @@
 @props(['paginator'])
 
 @if($paginator && $paginator->total() > 0)
-    <div class="p-4 border-t-2 border-[var(--border-color)] bg-[var(--bg-surface)] flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-xs font-semibold text-[var(--text-muted)]">
+    <div class="p-4 border-t-2 border-[var(--sm-border)] bg-[var(--sm-surface)] flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-xs font-semibold text-[var(--sm-text-muted)]">
         {{-- Total info --}}
         <div class="flex items-center gap-2">
             <span>
-                Menampilkan <strong class="text-[var(--text-main)] font-black">{{ $paginator->firstItem() ?? 0 }}</strong> – <strong class="text-[var(--text-main)] font-black">{{ $paginator->lastItem() ?? 0 }}</strong> dari <strong class="text-[var(--text-main)] font-black">{{ number_format($paginator->total()) }}</strong> data
+                Menampilkan <strong class="text-[var(--sm-ink)] font-black">{{ $paginator->firstItem() ?? 0 }}</strong> – <strong class="text-[var(--sm-ink)] font-black">{{ $paginator->lastItem() ?? 0 }}</strong> dari <strong class="text-[var(--sm-ink)] font-black">{{ number_format($paginator->total()) }}</strong> data
             </span>
         </div>
 
@@ -16,7 +16,7 @@
                 <span class="text-[11px] uppercase tracking-wider font-bold">Baris:</span>
                 <select onchange="window.location.href = this.value" 
                         aria-label="Pilih jumlah baris per halaman"
-                        class="form-input !h-8 !py-1 !px-2.5 !text-xs !w-auto font-bold bg-[var(--bg-body)] border-2 border-[var(--border-color)] rounded-xl cursor-pointer">
+                        class="form-input !h-8 !py-1 !px-2.5 !text-xs !w-auto font-bold bg-[var(--sm-bg)] border-2 border-[var(--sm-border)] rounded-xl cursor-pointer">
                     <option value="{{ request()->fullUrlWithQuery(['per_page' => 10, 'page' => 1]) }}" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
                     <option value="{{ request()->fullUrlWithQuery(['per_page' => 25, 'page' => 1]) }}" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
                     <option value="{{ request()->fullUrlWithQuery(['per_page' => 50, 'page' => 1]) }}" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
@@ -29,7 +29,7 @@
                 <span class="text-[11px] uppercase tracking-wider font-bold">Halaman:</span>
                 <select onchange="window.location.href = this.value"
                         aria-label="Lompat ke halaman"
-                        class="form-input !h-8 !py-1 !px-2.5 !text-xs !w-auto font-bold bg-[var(--bg-body)] border-2 border-[var(--border-color)] rounded-xl cursor-pointer"
+                        class="form-input !h-8 !py-1 !px-2.5 !text-xs !w-auto font-bold bg-[var(--sm-bg)] border-2 border-[var(--sm-border)] rounded-xl cursor-pointer"
                         {{ $paginator->lastPage() <= 1 ? 'disabled' : '' }}>
                     @for($i = 1; $i <= max(1, $paginator->lastPage()); $i++)
                         <option value="{{ $paginator->url($i) }}" {{ $paginator->currentPage() == $i ? 'selected' : '' }}>
@@ -42,21 +42,21 @@
             {{-- Prev / Next Nav Buttons --}}
             <div class="flex items-center gap-1">
                 @if($paginator->onFirstPage())
-                    <span class="p-1.5 rounded-xl border-2 border-[var(--border-color)]/30 text-gray-300 cursor-not-allowed" title="Halaman sebelumnya">
+                    <span class="p-1.5 rounded-xl border-2 border-[var(--sm-border)]/30 text-[var(--sm-text-muted)] cursor-not-allowed" title="Halaman sebelumnya">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                     </span>
                 @else
-                    <a href="{{ $paginator->previousPageUrl() }}" class="p-1.5 rounded-xl border-2 border-[var(--border-color)] bg-[var(--bg-surface)] text-[var(--text-main)] hover:bg-[var(--color-primary-light)] shadow-[2px_2px_0px_0px_var(--border-color)] hover:-translate-y-0.5 transition" title="Halaman sebelumnya">
+                    <a href="{{ $paginator->previousPageUrl() }}" class="p-1.5 rounded-xl border-2 border-[var(--sm-border)] bg-[var(--sm-surface)] text-[var(--sm-ink)] hover:bg-[var(--sm-primary-soft)] shadow-[2px_2px_0px_0px_var(--sm-border)] hover:-translate-y-0.5 transition" title="Halaman sebelumnya">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                     </a>
                 @endif
 
                 @if($paginator->hasMorePages())
-                    <a href="{{ $paginator->nextPageUrl() }}" class="p-1.5 rounded-xl border-2 border-[var(--border-color)] bg-[var(--bg-surface)] text-[var(--text-main)] hover:bg-[var(--color-primary-light)] shadow-[2px_2px_0px_0px_var(--border-color)] hover:-translate-y-0.5 transition" title="Halaman selanjutnya">
+                    <a href="{{ $paginator->nextPageUrl() }}" class="p-1.5 rounded-xl border-2 border-[var(--sm-border)] bg-[var(--sm-surface)] text-[var(--sm-ink)] hover:bg-[var(--sm-primary-soft)] shadow-[2px_2px_0px_0px_var(--sm-border)] hover:-translate-y-0.5 transition" title="Halaman selanjutnya">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 @else
-                    <span class="p-1.5 rounded-xl border-2 border-[var(--border-color)]/30 text-gray-300 cursor-not-allowed" title="Halaman selanjutnya">
+                    <span class="p-1.5 rounded-xl border-2 border-[var(--sm-border)]/30 text-[var(--sm-text-muted)] cursor-not-allowed" title="Halaman selanjutnya">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                     </span>
                 @endif
