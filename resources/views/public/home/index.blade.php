@@ -5,6 +5,8 @@
 
 @section('content')
     @php
+        $heroRating = $produkRekomendasi->max('ulasan_avg_rating');
+        $heroPrice = $hargaMinimumAktif ?? $produkRekomendasi->min('harga');
         $categoryColors = [
             'dessert' => 'var(--sm-primary-soft)',
             'makanan' => 'var(--sm-primary-soft)',
@@ -66,8 +68,7 @@
                 </ul>
             </div>
 
-            <div class="home-hero__visual" aria-label="Etalase produk SiswaMart"
-                 x-data="{ activeSlide: 0, init() { const track = this.$refs.track; if (!track || !('IntersectionObserver' in window)) return; this.slideObserver = new IntersectionObserver((entries) => { const current = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]; if (current) this.activeSlide = Number(current.target.dataset.slide); }, { root: track, threshold: 0.6 }); this.$nextTick(() => [...track.children].forEach(card => this.slideObserver.observe(card))); }, goToSlide(index) { const card = this.$refs.track?.children[index]; card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } }">
+            <div class="home-hero__visual" aria-label="Etalase produk SiswaMart">
                 @if($produkHero->isEmpty())
                     <div class="home-hero__fallback">
                         <img src="{{ asset('images/food.png') }}"
@@ -75,8 +76,7 @@
                              width="380" height="380" fetchpriority="high">
                     </div>
                 @else
-                    <p class="home-showcase__mobile-title">Produk pilihan, mulai Rp {{ number_format((float) $hargaMinimumAktif, 0, ',', '.') }}</p>
-                    <div class="home-showcase__track" x-ref="track" aria-label="Produk pilihan">
+                    <div class="home-showcase__track" aria-label="Produk pilihan">
                     @foreach($produkHero as $index => $item)
                         @php
                             $productUrl = route('public.produk.show', $item->slug);
@@ -89,7 +89,7 @@
                             $waLink = $waNumber ? 'https://wa.me/' . $waNumber . '?text=' . rawurlencode($waMessage) : null;
                         @endphp
                         @if($index === 0)
-                            <article class="home-showcase-card home-showcase-card--main" data-slide="{{ $index }}">
+                            <article class="home-showcase-card home-showcase-card--main">
                                 <a class="home-showcase-card__details" href="{{ $productUrl }}" aria-label="Lihat {{ $item->nama }}">
                                     <span class="home-showcase-card__image">
                                         @if($photoUrl)
@@ -121,7 +121,7 @@
                                 @endif
                             </article>
                         @else
-                            <article class="home-showcase-card home-showcase-card--back home-showcase-card--back-{{ $index }}" data-slide="{{ $index }}">
+                            <article class="home-showcase-card home-showcase-card--back home-showcase-card--back-{{ $index }}">
                                 <a class="home-showcase-card__details" href="{{ $productUrl }}" aria-label="Lihat {{ $item->nama }}">
                                     <span class="home-showcase-card__image">
                                         @if($photoUrl)
@@ -136,36 +136,10 @@
                                         <span class="home-showcase-card__back-price">Rp {{ number_format((float) $item->harga, 0, ',', '.') }}</span>
                                     </span>
                                 </a>
-                                <span class="home-showcase-card__mobile-body">
-                                    <span class="home-showcase-card__meta">
-                                        @if($item->kategori)
-                                            <span class="home-showcase-card__category">{{ $item->kategori->nama }}</span>
-                                        @endif
-                                        @if($item->ulasan_avg_rating !== null)
-                                            <span class="home-showcase-card__rating" aria-label="Rating {{ number_format($item->ulasan_avg_rating, 1) }} dari 5"><x-public.home-icon name="star" /> {{ number_format($item->ulasan_avg_rating, 1) }}</span>
-                                        @endif
-                                    </span>
-                                    <span class="home-showcase-card__mobile-name">{{ $item->nama }}</span>
-                                    <span class="home-showcase-card__store">{{ $item->penjual?->nama_toko }}</span>
-                                    <span class="home-showcase-card__price">Rp {{ number_format((float) $item->harga, 0, ',', '.') }}</span>
-                                    @if($waLink)
-                                        <a class="home-showcase-card__whatsapp" href="{{ $waLink }}" target="_blank" rel="noopener noreferrer">
-                                            <x-public.home-icon name="brand-whatsapp" />
-                                            <span>Pesan via WhatsApp</span>
-                                        </a>
-                                    @endif
-                                </span>
                             </article>
                         @endif
                     @endforeach
                     </div>
-                    @if($produkHero->count() > 1)
-                        <div class="home-showcase__dots" role="group" aria-label="Pilih produk">
-                            @foreach($produkHero as $dot => $item)
-                                <button type="button" class="home-showcase__dot" @click="goToSlide({{ $dot }})" :class="activeSlide === {{ $dot }} ? 'is-active' : ''" :aria-current="activeSlide === {{ $dot }} ? 'true' : 'false'" aria-label="Lihat produk {{ $dot + 1 }}"></button>
-                            @endforeach
-                        </div>
-                    @endif
                     <span class="home-showcase__minimum">Mulai Rp {{ number_format((float) $hargaMinimumAktif, 0, ',', '.') }}</span>
                 @endif
             </div>

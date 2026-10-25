@@ -24,7 +24,7 @@ class GoogleAuthController extends Controller
 
         $this->syncRedirectUrl($request);
 
-        return Socialite::driver('google')->scopes(['openid', 'profile', 'email'])->redirect();
+        return $this->getGoogleDriver()->scopes(['openid', 'profile', 'email'])->redirect();
     }
 
     public function callback(Request $request): RedirectResponse
@@ -37,12 +37,14 @@ class GoogleAuthController extends Controller
 
         $this->syncRedirectUrl($request);
 
+        $driver = $this->getGoogleDriver();
+
         try {
-            $googleUser = Socialite::driver('google')->user();
+            $googleUser = $driver->user();
         } catch (InvalidStateException $e) {
             // Fallback ke stateless jika session state/cookie terputus saat cross-site redirect (umum terjadi pada browser mobile)
             try {
-                $googleUser = Socialite::driver('google')->stateless()->user();
+                $googleUser = $this->getGoogleDriver()->stateless()->user();
             } catch (Throwable $statelessException) {
                 report($statelessException);
 
@@ -137,6 +139,23 @@ class GoogleAuthController extends Controller
             : route('penjual.dashboard');
 
         return redirect()->intended($destination);
+    }
+
+    /**
+     * Dapatkan instance Socialite Google driver dengan dukungan CA bundle lokal jika tersedia (mis. Laragon di Windows).
+     */
+    private function getGoogleDriver()
+    {
+        $driver = Socialite::driver('google');
+
+        $caPath = 'C:/laragon/etc/ssl/cacert.pem';
+        if (! app()->runningUnitTests() && file_exists($caPath) && method_exists($driver, 'setHttpClient')) {
+            $driver->setHttpClient(new \GuzzleHttp\Client([
+                'verify' => $caPath,
+            ]));
+        }
+
+        return $driver;
     }
 
     /**

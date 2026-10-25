@@ -8,7 +8,7 @@ html:has(body.home-page) {
 }
 
 body.home-page .home-main {
-    padding-top: 88px;
+    padding-top: clamp(100px, 9vw, 116px);
 }
 
 body.home-page .home-navbar>div:first-child {
@@ -61,7 +61,8 @@ body.home-page .home-footer a:focus-visible {
     grid-template-columns: minmax(0, 1fr);
     align-items: center;
     gap: 22px;
-    padding-block: 8px;
+    padding-top: clamp(14px, 2vw, 24px);
+    padding-bottom: 8px;
 }
 
 .home-hero__copy {
@@ -210,7 +211,7 @@ body.home-page .home-footer a:focus-visible {
 
 .home-hero__visual {
     position: relative;
-    display: flex;
+    display: none;
     min-width: 0;
     align-items: center;
     justify-content: center;
@@ -918,7 +919,7 @@ body.home-page .home-footer nav a:hover {
 
 @media (min-width: 960px) {
     body.home-page .home-main {
-        padding-top: 68px;
+        padding-top: clamp(104px, 8vw, 120px);
     }
 
     .home-hero {
@@ -927,8 +928,17 @@ body.home-page .home-footer nav a:hover {
         gap: clamp(28px, 4vw, 64px);
     }
 
-    .home-hero__visual {
-        max-width: 510px;
+    .home-hero__visual,
+    body.home-page .home-hero__visual {
+        position: relative;
+        display: flex;
+        min-height: 500px;
+        width: 100%;
+        max-width: 560px;
+        align-items: center;
+        justify-content: center;
+        margin-inline: auto;
+        isolation: isolate;
     }
 
     .home-hero__art-frame {
@@ -1006,21 +1016,9 @@ body.home-page .home-footer nav a:hover {
     }
 }
 
-/* Dynamic product showcase in the homepage hero. */
+
 body.home-page .home-hero::before {
     display: none;
-}
-
-body.home-page .home-hero__visual {
-    position: relative;
-    display: flex;
-    min-height: 500px;
-    width: 100%;
-    max-width: 560px;
-    align-items: center;
-    justify-content: center;
-    margin-inline: auto;
-    isolation: isolate;
 }
 
 .home-hero__fallback {
@@ -1285,11 +1283,6 @@ body.home-page .home-hero__visual {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    body.home-page .home-hero__visual {
-        min-height: auto;
-        max-width: 360px;
-        padding-block: 14px 56px;
-    }
 
     .home-showcase-card--main {
         width: min(100%, 320px);
@@ -2644,12 +2637,12 @@ body.home-page .home-how-to::before {
     }
 
     body.home-page .home-main {
-        padding-top: calc(84px + env(safe-area-inset-top));
+        padding-top: calc(96px + env(safe-area-inset-top));
     }
 
     body.home-page .home-hero {
         gap: 20px;
-        padding-top: 16px;
+        padding-top: 18px;
     }
 
     body.home-page .home-hero::after {
@@ -2761,24 +2754,6 @@ body.home-page .home-how-to::before {
     body.home-page .home-product-card__rating-icon {
         fill: var(--sm-primary);
         color: var(--sm-primary);
-    }
-
-    body.home-page .home-hero__visual {
-        display: block;
-        width: 100%;
-        max-width: none;
-        min-height: auto;
-        margin: 0;
-        padding: 0 0 6px;
-    }
-
-    .home-showcase__mobile-title {
-        margin: 0 16px 10px;
-        color: var(--sm-ink);
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 1.35;
-        text-align: center;
     }
 
     .home-showcase__track {
@@ -3006,7 +2981,6 @@ body.home-page .home-how-to::before {
         display: none;
     }
 
-    .home-showcase__mobile-title,
     .home-showcase__dots,
     .home-showcase-card__mobile-body {
         display: none;
