@@ -6,8 +6,8 @@
 @section('content')
 
     <div class="mb-6 flex items-center gap-3">
-        <a href="{{ route('admin.produk.index') }}" class="p-2 rounded-full hover:bg-[var(--sm-primary-soft)] text-[var(--sm-text-muted)] transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        <a href="{{ route('admin.produk.index') }}" class="w-10 h-10 inline-flex items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-surface)] hover:bg-[var(--sm-primary-soft)] text-[var(--sm-text-muted)] hover:text-[var(--sm-ink)] transition-colors flex-shrink-0" title="Kembali ke moderasi produk">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
         </a>
         <h2 class="text-xl font-bold text-[var(--sm-ink)]">Detail Produk</h2>
     </div>
@@ -143,9 +143,9 @@
                         </div>
                         <div>
                             <p class="text-xs text-[var(--sm-text-muted)]">Kontak WhatsApp</p>
-                            <a href="https://wa.me/{{ $produk->penjual->nomor_whatsapp }}" target="_blank" class="text-sm font-medium text-[var(--sm-primary)] hover:underline flex items-center gap-1 mt-0.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                {{ $produk->penjual->nomor_whatsapp }}
+                            <a href="https://wa.me/{{ $produk->penjual->nomor_whatsapp }}" target="_blank" class="text-sm font-medium text-[var(--sm-primary)] hover:underline inline-flex items-center gap-1 mt-0.5">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                <span>{{ $produk->penjual->nomor_whatsapp }}</span>
                             </a>
                         </div>
                         <div>
@@ -158,9 +158,9 @@
             
                     <form id="deleteProductForm" method="POST" action="{{ route('admin.produk.destroy', $produk) }}">
                 @csrf @method('DELETE')
-                <button type="submit" class="w-full btn-outline justify-center text-[var(--sm-primary)] border-[var(--sm-primary)] hover:bg-[var(--sm-primary-soft)]">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    Hapus Produk
+                <button type="submit" class="w-full btn-outline justify-center text-[var(--sm-primary)] border-[var(--sm-primary)] hover:bg-[var(--sm-primary-soft)] inline-flex items-center gap-2">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <span>Hapus Produk</span>
                 </button>
             </form>
         </div>
@@ -168,7 +168,7 @@
 
     <dialog id="deleteProductDialog" class="product-delete-dialog" aria-labelledby="deleteProductTitle" aria-describedby="deleteProductMessage">
         <div class="product-delete-dialog__icon" aria-hidden="true">
-            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0Z" />
             </svg>
         </div>

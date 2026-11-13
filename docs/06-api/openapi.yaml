@@ -1,0 +1,932 @@
+openapi: 3.0.3
+info:
+  title: SiswaMart REST API Specification
+  version: 1.1.0
+  description: |
+    Spesifikasi OpenAPI 3.0.3 untuk seluruh 26 endpoint REST API SiswaMart (`/api/*`).
+    Disusun langsung dari kode sumber `routes/api.php` dan `app/Http/Controllers/Api/*.php`.
+servers:
+  - url: http://localhost/api
+    description: Lingkungan Lokal (Laragon)
+tags:
+  - name: Auth
+    description: Autentikasi Bearer Token Laravel Sanctum
+  - name: Products
+    description: Katalog produk publik
+  - name: Categories
+    description: Kategori produk publik
+  - name: Sellers
+    description: Direktori toko penjual publik
+  - name: Reviews
+    description: Ulasan produk tamu & moderasi
+  - name: Profile
+    description: Profil akun & toko pengguna terautentikasi
+  - name: SellerProducts
+    description: Pengelolaan produk oleh Penjual (pengajuan create/update/delete)
+  - name: AdminModeration
+    description: Moderasi ajuan produk oleh Admin (approve/reject)
+  - name: Notifications
+    description: Notifikasi pengguna terautentikasi
+  - name: Cart
+    description: Endpoint keranjang belanja (ditangguhkan HTTP 501 karena pemesanan via WhatsApp)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: SanctumToken
+      description: Token dari endpoint POST /api/login
+
+  parameters:
+    PerPageParam:
+      name: per_page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 12
+    SearchQueryParam:
+      name: q
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Data yang dikirim tidak valid.
+        errors:
+          type: object
+          additionalProperties: true
+
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        last_page:
+          type: integer
+          example: 3
+        per_page:
+          type: integer
+          example: 12
+        total:
+          type: integer
+          example: 30
+
+    UserObject:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2
+        name:
+          type: string
+          example: Budi Santoso
+        username:
+          type: string
+          example: penjual_rpl
+        email:
+          type: string
+          format: email
+          example: budi@smk.sch.id
+        role:
+          type: string
+          enum: [admin, penjual]
+        is_active:
+          type: boolean
+          example: true
+        must_change_password:
+          type: boolean
+          example: false
+        seller:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            nisn:
+              type: string
+              nullable: true
+              example: "0012345678"
+            nama_toko:
+              type: string
+            nomor_whatsapp:
+              type: string
+            lokasi_kelas:
+              type: string
+              nullable: true
+            alamat:
+              type: string
+              nullable: true
+            status_toko:
+              type: string
+              enum: [buka, tutup]
+
+    ProductObject:
+      type: object
+      properties:
+        id:
+          type: integer
+        nama:
+          type: string
+        slug:
+          type: string
+        deskripsi:
+          type: string
+          nullable: true
+        harga:
+          type: number
+          format: float
+        stok:
+          type: string
+          enum: [tersedia, po, habis]
+        label_promosi:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, pending, aktif, ditolak]
+        foto_url:
+          type: string
+          nullable: true
+        views:
+          type: integer
+        reviews_count:
+          type: integer
+        average_rating:
+          type: number
+          format: float
+        kategori:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            nama:
+              type: string
+            slug:
+              type: string
+        penjual:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            nama_toko:
+              type: string
+            lokasi_kelas:
+              type: string
+              nullable: true
+            status_toko:
+              type: string
+              enum: [buka, tutup]
+            nomor_whatsapp:
+              type: string
+            foto_toko_url:
+              type: string
+              nullable: true
+        whatsapp_order_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ReviewObject:
+      type: object
+      properties:
+        id:
+          type: integer
+        produk_id:
+          type: integer
+        guest_username:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        komentar:
+          type: string
+        is_censored:
+          type: boolean
+        moderation_status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+  responses:
+    UnauthorizedResponse:
+      description: Token autentikasi tidak ditemukan atau tidak valid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ForbiddenResponse:
+      description: Akses ditolak atau akun telah dinonaktifkan oleh admin.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFoundResponse:
+      description: Sumber daya tidak ditemukan atau tidak aktif.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ValidationErrorResponse:
+      description: Validasi input gagal.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    CartNotImplementedResponse:
+      description: Fitur keranjang internal ditangguhkan karena pemesanan dilakukan melalui WhatsApp.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: Fitur keranjang internal belum diimplementasikan. Pemesanan produk SiswaMart saat ini dilakukan langsung melalui WhatsApp penjual.
+              errors:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: CART_NOT_IMPLEMENTED
+                  order_channel:
+                    type: string
+                    example: whatsapp
+
+paths:
+  /login:
+    post:
+      tags: [Auth]
+      operationId: apiAuthLogin
+      summary: Login menggunakan email atau username untuk mendapatkan token Sanctum
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                login:
+                  type: string
+                  description: Email atau username pengguna
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                device_name:
+                  type: string
+                  default: api-token
+      responses:
+        '200':
+          description: Login berhasil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      token_type:
+                        type: string
+                        example: Bearer
+                      user:
+                        $ref: '#/components/schemas/UserObject'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '429':
+          description: Terlalu banyak percobaan login (throttle:5,1)
+
+  /register:
+    post:
+      tags: [Auth]
+      operationId: apiAuthRegister
+      summary: Registrasi mandiri ditutup (selalu mengembalikan HTTP 403)
+      responses:
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+
+  /me:
+    get:
+      tags: [Auth]
+      operationId: apiAuthMe
+      summary: Ambil data akun pengguna yang sedang login
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Data pengguna berhasil diambil
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+
+  /logout:
+    post:
+      tags: [Auth]
+      operationId: apiAuthLogout
+      summary: Cabut token Sanctum saat ini
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout berhasil
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+
+  /products:
+    get:
+      tags: [Products]
+      operationId: apiProductsIndex
+      summary: Daftar produk publik terpaginasi dengan filter
+      parameters:
+        - $ref: '#/components/parameters/SearchQueryParam'
+        - $ref: '#/components/parameters/PerPageParam'
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: seller_id
+          in: query
+          schema:
+            type: integer
+        - name: stok
+          in: query
+          schema:
+            type: string
+            enum: [tersedia, po, habis]
+        - name: min_harga
+          in: query
+          schema:
+            type: number
+        - name: max_harga
+          in: query
+          schema:
+            type: number
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [terbaru, termurah, termahal, populer]
+      responses:
+        '200':
+          description: Daftar produk berhasil diambil
+
+  /products/search:
+    get:
+      tags: [Products]
+      operationId: apiProductsSearch
+      summary: Pencarian produk publik (alias filter /api/products)
+      parameters:
+        - $ref: '#/components/parameters/SearchQueryParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Hasil pencarian produk berhasil diambil
+
+  /products/popular:
+    get:
+      tags: [Products]
+      operationId: apiProductsPopular
+      summary: Daftar produk terpopuler berdasarkan views dan rating
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 24
+            default: 8
+      responses:
+        '200':
+          description: Daftar produk populer berhasil diambil
+
+  /products/{slug}:
+    get:
+      tags: [Products]
+      operationId: apiProductsShow
+      summary: Detail produk publik berdasarkan slug (mencatat view)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detail produk berhasil diambil
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+
+  /categories:
+    get:
+      tags: [Categories]
+      operationId: apiCategoriesIndex
+      summary: Daftar seluruh kategori beserta jumlah produk publik
+      responses:
+        '200':
+          description: Daftar kategori berhasil diambil
+
+  /categories/{slug}/products:
+    get:
+      tags: [Categories]
+      operationId: apiCategoriesProducts
+      summary: Daftar produk publik di dalam satu kategori
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/SearchQueryParam'
+        - $ref: '#/components/parameters/PerPageParam'
+        - name: stok
+          in: query
+          schema:
+            type: string
+            enum: [tersedia, po, habis]
+      responses:
+        '200':
+          description: Daftar produk kategori berhasil diambil
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+
+  /sellers:
+    get:
+      tags: [Sellers]
+      operationId: apiSellersIndex
+      summary: Daftar toko penjual aktif
+      parameters:
+        - $ref: '#/components/parameters/SearchQueryParam'
+        - $ref: '#/components/parameters/PerPageParam'
+        - name: status_toko
+          in: query
+          schema:
+            type: string
+            enum: [buka, tutup]
+      responses:
+        '200':
+          description: Daftar penjual berhasil diambil
+
+  /sellers/{penjual}:
+    get:
+      tags: [Sellers]
+      operationId: apiSellersShow
+      summary: Detail profil toko penjual beserta katalog produk aktifnya
+      parameters:
+        - name: penjual
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detail penjual berhasil diambil
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+
+  /products/{slug}/reviews:
+    get:
+      tags: [Reviews]
+      operationId: apiReviewsIndex
+      summary: Daftar ulasan aktif pada sebuah produk
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Daftar ulasan berhasil diambil
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    post:
+      tags: [Reviews]
+      operationId: apiReviewsStore
+      summary: Kirim ulasan tamu baru (dilindungi CommentModerationService & throttle:10,1)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guest_username, rating, komentar]
+              properties:
+                guest_username:
+                  type: string
+                  maxLength: 100
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                komentar:
+                  type: string
+                  maxLength: 1000
+      responses:
+        '201':
+          description: Ulasan berhasil dikirim
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '429':
+          description: Melebihi batas pengiriman ulasan (10/menit)
+
+  /reviews/{ulasan}:
+    delete:
+      tags: [Reviews]
+      operationId: apiReviewsDestroy
+      summary: Hapus ulasan (khusus Admin atau Penjual pemilik produk)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: ulasan
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ulasan berhasil dihapus
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+
+  /profile:
+    get:
+      tags: [Profile]
+      operationId: apiProfileShow
+      summary: Lihat profil akun dan profil toko penjual
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profil berhasil diambil
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+    put:
+      tags: [Profile]
+      operationId: apiProfileUpdate
+      summary: Perbarui profil akun dan/atau profil toko penjual
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                current_password:
+                  type: string
+                password:
+                  type: string
+                password_confirmation:
+                  type: string
+                nama_toko:
+                  type: string
+                deskripsi_toko:
+                  type: string
+                nomor_whatsapp:
+                  type: string
+                lokasi_kelas:
+                  type: string
+                alamat:
+                  type: string
+                status_toko:
+                  type: string
+                  enum: [buka, tutup]
+      responses:
+        '200':
+          description: Profil berhasil diperbarui
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+
+  /seller/products:
+    get:
+      tags: [SellerProducts]
+      operationId: apiSellerProductsIndex
+      summary: Daftar produk milik penjual yang sedang login
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SearchQueryParam'
+        - $ref: '#/components/parameters/PerPageParam'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, pending, aktif, ditolak]
+        - name: stok
+          in: query
+          schema:
+            type: string
+            enum: [tersedia, po, habis]
+      responses:
+        '200':
+          description: Daftar produk penjual berhasil diambil
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+    post:
+      tags: [SellerProducts]
+      operationId: apiSellerProductsStore
+      summary: Ajukan produk baru oleh penjual (status pending, pending_action create)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [nama, kategori_id, deskripsi, harga, stok]
+              properties:
+                nama:
+                  type: string
+                  maxLength: 255
+                kategori_id:
+                  type: integer
+                deskripsi:
+                  type: string
+                harga:
+                  type: number
+                  minimum: 0
+                stok:
+                  type: string
+                  enum: [tersedia, po, habis]
+                label_promosi:
+                  type: string
+                  maxLength: 50
+                foto_utama:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Produk berhasil diajukan untuk moderasi
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+
+  /seller/products/{produk}:
+    put:
+      tags: [SellerProducts]
+      operationId: apiSellerProductsUpdate
+      summary: Ajukan perubahan produk oleh penjual (menyimpan ke pending_changes jika produk aktif)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: produk
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nama, kategori_id, deskripsi, harga, stok]
+              properties:
+                nama:
+                  type: string
+                kategori_id:
+                  type: integer
+                deskripsi:
+                  type: string
+                harga:
+                  type: number
+                stok:
+                  type: string
+                  enum: [tersedia, po, habis]
+                label_promosi:
+                  type: string
+                  nullable: true
+      responses:
+        '200':
+          description: Perubahan produk berhasil diajukan
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+    delete:
+      tags: [SellerProducts]
+      operationId: apiSellerProductsDestroy
+      summary: Ajukan penghapusan produk oleh penjual (pending_action delete)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: produk
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Permintaan hapus produk berhasil dikirim ke admin
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+
+  /admin/moderation/products:
+    get:
+      tags: [AdminModeration]
+      operationId: apiAdminModerationIndex
+      summary: Daftar antrean moderasi produk (khusus Admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SearchQueryParam'
+        - $ref: '#/components/parameters/PerPageParam'
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum: [create, update, delete]
+      responses:
+        '200':
+          description: Daftar antrean moderasi berhasil diambil
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+
+  /admin/moderation/products/{produk}/status:
+    patch:
+      tags: [AdminModeration]
+      operationId: apiAdminModerationUpdateStatus
+      summary: Setujui (aktif) atau tolak (ditolak) ajuan moderasi produk (khusus Admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: produk
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [aktif, ditolak]
+                alasan_ditolak:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+      responses:
+        '200':
+          description: Keputusan moderasi berhasil diterapkan
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '422':
+          $ref: '#/components/responses/ValidationErrorResponse'
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      operationId: apiNotificationsIndex
+      summary: Daftar notifikasi pengguna yang sedang login
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: unread_only
+          in: query
+          schema:
+            type: boolean
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: Daftar notifikasi berhasil diambil
+
+  /notifications/{id}/read:
+    patch:
+      tags: [Notifications]
+      operationId: apiNotificationsMarkAsRead
+      summary: Tandai satu notifikasi sebagai telah dibaca
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notifikasi berhasil ditandai telah dibaca
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+
+  /cart:
+    get:
+      tags: [Cart]
+      operationId: apiCartIndex
+      summary: Keranjang belanja (Ditangguhkan - HTTP 501)
+      security:
+        - bearerAuth: []
+      responses:
+        '501':
+          $ref: '#/components/responses/CartNotImplementedResponse'
+    post:
+      tags: [Cart]
+      operationId: apiCartStore
+      summary: Tambah item keranjang (Ditangguhkan - HTTP 501)
+      security:
+        - bearerAuth: []
+      responses:
+        '501':
+          $ref: '#/components/responses/CartNotImplementedResponse'
+
+  /cart/{itemId}:
+    patch:
+      tags: [Cart]
+      operationId: apiCartUpdate
+      summary: Ubah item keranjang (Ditangguhkan - HTTP 501)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '501':
+          $ref: '#/components/responses/CartNotImplementedResponse'
+    delete:
+      tags: [Cart]
+      operationId: apiCartDestroy
+      summary: Hapus item keranjang (Ditangguhkan - HTTP 501)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '501':
+          $ref: '#/components/responses/CartNotImplementedResponse'

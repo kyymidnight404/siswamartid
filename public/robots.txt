@@ -1,2 +1,10 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /penjual/
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /reset-password/
+Disallow: /api/
+
+Sitemap: https://siswamartid.my.id/sitemap.xml

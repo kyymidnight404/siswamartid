@@ -32,6 +32,7 @@ class Produk extends Model
         'label_promosi',
         'foto_utama',
         'status',
+        'approved_at',
         'alasan_ditolak',
         'pending_action',
         'pending_changes',
@@ -48,6 +49,7 @@ class Produk extends Model
         return [
             'harga' => 'decimal:2',
             'pending_changes' => 'array',
+            'approved_at' => 'datetime',
         ];
     }
 

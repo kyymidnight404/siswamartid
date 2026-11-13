@@ -16,25 +16,35 @@ class SellerController extends ApiController
             ->withCount(['produk as active_product_count' => fn ($q) => $q->publicVisible()])
             ->orderBy('nama_toko')
             ->get()
-            ->map(fn (Penjual $seller) => $this->sellerData($seller));
+            ->map(fn (Penjual $seller) => $this->sellerData($seller, false));
 
         return $this->success($sellers, 'Daftar penjual berhasil diambil');
     }
 
-    public function show(Penjual $seller, ProductController $productController)
+    public function show(mixed $seller, ProductController $productController)
     {
-        abort_unless($seller->user?->is_active, 404);
+        if ($seller instanceof Penjual) {
+            $sellerModel = $seller;
+        } else {
+            $sellerModel = Penjual::where('id', is_numeric($seller) ? (int) $seller : 0)
+                ->orWhere('nama_toko', (string) $seller)
+                ->firstOrFail();
+        }
 
-        $products = $seller->produk()
+        abort_unless($sellerModel->user?->is_active, 404);
+
+        $products = $sellerModel->produk()
             ->publicVisible()
-            ->with(['kategori', 'penjual'])
+            ->with(['kategori', 'penjual.user'])
             ->withAvg(['ulasan' => fn ($reviews) => $reviews->publicVisible()], 'rating')
+            ->withCount(['ulasan' => fn ($reviews) => $reviews->publicVisible()])
             ->latest()
             ->get()
             ->map(fn (Produk $product) => $productController->productData($product));
 
-        $data = $this->sellerData($seller);
+        $data = $this->sellerData($sellerModel, false);
         $data['products'] = $products;
+        $data['produk'] = $products;
 
         return $this->success($data, 'Profil penjual berhasil diambil');
     }
@@ -58,19 +68,21 @@ class SellerController extends ApiController
             ->publicVisible()
             ->count();
 
-        $recentProducts = Produk::with(['kategori', 'penjual'])
+        $recentProducts = Produk::with(['kategori', 'penjual.user'])
+            ->withAvg(['ulasan' => fn ($reviews) => $reviews->publicVisible()], 'rating')
+            ->withCount(['ulasan' => fn ($reviews) => $reviews->publicVisible()])
             ->where('penjual_id', $penjual->id)
             ->latest()
             ->take(10)
             ->get()
             ->map(fn (Produk $p) => array_merge($productController->productData($p), [
                 'moderation_status' => $p->status,
-                'pending_action' => $p->pending_action,
+                'pending_action' => $p->pending_action ?? null,
                 'rejection_reason' => $p->alasan_ditolak,
             ]));
 
         return $this->success([
-            'seller' => $this->sellerData($penjual),
+            'seller' => $this->sellerData($penjual, true),
             'stats' => [
                 'total_products' => $totalProduk,
                 'active_products' => $produkAktif,
@@ -94,22 +106,31 @@ class SellerController extends ApiController
         $penjual->update(['status_toko' => $newStatus]);
 
         return $this->success(
-            $this->sellerData($penjual->fresh()),
+            $this->sellerData($penjual->fresh(), true),
             "Status toko berhasil diubah menjadi {$newStatus}."
         );
     }
 
-    public function sellerData(Penjual $seller): array
+    public function sellerData(Penjual $seller, bool $isOwner = false): array
     {
+        $imageUrl = $seller->foto_toko ? url('storage/'.$seller->foto_toko) : null;
+
         return [
             'id' => $seller->id,
             'name' => $seller->nama_toko,
+            'nama_toko' => $seller->nama_toko,
             'description' => $seller->deskripsi_toko,
+            'deskripsi_toko' => $seller->deskripsi_toko,
             'class_location' => $seller->lokasi_kelas,
+            'lokasi_kelas' => $seller->lokasi_kelas,
             'location' => null,
             'store_status' => $seller->status_toko ?? 'buka',
-            'phone' => $seller->nomor_whatsapp,
-            'image' => $seller->foto_toko ? asset('storage/'.$seller->foto_toko) : null,
+            'status_toko' => $seller->status_toko ?? 'buka',
+            // Nomor telepon disembunyikan untuk publik, hanya tampil bagi pemilik toko di dashboard
+            'phone' => $isOwner ? $seller->nomor_whatsapp : null,
+            'nomor_whatsapp' => $isOwner ? $seller->nomor_whatsapp : null,
+            'image' => $imageUrl,
+            'foto_toko' => $imageUrl,
             'active_product_count' => $seller->active_product_count ?? $seller->produk()->publicVisible()->count(),
         ];
     }

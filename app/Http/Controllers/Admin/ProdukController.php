@@ -159,6 +159,7 @@ class ProdukController extends Controller
                 DB::transaction(function () use ($produk, $changes) {
                     $produk->update(array_merge($changes, [
                         'status' => 'aktif',
+                        'approved_at' => $produk->approved_at ?? now(),
                         'pending_action' => null,
                         'pending_changes' => null,
                         'alasan_ditolak' => null,
@@ -171,6 +172,7 @@ class ProdukController extends Controller
             } elseif ($validated['decision'] === 'approve') {
                 $produk->update([
                     'status' => 'aktif',
+                    'approved_at' => $produk->approved_at ?? now(),
                     'pending_action' => null,
                     'pending_changes' => null,
                     'alasan_ditolak' => null,
@@ -203,10 +205,16 @@ class ProdukController extends Controller
 
         $alasan = $validated['status'] === 'ditolak' ? ($validated['alasan_ditolak'] ?? null) : null;
 
-        $produk->update([
+        $updateData = [
             'status' => $validated['status'],
             'alasan_ditolak' => $alasan,
-        ]);
+        ];
+
+        if ($validated['status'] === 'aktif') {
+            $updateData['approved_at'] = $produk->approved_at ?? now();
+        }
+
+        $produk->update($updateData);
 
         $notificationService->notifyAdmins([
             'title' => 'Status produk diperbarui',

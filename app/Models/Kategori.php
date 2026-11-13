@@ -26,6 +26,22 @@ class Kategori extends Model
         'icon',
     ];
 
+    // ─── Route Binding ───────────────────────────────────────────────────────
+
+    /**
+     * Selesaikan model binding baik melalui ID numerik maupun slug teks.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field) {
+            return parent::resolveRouteBinding($value, $field);
+        }
+
+        return $this->where('slug', (string) $value)
+            ->orWhere('id', is_numeric($value) ? (int) $value : 0)
+            ->first();
+    }
+
     // ─── Relasi ───────────────────────────────────────────────────────────────
 
     /**

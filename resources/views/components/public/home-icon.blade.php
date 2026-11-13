@@ -7,7 +7,7 @@
 ])
 
 <svg
-    {{ $attributes->merge(['class' => 'home-icon-svg', 'aria-hidden' => 'true']) }}
+    {{ $attributes->merge(['class' => 'home-icon-svg flex-shrink-0', 'aria-hidden' => 'true']) }}
     xmlns="http://www.w3.org/2000/svg"
     width="{{ $size }}"
     height="{{ $size }}"

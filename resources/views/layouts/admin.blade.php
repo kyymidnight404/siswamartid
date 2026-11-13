@@ -1,14 +1,12 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dashboard-document">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin') | SiswaMart</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="{{ asset('css/fonts.css') }}?v={{ file_exists(public_path('css/fonts.css')) ? filemtime(public_path('css/fonts.css')) : time() }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="{{ asset('css/siswamart-theme.css') }}?v={{ file_exists(public_path('css/siswamart-theme.css')) ? filemtime(public_path('css/siswamart-theme.css')) : time() }}">
     <style>
         [x-cloak] { display: none !important; }
         * { font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; box-sizing: border-box; }
@@ -23,14 +21,37 @@
         .app-sidebar {
             background: var(--sm-surface);
             border-right: 1px solid var(--sm-border);
-            width: 256px;
+            width: var(--sm-sidebar-width, 264px);
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            bottom: 0;
             height: 100vh;
+            height: 100dvh;
             max-height: 100vh;
+            max-height: 100dvh;
+            z-index: 40;
+        }
+        .dashboard-content-shell {
+            margin-left: var(--sm-sidebar-width, 264px);
+            width: calc(100% - var(--sm-sidebar-width, 264px));
+            min-width: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+        @media (max-width: 899px) {
+            .app-sidebar {
+                width: min(300px, calc(100vw - 48px));
+                transform: translateX(-100%);
+                z-index: 60;
+            }
+            .dashboard-content-shell {
+                margin-left: 0;
+                width: 100%;
+            }
         }
         .sidebar-section-title {
             font-size: 0.7rem;
@@ -384,71 +405,53 @@
             flex-shrink: 0 !important;
         }
     </style>
-    <link rel="stylesheet" href="{{ asset('css/siswamart-theme.css') }}?v={{ file_exists(public_path('css/siswamart-theme.css')) ? filemtime(public_path('css/siswamart-theme.css')) : time() }}">
 </head>
-<body class="admin-dashboard flex min-h-screen">
+<body class="admin-dashboard dashboard-shell flex min-h-screen">
 
     {{-- ── Sidebar ── --}}
     <div class="dashboard-sidebar-backdrop" data-sidebar-close aria-hidden="true"></div>
-    <aside class="app-sidebar hidden lg:flex sticky top-0 h-screen max-h-screen" id="dashboardSidebar">
-        <div class="h-16 flex items-center px-6 border-b border-[var(--sm-border)]">
-            <x-brand-logo :href="route('public.home')" label="SiswaMart — Beranda" />
-        </div>
+    <aside class="app-sidebar" id="dashboardSidebar">
+        @include('layouts.partials.dashboard-sidebar-brand', ['role' => 'Admin'])
 
-        <nav class="flex-1 overflow-y-auto py-4">
+        <nav class="dashboard-sidebar-menu py-4">
             <div class="sidebar-section-title">Menu utama</div>
-            <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+            <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                 Dashboard
             </a>
 
             <div class="sidebar-section-title mt-4">Manajemen</div>
-            <a href="{{ route('admin.categories.index') }}" class="sidebar-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.categories.index') }}" class="sidebar-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" @if(request()->routeIs('admin.categories.*')) aria-current="page" @endif>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
                 Kategori
             </a>
-            <a href="{{ route('admin.penjual.index') }}" class="sidebar-link {{ request()->routeIs('admin.penjual.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.penjual.index') }}" class="sidebar-link {{ request()->routeIs('admin.penjual.*') ? 'active' : '' }}" @if(request()->routeIs('admin.penjual.*')) aria-current="page" @endif>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                 Penjual
             </a>
-            <a href="{{ route('admin.produk.index') }}" class="sidebar-link {{ request()->routeIs('admin.produk.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.produk.index') }}" class="sidebar-link {{ request()->routeIs('admin.produk.*') ? 'active' : '' }}" @if(request()->routeIs('admin.produk.*')) aria-current="page" @endif>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                Moderasi Produk
+                Moderasi produk
             </a>
-            <a href="{{ route('admin.komentar.index') }}" class="sidebar-link {{ request()->routeIs('admin.komentar.*') || request()->routeIs('admin.ulasan.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.komentar.index') }}" class="sidebar-link {{ request()->routeIs('admin.komentar.*') || request()->routeIs('admin.ulasan.*') ? 'active' : '' }}" @if(request()->routeIs('admin.komentar.*') || request()->routeIs('admin.ulasan.*')) aria-current="page" @endif>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                Kelola Komentar
+                Kelola komentar
             </a>
-            <a href="{{ route('admin.laporan.index') }}" class="sidebar-link {{ request()->routeIs('admin.laporan.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.laporan.index') }}" class="sidebar-link {{ request()->routeIs('admin.laporan.*') ? 'active' : '' }}" @if(request()->routeIs('admin.laporan.*')) aria-current="page" @endif>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
-                Rekap Admin
+                Laporan
             </a>
         </nav>
 
-        {{-- User info --}}
-        <div class="p-4 border-t-2 border-[var(--sm-border)] flex-shrink-0">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-9 h-9 rounded-full bg-[var(--sm-primary-soft)] flex items-center justify-center text-[var(--sm-ink)] border-2 border-[var(--sm-border)] font-bold text-sm shadow-[2px_2px_0px_0px_var(--sm-border)]">
-                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                </div>
-                <div class="min-w-0">
-                    <p class="sidebar-user-name text-sm font-bold truncate">{{ Auth::user()->name }}</p>
-                    <p class="text-[var(--sm-text-muted)] font-semibold text-xs capitalize">Admin SiswaMart</p>
-                </div>
-            </div>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button class="sidebar-logout-button w-full text-xs font-bold border-2 py-1.5 rounded-full transition-all">Keluar</button>
-            </form>
-        </div>
+        @include('layouts.partials.dashboard-sidebar-footer', ['user' => Auth::user(), 'role' => 'Admin'])
     </aside>
 
     {{-- ── Main Area ── --}}
-    <div class="flex-1 min-w-0 flex flex-col min-h-screen">
+    <div class="dashboard-content-shell flex-1 min-w-0 flex flex-col">
         {{-- Topbar --}}
         <header class="app-topbar">
             <div class="flex items-center gap-3 w-full mx-auto">
-                <button type="button" class="p-2 rounded-full hover:bg-[var(--sm-primary-soft)] text-[var(--sm-text-muted)] lg:hidden flex-shrink-0" data-sidebar-toggle aria-label="Buka menu" aria-controls="dashboardSidebar" aria-expanded="false">
+                <button type="button" class="p-2 rounded-full hover:bg-[var(--sm-primary-soft)] text-[var(--sm-text-muted)] flex-shrink-0" data-sidebar-toggle aria-label="Buka menu" aria-controls="dashboardSidebar" aria-expanded="false">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 <div class="flex-1 min-w-0">
@@ -466,36 +469,36 @@
                             if (str_contains($act, 'ulasan') || str_contains($tit, 'ulasan')) {
                                 return [
                                     'bg' => 'bg-[var(--sm-primary-soft)]/60 text-[var(--sm-primary)] border border-[var(--sm-primary-soft)]',
-                                    'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>'
+                                    'icon' => '<svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>'
                                 ];
                             }
                             if (str_contains($act, 'edit') || str_contains($tit, 'perubahan')) {
                                 return [
                                     'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-primary-hover)] border border-[var(--sm-primary-soft)]',
-                                    'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>'
+                                    'icon' => '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>'
                                 ];
                             }
                             if (str_contains($act, 'hapus') || str_contains($tit, 'hapus')) {
                                 return [
                                     'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
-                                    'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
+                                    'icon' => '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
                                 ];
                             }
                             if (str_contains($act, 'status') || str_contains($tit, 'diperbarui')) {
                                 return [
                                     'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
-                                    'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>'
+                                    'icon' => '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>'
                                 ];
                             }
                             return [
                                 'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
-                                'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>'
+                                'icon' => '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>'
                             ];
                         };
                     @endphp
                     <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
                         <button type="button" @click.stop="open = !open" class="notification-icon-btn relative w-10 h-10 rounded-full bg-[var(--sm-surface)] text-[var(--sm-ink)] border-2 border-[var(--sm-border)] flex items-center justify-center shadow-[2px_2px_0px_0px_var(--sm-border)] hover:-translate-y-0.5 transition-all" aria-label="Notifikasi" :aria-expanded="open.toString()">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                             </svg>
                             <span id="adminNotificationCount" class="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-[var(--sm-accent)] text-[var(--sm-on-accent)] text-[10px] font-black flex items-center justify-center border-2 border-[var(--sm-surface)] {{ $unreadNotificationCount > 0 ? '' : 'hidden' }}">{{ $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount }}</span>
@@ -599,31 +602,15 @@
         </div>
         @endif
 
-        <main class="flex-1 p-6 overflow-x-hidden">
+        <main class="dashboard-main flex-1 p-6">
             <div class="max-w-6xl mx-auto">
                 @yield('content')
             </div>
         </main>
     </div>
 
+    @include('layouts.partials.dashboard-drawer-script')
     <script>
-        (() => {
-            const toggle = document.querySelector('[data-sidebar-toggle]');
-            const close = document.querySelector('[data-sidebar-close]');
-            const setSidebarOpen = (isOpen) => {
-                document.body.classList.toggle('mobile-sidebar-open', isOpen);
-                toggle?.setAttribute('aria-expanded', String(isOpen));
-            };
-            toggle?.addEventListener('click', () => setSidebarOpen(!document.body.classList.contains('mobile-sidebar-open')));
-            close?.addEventListener('click', () => setSidebarOpen(false));
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape') setSidebarOpen(false);
-            });
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 1024) setSidebarOpen(false);
-            });
-        })();
-
         // Auto-hide flash
         setTimeout(() => {
             const el = document.getElementById('adminFlash');
@@ -638,7 +625,7 @@
         const notificationUrl = @json(route('admin.notifications.poll'));
         const notificationReadUrl = @json(route('admin.notifications.read', ['notification' => '__ID__']));
         const notificationCsrfToken = @json(csrf_token());
-        const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&var(--sm-ink);','"':'&quot;'}[char]));
+        const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
 
         const getNotificationIconJs = (activity, title) => {
             const act = (activity || '').toLowerCase();
@@ -752,5 +739,3 @@
 @endunless
 </body>
 </html>
-
-

@@ -23,6 +23,10 @@ body.home-page .home-navbar__desktop {
     gap: clamp(8px, 1.4vw, 22px);
 }
 
+body.home-page .home-navbar #nav-logo {
+    order: -1;
+}
+
 body.home-page .home-navbar #nav-beranda,
 body.home-page .home-navbar #nav-kategori,
 body.home-page .home-navbar #nav-cara-pemesanan,
@@ -2986,4 +2990,3 @@ body.home-page .home-how-to::before {
         display: none;
     }
 }
-

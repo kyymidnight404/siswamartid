@@ -69,4 +69,12 @@ class User extends Authenticatable
     {
         return $this->hasOne(Penjual::class);
     }
+
+    /**
+     * Kirim notifikasi pengaturan ulang kata sandi (SiswaMart branded).
+     */
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
 }

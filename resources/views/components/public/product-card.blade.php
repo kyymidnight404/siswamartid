@@ -42,6 +42,16 @@
                 ? 'home-product-card__badge--favorite'
                 : 'home-product-card__badge--promo';
             $homeBadges[] = ['label' => $promotionLabel, 'class' => $promotionClass];
+        } elseif (count($homeBadges) < 2) {
+            if ($produk->views >= 500) {
+                $homeBadges[] = ['label' => 'BEST SELLER', 'class' => 'home-product-card__badge--favorite'];
+            } elseif ($produk->views >= 100) {
+                $homeBadges[] = ['label' => 'HITS', 'class' => 'home-product-card__badge--promo'];
+            } elseif ($produk->views >= 50) {
+                $homeBadges[] = ['label' => 'FAVORIT', 'class' => 'home-product-card__badge--favorite'];
+            } elseif ($produk->created_at && $produk->created_at->diffInDays(now()) <= 1) {
+                $homeBadges[] = ['label' => 'BARU', 'class' => 'home-product-card__badge--promo'];
+            }
         }
     @endphp
 
@@ -80,6 +90,9 @@
             <p class="home-product-card__seller">
                 <x-public.home-icon name="building-store" class="home-product-card__seller-icon" aria-hidden="true" />
                 <span>{{ $produk->penjual->nama_toko ?? 'Penjual' }}</span>
+                @if(($produk->penjual->status_toko ?? 'buka') === 'tutup')
+                    <span class="inline-block text-[9px] font-black text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider ml-1">Tutup</span>
+                @endif
             </p>
 
             @if($produk->kategori)
@@ -241,6 +254,9 @@
                           d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
                 <span class="truncate">{{ $produk->penjual->nama_toko ?? '-' }}</span>
+                @if(($produk->penjual->status_toko ?? 'buka') === 'tutup')
+                    <span class="shrink-0 text-[9px] font-black text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider">Tutup</span>
+                @endif
             </div>
             @if($produk->kategori)
                 <p class="mb-2 truncate text-[10px] font-bold text-[var(--sm-text-muted)]">{{ $produk->kategori->nama }}</p>

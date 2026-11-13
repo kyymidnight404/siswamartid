@@ -1,0 +1,61 @@
+﻿================================================================================
+                    PANDUAN DEPLOY SISWAMART KE HOSTING
+                  (DirectAdmin / cPanel / Shared Hosting)
+================================================================================
+
+Struktur File & Folder di Hosting:
+--------------------------------------------------------------------------------
+domains/siswamartid.my.id/   (atau /home/username/)
+â”œâ”€â”€ core/                    <-- Folder aplikasi Laravel (app, vendor, storage, .env)
+â””â”€â”€ public_html/             <-- Web root publik (index.php, css, assets, build)
+
+index.php di public_html otomatis mendeteksi:
+- core
+- siswamart
+- siswamart_core
+sehingga path langsung terhubung otomatis tanpa perlu mengedit index.php!
+
+--------------------------------------------------------------------------------
+PILIHAN CARA UPLOAD & EKSTRAK:
+--------------------------------------------------------------------------------
+
+[OPSI A - PALING CEPAT (1 File ZIP)]
+1. Upload berkas hosting.zip ke folder induk domain Anda:
+   - DirectAdmin: /domains/siswamartid.my.id/
+   - cPanel: /home/username/
+2. Klik kanan / menu "Extract" pada hosting.zip.
+3. Folder public_html/ dan core/ akan langsung terisi rapi secara otomatis!
+
+[OPSI B - DUA FILE ZIP TERPISAH]
+1. Upload public_html.zip ke dalam folder public_html/ lalu "Extract".
+2. Upload core.zip ke dalam folder core/ (sejajar dengan public_html) lalu "Extract".
+
+--------------------------------------------------------------------------------
+LANGKAH SELANJUTNYA:
+--------------------------------------------------------------------------------
+
+1. KONFIGURASI DATABASE & .ENV:
+   - Masuk ke folder core/.
+   - Salin file .env.hosting.example menjadi .env.
+   - Buka dan sesuaikan kredensial database di .env:
+       APP_URL=https://siswamartid.my.id
+       DB_DATABASE=nama_db_hosting
+       DB_USERNAME=user_db_hosting
+       DB_PASSWORD=password_db_hosting
+
+2. SETUP OTOMATIS 1-KLIK (MIGRASI + STORAGE LINK + CACHE):
+   Buka URL berikut di browser Anda:
+   https://siswamartid.my.id/deploy-helper.php?key=siswamart2026
+
+   Helper ini akan otomatis:
+   - Menjalankan migrasi tabel database (php artisan migrate --force)
+   - Membuat symlink storage agar gambar produk & avatar toko tampil
+   - Membersihkan dan mengoptimasi cache Laravel
+
+3. KEAMANAN:
+   Setelah muncul pesan "SETUP SELESAI!", segera HAPUS berkas deploy-helper.php 
+   dari folder public_html/.
+
+================================================================================
+SiswaMart siap melayani pengunjung di https://siswamartid.my.id
+================================================================================

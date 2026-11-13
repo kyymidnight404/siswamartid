@@ -12,36 +12,43 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Public API
+| Public API Routes Definition
 |--------------------------------------------------------------------------
 */
 
-// Authentication
+$registerPublicRoutes = function () {
+    // Products
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/{product}', [ProductController::class, 'show']);
+    Route::post('/products/{product}/whatsapp', [ProductController::class, 'trackWhatsapp'])->middleware('throttle:30,1');
+    Route::post('/products/{product}/view', [ProductController::class, 'trackView'])->middleware('throttle:60,1');
+
+    // Categories
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/{category}', [CategoryController::class, 'show']);
+    Route::get('/categories/{category}/products', [CategoryController::class, 'products']);
+
+    // Sellers - Public
+    Route::get('/sellers', [SellerController::class, 'index']);
+    Route::get('/sellers/{seller}', [SellerController::class, 'show']);
+
+    // Reviews - Public
+    Route::get('/products/{product}/reviews', [ReviewController::class, 'index']);
+
+    // Submit review - Public / Guest (throttle 3 request per 1 menit, sama dengan web)
+    Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])
+        ->middleware('throttle:3,1');
+};
+
+// Route root /api/...
+$registerPublicRoutes();
+
+// Route alias /api/v1/...
+Route::prefix('v1')->group($registerPublicRoutes);
+
+// Authentication (tetap dipertahankan untuk backward compatibility)
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/register', [AuthController::class, 'register']);
-
-// Products
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/{product}', [ProductController::class, 'show']);
-Route::post('/products/{product}/whatsapp', [ProductController::class, 'trackWhatsapp'])->middleware('throttle:30,1');
-Route::post('/products/{product}/view', [ProductController::class, 'trackView'])->middleware('throttle:60,1');
-
-// Categories
-Route::get('/categories', [CategoryController::class, 'index']);
-Route::get('/categories/{category}', [CategoryController::class, 'show']);
-Route::get('/categories/{category}/products', [CategoryController::class, 'products']);
-
-// Sellers - Public
-Route::get('/sellers', [SellerController::class, 'index']);
-Route::get('/sellers/{seller}', [SellerController::class, 'show']);
-
-// Reviews - Public
-Route::get('/products/{product}/reviews', [ReviewController::class, 'index']);
-
-// Submit review - Public / Guest
-Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])
-    ->middleware('throttle:10,1');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -50,7 +57,6 @@ Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])
 */
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
-
     // Authentication
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);

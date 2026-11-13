@@ -179,6 +179,28 @@ class SecurityHardeningTest extends TestCase
         $apiResponse->assertJsonValidationErrors(['guest_username']);
     }
 
+    public function test_guest_can_submit_a_review_for_an_active_product(): void
+    {
+        $response = $this->post(
+            route('public.ulasan.store', $this->produk->slug),
+            [
+                'guest_username' => 'Pengunjung Test',
+                'rating' => 5,
+                'komentar' => 'Produk sangat bagus dan enak.',
+            ]
+        );
+
+        $response->assertRedirect(route('public.produk.show', $this->produk->slug) . '#ulasan');
+        $response->assertSessionHas('success', 'Ulasanmu berhasil dikirim.');
+        $this->assertDatabaseHas('ulasan', [
+            'produk_id' => $this->produk->id,
+            'guest_username' => 'Pengunjung Test',
+            'rating' => 5,
+            'komentar' => 'Produk sangat bagus dan enak.',
+            'moderation_status' => 'approved',
+        ]);
+    }
+
     /**
      * Uji 4: Produk dari penjual yang tidak aktif tidak dapat diulas (Web & API menghasilkan 404).
      */

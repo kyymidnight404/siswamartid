@@ -101,7 +101,7 @@
                                 <label for="foto_utama" class="form-input flex items-center justify-between cursor-pointer select-none" id="foto_upload_box">
                                     <div class="flex items-center gap-3 overflow-hidden min-w-0 pr-2">
                                         <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black bg-[var(--sm-primary)] text-[var(--sm-border)] border-2 border-[var(--sm-border)] flex-shrink-0">
-                                            <svg class="w-4 h-4 text-[var(--sm-border)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            <svg class="w-4 h-4 text-[var(--sm-border)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                             Pilih Foto Baru
                                         </span>
                                         <span id="foto_nama_label" class="text-sm font-medium text-[var(--sm-text-muted)] truncate">
@@ -109,7 +109,7 @@
                                         </span>
                                     </div>
                                     <div class="flex items-center pr-1 text-[var(--sm-text-muted)] opacity-60 flex-shrink-0">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
                                     </div>
                                 </label>
                                 <input type="file" name="foto_utama" id="foto_utama" accept="image/png,image/jpeg,image/jpg,image/webp" class="sr-only" onchange="previewFotoUtama(this)">

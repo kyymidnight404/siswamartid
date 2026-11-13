@@ -5,7 +5,7 @@
 
 @section('content')
 
-<main class="bg-[var(--sm-bg)] min-h-screen">
+<div class="bg-[var(--sm-bg)] min-h-screen">
     {{-- ─── Breadcrumb ──────────────────────────────────────────── --}}
     <div class="max-w-[1400px] mx-auto px-6 lg:px-[60px] pt-8">
         <nav class="flex items-center gap-2 text-sm text-[var(--sm-text-muted)] font-bold uppercase tracking-widest" aria-label="Breadcrumb">
@@ -61,7 +61,7 @@
                     <x-public.home-icon name="brand-whatsapp" :size="40" aria-hidden="true" />
                 </div>
                 <h3 class="text-base sm:text-xl lg:text-2xl font-black text-[var(--sm-ink)] mb-2 sm:mb-4 uppercase tracking-tighter">Chat Penjual</h3>
-                <p class="text-white text-xs sm:text-sm lg:text-base font-bold leading-relaxed drop-shadow-md">
+                <p class="text-xs sm:text-sm lg:text-base text-[var(--sm-text-muted)] font-bold leading-relaxed">
                     Gunakan tombol WhatsApp pada halaman detail produk.
                 </p>
             </div>
@@ -100,7 +100,7 @@
             </a>
         </div>
     </section>
-</main>
+</div>
 
 @endsection
 

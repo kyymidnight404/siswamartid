@@ -24,12 +24,17 @@ class KategoriController extends Controller
             $q->publicVisible();
         }])->orderBy('nama')->get();
 
-        $produkQuery = Produk::publicVisible()->with(['kategori', 'penjual']);
+        $produkQuery = Produk::publicVisible()
+            ->with(['kategori', 'penjual'])
+            ->withAvg(['ulasan' => fn ($q) => $q->publicVisible()], 'rating')
+            ->withCount(['ulasan' => fn ($q) => $q->publicVisible()]);
 
         if ($search) {
-            $produkQuery->where(function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('deskripsi', 'like', "%{$search}%");
+            $escapedSearch = addcslashes($search, '%_\\');
+            $produkQuery->where(function ($q) use ($escapedSearch) {
+                $q->where('nama', 'like', "%{$escapedSearch}%")
+                  ->orWhere('deskripsi', 'like', "%{$escapedSearch}%")
+                  ->orWhereHas('penjual', fn ($s) => $s->where('nama_toko', 'like', "%{$escapedSearch}%"));
             });
         }
 
@@ -77,12 +82,16 @@ class KategoriController extends Controller
 
         $produkQuery = Produk::publicVisible()
             ->with(['kategori', 'penjual'])
+            ->withAvg(['ulasan' => fn ($q) => $q->publicVisible()], 'rating')
+            ->withCount(['ulasan' => fn ($q) => $q->publicVisible()])
             ->where('kategori_id', $kategori->id);
 
         if ($search) {
-            $produkQuery->where(function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('deskripsi', 'like', "%{$search}%");
+            $escapedSearch = addcslashes($search, '%_\\');
+            $produkQuery->where(function ($q) use ($escapedSearch) {
+                $q->where('nama', 'like', "%{$escapedSearch}%")
+                  ->orWhere('deskripsi', 'like', "%{$escapedSearch}%")
+                  ->orWhereHas('penjual', fn ($s) => $s->where('nama_toko', 'like', "%{$escapedSearch}%"));
             });
         }
 

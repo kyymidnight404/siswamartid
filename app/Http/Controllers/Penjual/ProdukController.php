@@ -21,6 +21,7 @@ class ProdukController extends Controller
     {
         $penjual = auth()->user()->penjual;
         abort_unless($penjual, 403, 'Profil penjual tidak ditemukan.');
+
         return $penjual->id;
     }
 
@@ -46,7 +47,7 @@ class ProdukController extends Controller
         $hasPendingAction = Schema::hasColumn('produk', 'pending_action');
 
         $allowedStatuses = ['aktif', 'pending', 'ditolak'];
-        if (!in_array($status, $allowedStatuses, true)) {
+        if (! in_array($status, $allowedStatuses, true)) {
             $status = null;
         }
 
@@ -79,7 +80,7 @@ class ProdukController extends Controller
             }))
             ->when($search, fn ($q) => $q->where(function ($inner) use ($search) {
                 $inner->where('nama', 'like', "%{$search}%")
-                      ->orWhere('deskripsi', 'like', "%{$search}%");
+                    ->orWhere('deskripsi', 'like', "%{$search}%");
             }))
             ->when($kategoriId, fn ($q) => $q->where('kategori_id', $kategoriId))
             ->when($stok, function ($q) use ($stok) {
@@ -121,8 +122,8 @@ class ProdukController extends Controller
         $originalSlug = $slug;
         $count = 1;
 
-        while (Produk::where('slug', $slug)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
-            $slug = $originalSlug . '-' . $count;
+        while (Produk::where('slug', $slug)->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))->exists()) {
+            $slug = $originalSlug.'-'.$count;
             $count++;
         }
 
@@ -138,17 +139,17 @@ class ProdukController extends Controller
         $penjualId = $this->getPenjualId();
 
         $validated = $request->validate([
-            'nama'          => ['required', 'string', 'max:255'],
-            'kategori_id'   => ['required', 'exists:kategori,id'],
-            'deskripsi'     => ['required', 'string'],
-            'harga'         => ['required', 'numeric', 'min:0'],
-            'stok'          => ['required', 'in:tersedia,po,habis'],
+            'nama' => ['required', 'string', 'max:255'],
+            'kategori_id' => ['required', 'exists:kategori,id'],
+            'deskripsi' => ['required', 'string'],
+            'harga' => ['required', 'numeric', 'min:0'],
+            'stok' => ['required', 'in:tersedia,po,habis'],
             'label_promosi' => ['nullable', 'string', 'max:100'],
-            'foto_utama'    => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'foto_utama' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         $validated['penjual_id'] = $penjualId;
-        $validated['slug']       = $this->generateUniqueSlug($request->nama);
+        $validated['slug'] = $this->generateUniqueSlug($request->nama);
         $validated['status'] = 'pending';
         $validated['pending_action'] = 'create';
 
@@ -164,7 +165,7 @@ class ProdukController extends Controller
         try {
             $notificationService->notifyAdmins([
                 'title' => 'Produk baru ditambahkan',
-                'description' => auth()->user()->name . ' menambahkan produk "' . $produk->nama . '".',
+                'description' => auth()->user()->name.' menambahkan produk "'.$produk->nama.'".',
                 'activity' => 'produk.ditambahkan',
                 'actor' => auth()->user()->name,
                 'seller_id' => $penjualId,
@@ -177,7 +178,18 @@ class ProdukController extends Controller
         }
 
         return redirect()->route('penjual.produk.index')
-                         ->with('success', 'Produk dikirim dan menunggu persetujuan Admin sebelum tampil di katalog.');
+            ->with('success', 'Produk dikirim dan menunggu persetujuan Admin sebelum tampil di katalog.');
+    }
+
+    /**
+     * Tampilkan detail produk (dialihkan ke halaman edit produk milik penjual).
+     */
+    public function show(Produk $produk): RedirectResponse
+    {
+        $penjualId = $this->getPenjualId();
+        abort_unless($produk->penjual_id === $penjualId, 403, 'Akses ditolak.');
+
+        return redirect()->route('penjual.produk.edit', $produk);
     }
 
     /**
@@ -206,13 +218,13 @@ class ProdukController extends Controller
         }
 
         $validated = $request->validate([
-            'nama'          => ['required', 'string', 'max:255'],
-            'kategori_id'   => ['required', 'exists:kategori,id'],
-            'deskripsi'     => ['required', 'string'],
-            'harga'         => ['required', 'numeric', 'min:0'],
-            'stok'          => ['required', 'in:tersedia,po,habis'],
+            'nama' => ['required', 'string', 'max:255'],
+            'kategori_id' => ['required', 'exists:kategori,id'],
+            'deskripsi' => ['required', 'string'],
+            'harga' => ['required', 'numeric', 'min:0'],
+            'stok' => ['required', 'in:tersedia,po,habis'],
             'label_promosi' => ['nullable', 'string', 'max:100'],
-            'foto_utama'    => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'foto_utama' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         if ($request->nama !== $produk->nama) {
@@ -234,7 +246,7 @@ class ProdukController extends Controller
         try {
             $notificationService->notifyAdmins([
                 'title' => 'Permintaan perubahan produk',
-                'description' => auth()->user()->name . ' meminta perubahan untuk produk "' . $produk->nama . '".',
+                'description' => auth()->user()->name.' meminta perubahan untuk produk "'.$produk->nama.'".',
                 'activity' => 'produk.edit_diminta',
                 'actor' => auth()->user()->name,
                 'entity_type' => 'produk',
@@ -246,7 +258,7 @@ class ProdukController extends Controller
         }
 
         return redirect()->route('penjual.produk.index')
-                         ->with('success', 'Perubahan produk dikirim dan menunggu persetujuan Admin.');
+            ->with('success', 'Perubahan produk dikirim dan menunggu persetujuan Admin.');
     }
 
     /**
@@ -271,7 +283,7 @@ class ProdukController extends Controller
         try {
             $notificationService->notifyAdmins([
                 'title' => 'Permintaan penghapusan produk',
-                'description' => auth()->user()->name . ' meminta penghapusan produk "' . $produkName . '".',
+                'description' => auth()->user()->name.' meminta penghapusan produk "'.$produkName.'".',
                 'activity' => 'produk.hapus_diminta',
                 'actor' => auth()->user()->name,
                 'seller_id' => $penjualId,
@@ -284,6 +296,6 @@ class ProdukController extends Controller
         }
 
         return redirect()->route('penjual.produk.index')
-                         ->with('success', 'Permintaan penghapusan dikirim dan menunggu persetujuan Admin.');
+            ->with('success', 'Permintaan penghapusan dikirim dan menunggu persetujuan Admin.');
     }
 }

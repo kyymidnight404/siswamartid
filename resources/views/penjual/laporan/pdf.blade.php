@@ -1,324 +1,199 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Rekapitulasi Mingguan — {{ $penjual->nama_toko }}</title>
-    <style>
-        @page {
-            margin: 24px 28px;
-        }
-        body {
-            font-family: DejaVu Sans, sans-serif;
-            color: var(--sm-ink);
-            font-size: 9.5px;
-            line-height: 1.35;
-        }
-        .header-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-        }
-        .header-table td {
-            border: none;
-            padding: 0;
-            vertical-align: top;
-        }
-        .brand-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--sm-primary);
-            margin: 0;
-            letter-spacing: -0.5px;
-        }
-        .brand-title span {
-            color: var(--sm-ink);
-        }
-        .report-title {
-            font-size: 13px;
-            font-weight: bold;
-            color: var(--sm-ink);
-            margin-top: 3px;
-            text-transform: uppercase;
-        }
-        .store-info {
-            font-size: 9.5px;
-            color: var(--sm-text-muted);
-            margin-top: 2px;
-        }
-        .period-box {
-            text-align: right;
-            font-size: 9px;
-            color: var(--sm-text-muted);
-        }
-        .period-label {
-            font-size: 10px;
-            font-weight: bold;
-            color: var(--sm-ink);
-            margin-bottom: 2px;
-        }
-        .divider {
-            border-bottom: 2px solid var(--sm-primary);
-            margin: 8px 0 14px 0;
-        }
-        .section-title {
-            font-size: 10.5px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: var(--sm-ink);
-            border-left: 3px solid var(--sm-primary);
-            padding-left: 6px;
-            margin: 14px 0 6px 0;
-        }
-        .stats-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 6px 0;
-            margin-bottom: 12px;
-        }
-        .stat-card {
-            background: var(--sm-surface);
-            border: 1px solid var(--sm-border);
-            padding: 8px 10px;
-            vertical-align: top;
-        }
-        .stat-label {
-            font-size: 8px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: var(--sm-text-muted);
-            margin-bottom: 3px;
-        }
-        .stat-value {
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--sm-ink);
-        }
-        .stat-comp {
-            font-size: 8px;
-            font-weight: bold;
-            margin-top: 3px;
-        }
-        .text-up { color: var(--sm-primary); }
-        .text-down { color: var(--sm-ink); }
-        .text-neutral { color: var(--sm-text-muted); }
+@extends('exports.pdf.layout')
 
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            margin-bottom: 12px;
-        }
-        .data-table th,
-        .data-table td {
-            border: 1px solid var(--sm-border);
-            padding: 5px 6px;
-            text-align: left;
-            vertical-align: top;
-            word-wrap: break-word;
-            font-size: 8.5px;
-        }
-        .data-table th {
-            background: var(--sm-primary-soft);
-            font-weight: bold;
-            font-size: 8px;
-            text-transform: uppercase;
-            color: var(--sm-ink);
-        }
-        .text-center { text-align: center !important; }
-        .text-right { text-align: right !important; }
-        .font-bold { font-weight: bold; }
-        .text-muted { color: var(--sm-text-muted); }
-        .badge {
-            display: inline-block;
-            padding: 1px 5px;
-            font-size: 7.5px;
-            font-weight: bold;
-            border-radius: 3px;
-        }
-        .badge-up { background: var(--sm-primary-soft); color: var(--sm-ink); }
-        .badge-down { background: var(--sm-primary-soft); color: var(--sm-ink); }
-        .badge-neutral { background: var(--sm-primary-soft); color: var(--sm-text-muted); }
+@section('title', 'Rekapitulasi Mingguan — ' . $penjual->nama_toko)
+@section('page-orientation', 'portrait')
 
-        .footer {
-            margin-top: 16px;
-            padding-top: 8px;
-            border-top: 1px solid var(--sm-border);
-            font-size: 7.5px;
-            color: var(--sm-text-muted);
-            text-align: justify;
-        }
-    </style>
-</head>
-<body>
-    {{-- Header --}}
-    <table class="header-table">
+@section('report-title', 'Rekapitulasi Mingguan Penjual')
+@section('report-subtitle')
+    Toko: <strong>{{ $penjual->nama_toko }}</strong>
+    @if($penjual->user?->name)
+        &middot; Pemilik: {{ $penjual->user->name }}
+    @endif
+@endsection
+
+@section('period-label', $periodLabel)
+
+@section('content')
+    {{-- b. Blok Ringkasan 4 Metrik (Tabel 2x2) --}}
+    <table class="summary-grid">
         <tr>
-            <td style="width: 60%;">
-                <div class="brand-title">Siswa<span>Mart</span></div>
-                <div class="report-title">Rekapitulasi Mingguan Penjual</div>
-                <div class="store-info">
-                    Toko: <strong>{{ $penjual->nama_toko }}</strong>
-                    @if($penjual->user?->name)
-                        &middot; Pemilik: {{ $penjual->user->name }}
-                    @endif
-                </div>
+            <td style="width: 50%;">
+                <div class="summary-label">Produk Diunggah</div>
+                <div class="summary-value">{{ number_format($uploadedProductsCount) }}</div>
+                <div class="summary-note">Dalam 7 hari terakhir</div>
             </td>
-            <td style="width: 40%;" class="period-box">
-                <div class="period-label">Periode Rekapitulasi</div>
-                <div>{{ $periodLabel }}</div>
-                <div style="margin-top: 3px;">Dicetak: {{ now()->translatedFormat('d F Y, H:i') }} WIB</div>
+            <td style="width: 50%;">
+                <div class="summary-label">Ulasan Baru</div>
+                <div class="summary-value">{{ number_format($newReviewsCount) }}</div>
+                <div class="summary-note">Ulasan disetujui 7 hari terakhir</div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 50%;">
+                <div class="summary-label">Total Views Semua Produk</div>
+                <div class="summary-value">{{ number_format($totalViews) }}</div>
+                <div class="summary-note">{{ $viewsComparison }}</div>
+            </td>
+            <td style="width: 50%;">
+                <div class="summary-label">Views Produk Populer (Top 5)</div>
+                <div class="summary-value">{{ number_format($popularViews) }}</div>
+                <div class="summary-note">{{ $viewsFromPopularPercent }}% dari total views</div>
             </td>
         </tr>
     </table>
 
-    <div class="divider"></div>
-
-    {{-- Ringkasan Kartu Statistik --}}
-    <table class="stats-table">
-        <tr>
-            <td class="stat-card" style="width: 33.33%;">
-                <div class="stat-label">Total Produk Katalog</div>
-                <div class="stat-value">{{ number_format($totalProdukCount) }}</div>
-                <div class="stat-comp text-neutral">Produk terdaftar di toko</div>
-            </td>
-            <td class="stat-card" style="width: 33.33%;">
-                <div class="stat-label">Dilihat Minggu Ini (Views)</div>
-                <div class="stat-value" style="color: var(--sm-primary);">{{ number_format($viewsThisWeek) }}</div>
-                <div class="stat-comp {{ $viewsComp['type'] === 'up' ? 'text-up' : ($viewsComp['type'] === 'down' ? 'text-down' : 'text-neutral') }}">
-                    {{ $viewsComp['text'] }}
-                </div>
-            </td>
-            <td class="stat-card" style="width: 33.33%;">
-                <div class="stat-label">Ulasan Baru Masuk</div>
-                <div class="stat-value" style="color: var(--sm-on-accent);">{{ number_format($ulasanThisWeek) }}</div>
-                <div class="stat-comp {{ $ulasanComp['type'] === 'up' ? 'text-up' : ($ulasanComp['type'] === 'down' ? 'text-down' : 'text-neutral') }}">
-                    {{ $ulasanComp['text'] }}
-                </div>
-            </td>
-        </tr>
-    </table>
-
-    {{-- Produk Terpopuler --}}
-    <div class="section-title">Produk Terpopuler (Top 5 Periode Ini)</div>
+    {{-- c. Tabel Top 5 Produk Terpopuler --}}
+    <div class="section-bar">Top 5 Produk Terpopuler (7 Hari Terakhir)</div>
     <table class="data-table">
         <thead>
             <tr>
-                <th style="width: 7%;" class="text-center">Rank</th>
-                <th style="width: 45%;">Nama Produk</th>
-                <th style="width: 18%;">Kategori</th>
-                <th style="width: 12%;" class="text-right">Views</th>
-                <th style="width: 9%;" class="text-center">Rating</th>
-                <th style="width: 9%;" class="text-center">Ulasan</th>
+                <th style="width: 8%;" class="text-center">Rank</th>
+                <th style="width: 30%;">Produk</th>
+                <th style="width: 17%;">Kategori</th>
+                <th style="width: 12%;" class="text-right">Views 7 Hari</th>
+                <th style="width: 9%;" class="text-right">% Total</th>
+                <th style="width: 12%;" class="text-right">Total Views</th>
+                <th style="width: 6%;" class="text-center">Rating</th>
+                <th style="width: 6%;" class="text-center">Ulasan</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($produkTerpopuler as $index => $item)
+            @forelse($popularProducts as $index => $prod)
                 <tr>
-                    <td class="text-center font-bold">#{{ $index + 1 }}</td>
+                    <td class="text-center {{ $index === 0 ? 'rank-first' : '' }}">
+                        #{{ $index + 1 }}
+                    </td>
+                    <td><strong>{{ $prod->nama }}</strong></td>
+                    <td class="text-secondary">{{ $prod->kategori?->nama ?? '—' }}</td>
+                    <td class="text-right font-bold">{{ number_format($prod->period_views) }}</td>
+                    <td class="text-right">{{ $prod->views_percent }}%</td>
+                    <td class="text-right text-secondary">{{ number_format($prod->views) }}</td>
+                    <td class="text-center">{{ $prod->formatted_rating }}</td>
+                    <td class="text-center">{{ number_format($prod->period_reviews) }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="8" class="text-center text-secondary" style="padding: 12px;">
+                        Belum ada data pada periode ini
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+        @if($popularProducts->isNotEmpty())
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-left font-bold">Total Top 5</td>
+                    <td class="text-right font-bold">{{ number_format($popularViews) }}</td>
+                    <td class="text-right font-bold">{{ $viewsFromPopularPercent }}%</td>
+                    <td class="text-right font-bold">{{ number_format($popularProducts->sum('views')) }}</td>
+                    <td class="text-center font-bold">
+                        {{ $popularProducts->avg('average_rating') !== null ? number_format((float) $popularProducts->avg('average_rating'), 1) : '—' }}
+                    </td>
+                    <td class="text-center font-bold">{{ number_format($popularProducts->sum('period_reviews')) }}</td>
+                </tr>
+            </tfoot>
+        @endif
+    </table>
+
+    {{-- d. Views Per Hari (Tabel 7 Hari + Grafik Batang Sederhana) --}}
+    @php
+        $maxDaily = max(1, (int) $dailyViews->max('count'));
+    @endphp
+    <div class="section-bar">Views Per Hari (7 Hari Terakhir)</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 18%;">Tanggal</th>
+                <th style="width: 18%;">Hari</th>
+                <th style="width: 16%;" class="text-right">Views</th>
+                <th style="width: 48%;">Grafik Frekuensi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($dailyViews as $day)
+                @php
+                    $percent = $maxDaily > 0 ? round(($day['count'] / $maxDaily) * 100) : 0;
+                @endphp
+                <tr>
+                    <td>{{ $day['date']->format('d/m/Y') }}</td>
+                    <td>{{ $day['day_name'] }}</td>
+                    <td class="text-right font-bold">{{ number_format($day['count']) }}</td>
                     <td>
-                        <strong style="color: var(--sm-ink);">{{ $item->nama }}</strong>
-                    </td>
-                    <td class="text-muted">{{ $item->kategori->nama ?? '—' }}</td>
-                    <td class="text-right font-bold" style="color: var(--sm-primary);">
-                        {{ number_format($item->cur_views ?? $item->period_views) }}
-                    </td>
-                    <td class="text-center font-bold" style="color: var(--sm-on-accent);">
-                        {{ number_format($item->average_rating, 1) }}
-                    </td>
-                    <td class="text-center">{{ number_format($item->review_count) }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" class="text-center text-muted" style="padding: 10px;">
-                        Belum ada data produk populer pada periode ini.
+                        <div class="bar-container">
+                            <div class="bar-fill" style="width: {{ max(4, $percent) }}%;"></div>
+                        </div>
                     </td>
                 </tr>
-            @endforelse
+            @endforeach
         </tbody>
-    </table>
-
-    {{-- Performa Semua Produk --}}
-    <div class="section-title">Performa Semua Produk ({{ count($performaProduk) }} Produk)</div>
-    <table class="data-table">
-        <thead>
+        <tfoot>
             <tr>
-                <th style="width: 34%;">Nama Produk</th>
-                <th style="width: 16%;">Kategori</th>
-                <th style="width: 13%;" class="text-right">Views Ini</th>
-                <th style="width: 13%;" class="text-right">Views Lalu</th>
-                <th style="width: 10%;" class="text-center">Tren</th>
-                <th style="width: 7%;" class="text-center">Ulasan</th>
-                <th style="width: 7%;" class="text-center">Rating</th>
+                <td colspan="2" class="text-left font-bold">Total Keseluruhan</td>
+                <td class="text-right font-bold">{{ number_format($totalViews) }}</td>
+                <td class="text-secondary">Akumulasi 7 hari</td>
             </tr>
-        </thead>
-        <tbody>
-            @forelse($performaProduk as $p)
-                <tr>
-                    <td>
-                        <strong>{{ $p->nama }}</strong>
-                    </td>
-                    <td class="text-muted">{{ $p->kategori->nama ?? '—' }}</td>
-                    <td class="text-right font-bold">{{ number_format($p->cur_views) }}</td>
-                    <td class="text-right text-muted">{{ number_format($p->prev_views) }}</td>
-                    <td class="text-center">
-                        @if($p->trend === 'up')
-                            <span class="badge badge-up">+{{ $p->views_diff }}</span>
-                        @elseif($p->trend === 'down')
-                            <span class="badge badge-down">{{ $p->views_diff }}</span>
-                        @else
-                            <span class="badge badge-neutral">—</span>
-                        @endif
-                    </td>
-                    <td class="text-center">{{ $p->new_reviews }}</td>
-                    <td class="text-center font-bold" style="color: var(--sm-on-accent);">
-                        {{ number_format($p->average_rating, 1) }}
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="7" class="text-center text-muted" style="padding: 10px;">
-                        Belum ada produk di katalog toko Anda.
-                    </td>
-                </tr>
-            @endforelse
-        </tbody>
+        </tfoot>
     </table>
 
-    {{-- Ulasan Masuk Minggu Ini --}}
-    <div class="section-title">Ulasan Masuk Minggu Ini ({{ count($ulasanMingguan) }} Ulasan)</div>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th style="width: 15%;">Waktu</th>
-                <th style="width: 18%;">Pengulas</th>
-                <th style="width: 25%;">Produk</th>
-                <th style="width: 10%;" class="text-center">Rating</th>
-                <th style="width: 32%;">Komentar</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($ulasanMingguan as $rev)
+    {{-- e. Daftar Ringkas Produk Diunggah (Maks 10 baris) --}}
+    @if($uploadedProducts->isNotEmpty())
+        <div class="section-bar">Produk Diunggah (7 Hari Terakhir)</div>
+        <table class="data-table">
+            <thead>
                 <tr>
-                    <td>{{ $rev->created_at?->format('d M Y, H:i') ?? '—' }}</td>
-                    <td><strong>{{ $rev->guest_username ?: 'Pengunjung' }}</strong></td>
-                    <td>{{ $rev->produk?->nama ?? 'Produk' }}</td>
-                    <td class="text-center font-bold" style="color: var(--sm-on-accent);">
-                        {{ $rev->rating }} / 5
-                    </td>
-                    <td>{{ $rev->komentar ?: 'Tidak ada teks ulasan.' }}</td>
+                    <th style="width: 20%;">Tanggal Unggah</th>
+                    <th style="width: 35%;">Nama Produk</th>
+                    <th style="width: 20%;">Kategori</th>
+                    <th style="width: 15%;" class="text-right">Harga</th>
+                    <th style="width: 10%;" class="text-center">Status</th>
                 </tr>
-            @empty
-                <tr>
-                    <td colspan="5" class="text-center text-muted" style="padding: 10px;">
-                        Belum ada ulasan baru pada periode minggu ini.
-                    </td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach($uploadedProducts->take(10) as $prod)
+                    <tr>
+                        <td>{{ $prod->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                        <td><strong>{{ $prod->nama }}</strong></td>
+                        <td class="text-secondary">{{ $prod->kategori?->nama ?? '—' }}</td>
+                        <td class="text-right">Rp {{ number_format($prod->harga, 0, ',', '.') }}</td>
+                        <td class="text-center">{{ ucfirst($prod->status) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+        @if($uploadedProducts->count() > 10)
+            <p class="text-secondary" style="font-size: 10pt; margin-top: -6px; margin-bottom: 12px; font-style: italic;">
+                dan {{ $uploadedProducts->count() - 10 }} lainnya, lihat sheet.
+            </p>
+        @endif
+    @endif
 
-    <div class="footer">
-        Rekapitulasi performa resmi toko SiswaMart. Laporan ini dibuat secara otomatis oleh sistem SiswaMart untuk mendukung evaluasi dan perkembangan usaha siswa.
-    </div>
-</body>
-</html>
+    {{-- e. Daftar Ringkas Ulasan (Maks 10 baris) --}}
+    @if($recentReviews->isNotEmpty())
+        <div class="section-bar">Ulasan Baru (7 Hari Terakhir)</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 18%;">Tanggal</th>
+                    <th style="width: 25%;">Produk</th>
+                    <th style="width: 12%;" class="text-center">Rating</th>
+                    <th style="width: 45%;">Komentar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($recentReviews->take(10) as $rev)
+                    <tr>
+                        <td>{{ $rev->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                        <td><strong>{{ $rev->produk?->nama ?? '—' }}</strong></td>
+                        <td class="text-center font-bold">{{ $rev->rating }} / 5</td>
+                        <td>{{ $rev->public_content ?: 'Tidak ada teks ulasan.' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+        @if($recentReviews->count() > 10)
+            <p class="text-secondary" style="font-size: 10pt; margin-top: -6px; margin-bottom: 12px; font-style: italic;">
+                dan {{ $recentReviews->count() - 10 }} lainnya, lihat sheet.
+            </p>
+        @endif
+    @endif
+@endsection

@@ -19,7 +19,12 @@ class CategoryController extends ApiController
 
     public function products(Kategori $category, Request $request, ProductController $products)
     {
-        $query = $category->produk()->publicVisible()->with(['kategori', 'penjual'])->latest();
+        $query = $category->produk()
+            ->publicVisible()
+            ->with(['kategori', 'penjual.user'])
+            ->withAvg(['ulasan' => fn ($reviews) => $reviews->publicVisible()], 'rating')
+            ->withCount(['ulasan' => fn ($reviews) => $reviews->publicVisible()])
+            ->latest();
         $perPage = min(max((int) $request->input('per_page', 12), 1), 50);
         $result = $query->paginate($perPage)->withQueryString();
         $result->through(fn ($product) => $products->productData($product));

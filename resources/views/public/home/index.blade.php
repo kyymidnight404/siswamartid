@@ -42,7 +42,7 @@
                 </p>
 
                 <div class="home-hero__actions">
-                    <a href="{{ route('public.produk.index') }}" class="home-button home-button--primary">Jelajahi katalog</a>
+                    <a href="{{ route('public.kategori.index') }}" class="home-button home-button--primary">Jelajahi katalog</a>
                     <a href="{{ route('public.cara_pemesanan') }}" class="home-button home-button--outline">Cara memesan</a>
                 </div>
 
@@ -190,7 +190,7 @@
         <section id="home-products" class="home-container home-section" aria-labelledby="home-products-title">
             <div class="home-section__heading">
                 <h2 id="home-products-title" class="home-section__title">Yang lagi populer.</h2>
-                <a href="{{ route('public.produk.index') }}" class="home-button home-button--small">Lihat semua produk</a>
+                <a href="{{ route('public.kategori.index') }}" class="home-button home-button--small">Lihat semua produk</a>
             </div>
 
             @if($produkRekomendasi->isNotEmpty())
@@ -249,4 +249,3 @@
         </section>
     </div>
 @endsection
-

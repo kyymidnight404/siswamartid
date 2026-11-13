@@ -9,15 +9,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="@yield('meta_description', 'SiswaMart — Media promosi produk siswa. Temukan makanan, minuman, snack, dan produk kreatif karya siswa sekolah.')">
     <title>@yield('title', 'SiswaMart')</title>
+
+    {{-- Canonical & SEO --}}
+    <link rel="canonical" href="@yield('canonical_url', url()->current())">
+    <meta property="og:site_name" content="SiswaMart">
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:title" content="@yield('title', 'SiswaMart')">
+    <meta property="og:description" content="@yield('meta_description', 'SiswaMart — Media promosi produk siswa. Temukan makanan, minuman, snack, dan produk kreatif karya siswa sekolah.')">
+    <meta property="og:url" content="@yield('canonical_url', url()->current())">
+    <meta property="og:image" content="@yield('og_image', asset('images/food.png'))">
+    <meta property="og:locale" content="id_ID">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('title', 'SiswaMart')">
+    <meta name="twitter:description" content="@yield('meta_description', 'SiswaMart — Media promosi produk siswa. Temukan makanan, minuman, snack, dan produk kreatif karya siswa sekolah.')">
+    <meta name="twitter:image" content="@yield('og_image', asset('images/food.png'))">
+
     <style>[x-cloak] { display: none !important; }</style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="{{ asset('css/fonts.css') }}?v={{ file_exists(public_path('css/fonts.css')) ? filemtime(public_path('css/fonts.css')) : time() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/siswamart-theme.css') }}?v={{ file_exists(public_path('css/siswamart-theme.css')) ? filemtime(public_path('css/siswamart-theme.css')) : time() }}">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
     @if($isHome)
         <link rel="stylesheet" href="{{ asset('css/homepage.css') }}?v={{ file_exists(public_path('css/homepage.css')) ? filemtime(public_path('css/homepage.css')) : time() }}">
     @endif
+    @stack('head')
 </head>
 <body class="bg-[var(--sm-bg)] text-[var(--sm-ink)] min-h-screen antialiased flex flex-col {{ $isHome ? 'home-page' : 'public-site-page' }}">
 
@@ -308,7 +323,7 @@
                 <h2 class="mb-3 text-base font-extrabold">Jelajahi</h2>
                 <ul class="space-y-2 text-sm text-[var(--sm-text-muted)]">
                     <li><a href="{{ route('public.home') }}" class="transition-colors hover:text-[var(--sm-primary-hover)]">Beranda</a></li>
-                    <li><a href="{{ route('public.produk.index') }}" class="transition-colors hover:text-[var(--sm-primary-hover)]">Semua Produk</a></li>
+                    <li><a href="{{ route('public.kategori.index') }}" class="transition-colors hover:text-[var(--sm-primary-hover)]">Semua Produk</a></li>
                     <li><a href="{{ route('public.kategori.index') }}" class="transition-colors hover:text-[var(--sm-primary-hover)]">Kategori</a></li>
                 </ul>
             </nav>
@@ -357,9 +372,5 @@
 
 @stack('modals')
 
-@unless($isHome)
-@endunless
-
 </body>
 </html>
-

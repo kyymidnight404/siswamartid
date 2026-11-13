@@ -4,36 +4,99 @@
 
 @section('meta_description', 'Lihat detail ' . $produk->nama . ' dari ' . ($produk->penjual->nama_toko ?? 'SiswaMart') . '. ' . \Illuminate\Support\Str::limit($produk->deskripsi ?? '', 120))
 
+@section('canonical_url', route('public.produk.show', $produk->slug))
+@section('og_type', 'product')
+@section('og_image', $produk->foto_utama ? asset('storage/' . $produk->foto_utama) : asset('images/food.png'))
+
+@php
+    $breadcrumbItems = [
+        [
+            '@type' => 'ListItem',
+            'position' => 1,
+            'name' => 'Beranda',
+            'item' => route('public.home'),
+        ],
+    ];
+
+    if ($produk->kategori) {
+        $breadcrumbItems[] = [
+            '@type' => 'ListItem',
+            'position' => 2,
+            'name' => $produk->kategori->nama,
+            'item' => route('public.kategori.show', $produk->kategori->slug),
+        ];
+        $breadcrumbItems[] = [
+            '@type' => 'ListItem',
+            'position' => 3,
+            'name' => $produk->nama,
+            'item' => route('public.produk.show', $produk->slug),
+        ];
+    } else {
+        $breadcrumbItems[] = [
+            '@type' => 'ListItem',
+            'position' => 2,
+            'name' => $produk->nama,
+            'item' => route('public.produk.show', $produk->slug),
+        ];
+    }
+
+    $productSchema = [
+        '@type' => 'Product',
+        'name' => $produk->nama,
+        'image' => [
+            $produk->foto_utama ? asset('storage/' . $produk->foto_utama) : asset('images/food.png'),
+        ],
+        'description' => \Illuminate\Support\Str::limit(strip_tags($produk->deskripsi ?? ''), 250),
+        'sku' => 'SM-' . $produk->id,
+        'offers' => [
+            '@type' => 'Offer',
+            'url' => route('public.produk.show', $produk->slug),
+            'priceCurrency' => 'IDR',
+            'price' => (string) ((int) $produk->harga),
+            'availability' => $produk->stok === 'tersedia' ? 'https://schema.org/InStock' : ($produk->stok === 'po' ? 'https://schema.org/PreOrder' : 'https://schema.org/OutOfStock'),
+            'seller' => [
+                '@type' => 'Organization',
+                'name' => $produk->penjual->nama_toko ?? 'Siswa SMKN 11 Bandung',
+            ],
+        ],
+    ];
+
+    if ($produk->review_count > 0 && $produk->average_rating > 0) {
+        $productSchema['aggregateRating'] = [
+            '@type' => 'AggregateRating',
+            'ratingValue' => number_format($produk->average_rating, 1, '.', ''),
+            'reviewCount' => (string) $produk->review_count,
+        ];
+    }
+
+    $jsonLdGraph = [
+        '@context' => 'https://schema.org',
+        '@graph' => [
+            [
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => $breadcrumbItems,
+            ],
+            $productSchema,
+        ],
+    ];
+@endphp
+
+@push('head')
+<script type="application/ld+json">
+{!! json_encode($jsonLdGraph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+</script>
+@endpush
+
 @section('content')
 
 @php
-    /*
-    |--------------------------------------------------------------------------
-    | WhatsApp
-    |--------------------------------------------------------------------------
-    */
-
-    $rawWaNumber = $produk->penjual->nomor_whatsapp ?? '';
-
-    // Bersihkan nomor dari spasi, tanda +, strip, dan karakter lainnya.
-    $waNumber = preg_replace('/[^0-9]/', '', $rawWaNumber);
-
-    // 08xxxxxxxx -> 628xxxxxxxx
-    if (str_starts_with($waNumber, '0')) {
-        $waNumber = '62' . substr($waNumber, 1);
-    }
-
-    $waMsg = "Halo, saya tertarik dengan produk:\n*"
-        . $produk->nama
-        . "*\n\nApakah produk ini masih tersedia?";
-
-    $waLink = $waNumber
-        ? 'https://wa.me/' . $waNumber . '?text=' . rawurlencode($waMsg)
-        : '#';
+    $waLink = ($waData['success'] ?? false) ? ($waData['whatsapp_url'] ?? '#') : '#';
+    $waNumber = $waData['phone'] ?? (preg_replace('/[^0-9]/', '', (string) ($produk->penjual->nomor_whatsapp ?? '')) ?: null);
+    $isStoreClosed = $waData['store_closed'] ?? ($produk->penjual?->status_toko === 'tutup');
 @endphp
 
 
-<main class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6 pb-28 sm:py-12 sm:pb-32 lg:py-16">
+<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6 pb-28 sm:py-12 sm:pb-32 lg:py-16">
 
     {{-- ============================================================
          BREADCRUMB
@@ -217,7 +280,7 @@
                         >
 
                             <span class="text-[var(--sm-ink)] text-lg leading-none">
-                                <x-public.home-icon name="star" :filled="true" :size="15" aria-hidden="true" />
+                                <x-public.home-icon name="star" :filled="true" :size="32" aria-hidden="true" />
                             </span>
 
                             <span
@@ -303,9 +366,14 @@
                             </h2>
 
                             <div
-                                class="font-black text-[var(--sm-ink)] text-xl leading-snug uppercase"
+                                class="font-black text-[var(--sm-ink)] text-xl leading-snug uppercase flex items-center gap-2 flex-wrap"
                             >
-                                {{ $produk->penjual->nama_toko ?? '-' }}
+                                <span>{{ $produk->penjual->nama_toko ?? '-' }}</span>
+                                @if(($produk->penjual->status_toko ?? 'buka') === 'tutup')
+                                    <span class="inline-flex items-center text-[10px] font-black text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                        Toko Tutup
+                                    </span>
+                                @endif
                             </div>
 
                             @if($produk->penjual->lokasi_kelas)
@@ -316,6 +384,12 @@
                                     <x-public.home-icon name="map-pin" :size="16" aria-hidden="true" /> {{ $produk->penjual->lokasi_kelas }}
                                 </div>
 
+                            @endif
+
+                            @if(($produk->penjual->status_toko ?? 'buka') === 'tutup')
+                                <p class="text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-1.5 mt-2">
+                                    Toko sedang tutup saat ini. Pesan tetap dapat dikirim via WhatsApp, namun balasan mungkin tertunda.
+                                </p>
                             @endif
 
                         </div>
@@ -458,6 +532,7 @@
 
                     <button
                         type="button"
+                        x-data="{}"
                         @click="$dispatch('open-review-modal')"
                         class="btn-primary product-review-trigger"
                     >
@@ -629,11 +704,11 @@
 
     @endif
 
-</main>
+</div>
 
 
 {{-- ================================================================
-     FLOATING WHATSAPP BUTTON
+     FLOATING WHATSAPP BUTTON / STOCK STATUS
      ================================================================ --}}
 
 <div
@@ -642,33 +717,45 @@
     style="position:fixed !important;right:16px !important;bottom:20px !important;z-index:99999 !important;"
 >
 
-    {{-- Teks --}}
-    <span
-        class="whitespace-nowrap rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-bg)] px-4 py-2 text-xs sm:text-sm font-black text-[var(--sm-ink)] shadow-[3px_3px_0px_0px_var(--sm-border)]"
-    >
-        Pesan via WhatsApp
-    </span>
+    @if($produk->stok === 'habis')
+        <span
+            class="whitespace-nowrap rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-bg)] px-4 py-2 text-xs sm:text-sm font-black text-[var(--sm-text-muted)] shadow-[3px_3px_0px_0px_var(--sm-border)]"
+        >
+            Stok Saat Ini Habis
+        </span>
 
-
-    {{-- Tombol --}}
-    @if($waNumber)
+        <div
+            class="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-gray-200 text-gray-400 shadow-[4px_4px_0px_0px_var(--sm-border)] cursor-not-allowed"
+            title="Produk saat ini sedang habis"
+            aria-label="Produk saat ini sedang habis"
+        >
+            <x-public.home-icon name="message-circle" :size="24" aria-hidden="true" />
+        </div>
+    @elseif($waNumber)
+        <span
+            class="whitespace-nowrap rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-bg)] px-4 py-2 text-xs sm:text-sm font-black text-[var(--sm-ink)] shadow-[3px_3px_0px_0px_var(--sm-border)]"
+        >
+            {{ $produk->stok === 'po' ? 'Pre-Order via WhatsApp' : 'Pesan via WhatsApp' }}
+        </span>
 
         <a
             href="{{ $waLink }}"
-            onclick="fetch('{{ route('public.produk.whatsapp', $produk->slug) }}', {keepalive:true, credentials:'same-origin'}).catch(() => {})"
+            onclick="fetch('{{ route('public.produk.whatsapp', $produk->slug) }}', {method: 'GET', headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}, keepalive: true}).catch(() => {})"
             target="_blank"
             rel="noopener noreferrer"
             class="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-accent)] text-2xl sm:text-3xl text-[var(--sm-on-accent)] shadow-[4px_4px_0px_0px_var(--sm-border)] transition-all duration-200 hover:scale-105 hover:bg-[var(--sm-accent-hover)] active:translate-x-1 active:translate-y-1 active:shadow-none focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-[var(--sm-ink)]"
-            aria-label="Pesan {{ $produk->nama }} melalui WhatsApp"
+            aria-label="{{ $produk->stok === 'po' ? 'Pre-Order ' . $produk->nama . ' melalui WhatsApp' : 'Pesan ' . $produk->nama . ' melalui WhatsApp' }}"
         >
-
             <span aria-hidden="true">
                 <x-public.home-icon name="message-circle" :size="24" aria-hidden="true" />
             </span>
-
         </a>
-
     @else
+        <span
+            class="whitespace-nowrap rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-bg)] px-4 py-2 text-xs sm:text-sm font-black text-[var(--sm-text-muted)] shadow-[3px_3px_0px_0px_var(--sm-border)]"
+        >
+            Kontak Belum Tersedia
+        </span>
 
         <div
             class="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-primary-soft)] text-xl text-white shadow-[4px_4px_0px_0px_var(--sm-border)]"
@@ -677,7 +764,6 @@
         >
             <x-public.home-icon name="message-circle" :size="24" aria-hidden="true" />
         </div>
-
     @endif
 
 </div>
@@ -691,7 +777,7 @@
 
 <div
     x-data="{
-        open: {{ $errors->any() ? 'true' : 'false' }},
+        open: {{ ($errors->any() || session('review_warning')) ? 'true' : 'false' }},
         rating: {{ old('rating', 0) }},
         hoverRating: 0
     }"
@@ -797,7 +883,7 @@
                                 :style="'color:' + (i <= (hoverRating || rating) ? 'var(--sm-primary)' : 'var(--sm-primary-soft)')"
                                 :aria-label="'Rating ' + i + ' bintang'"
                             >
-                                <x-public.home-icon name="star" :filled="true" :size="15" aria-hidden="true" />
+                                <x-public.home-icon name="star" :filled="true" :size="32" aria-hidden="true" />
                             </button>
 
                         </template>
@@ -939,4 +1025,3 @@
 @endpush
 
 @endsection
-

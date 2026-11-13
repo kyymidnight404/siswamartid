@@ -42,22 +42,22 @@
             {{-- Prev / Next Nav Buttons --}}
             <div class="flex items-center gap-1">
                 @if($paginator->onFirstPage())
-                    <span class="p-1.5 rounded-xl border-2 border-[var(--sm-border)]/30 text-[var(--sm-text-muted)] cursor-not-allowed" title="Halaman sebelumnya">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                    <span class="pagination-icon-btn disabled" aria-disabled="true" title="Halaman sebelumnya">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                     </span>
                 @else
-                    <a href="{{ $paginator->previousPageUrl() }}" class="p-1.5 rounded-xl border-2 border-[var(--sm-border)] bg-[var(--sm-surface)] text-[var(--sm-ink)] hover:bg-[var(--sm-primary-soft)] shadow-[2px_2px_0px_0px_var(--sm-border)] hover:-translate-y-0.5 transition" title="Halaman sebelumnya">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                    <a href="{{ $paginator->previousPageUrl() }}" class="pagination-icon-btn" title="Halaman sebelumnya">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                     </a>
                 @endif
 
                 @if($paginator->hasMorePages())
-                    <a href="{{ $paginator->nextPageUrl() }}" class="p-1.5 rounded-xl border-2 border-[var(--sm-border)] bg-[var(--sm-surface)] text-[var(--sm-ink)] hover:bg-[var(--sm-primary-soft)] shadow-[2px_2px_0px_0px_var(--sm-border)] hover:-translate-y-0.5 transition" title="Halaman selanjutnya">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    <a href="{{ $paginator->nextPageUrl() }}" class="pagination-icon-btn" title="Halaman selanjutnya">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 @else
-                    <span class="p-1.5 rounded-xl border-2 border-[var(--sm-border)]/30 text-[var(--sm-text-muted)] cursor-not-allowed" title="Halaman selanjutnya">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    <span class="pagination-icon-btn disabled" aria-disabled="true" title="Halaman selanjutnya">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                     </span>
                 @endif
             </div>

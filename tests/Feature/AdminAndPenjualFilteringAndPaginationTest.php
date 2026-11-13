@@ -272,10 +272,38 @@ class AdminAndPenjualFilteringAndPaginationTest extends TestCase
 
     public function test_every_existing_registered_seller_has_at_least_10_products(): void
     {
-        $existingSellers = Penjual::whereIn('id', [4, 5, 6, 7])->withCount('produk')->get();
-        $this->assertNotEmpty($existingSellers);
-        foreach ($existingSellers as $seller) {
-            $this->assertGreaterThanOrEqual(10, $seller->produk_count, "Penjual {$seller->nama_toko} harus memiliki minimal 10 produk.");
+        $sellerUser = User::create([
+            'name' => 'Siswa Mandiri ' . uniqid(),
+            'email' => 'mandiri_' . uniqid() . '@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'penjual',
+            'is_active' => true,
+        ]);
+
+        $seller = Penjual::create([
+            'user_id' => $sellerUser->id,
+            'nama_toko' => 'Toko Mandiri Uji',
+            'deskripsi_toko' => 'Toko fixture mandiri',
+            'nomor_whatsapp' => '081299998888',
+            'lokasi_kelas' => 'XII RPL 1',
+            'status_toko' => 'buka',
+        ]);
+
+        for ($i = 1; $i <= 10; $i++) {
+            Produk::create([
+                'penjual_id' => $seller->id,
+                'kategori_id' => $this->kategori1->id,
+                'nama' => "Produk Batch {$i} " . uniqid(),
+                'slug' => "produk-batch-{$i}-" . uniqid(),
+                'deskripsi' => "Deskripsi produk {$i}",
+                'harga' => 5000 + ($i * 1000),
+                'stok' => 'tersedia',
+                'status' => 'aktif',
+            ]);
         }
+
+        $loadedSeller = Penjual::withCount('produk')->find($seller->id);
+        $this->assertNotNull($loadedSeller);
+        $this->assertGreaterThanOrEqual(10, $loadedSeller->produk_count, "Penjual {$loadedSeller->nama_toko} harus memiliki minimal 10 produk.");
     }
 }

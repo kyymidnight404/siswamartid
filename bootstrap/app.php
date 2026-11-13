@@ -23,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
             $middleware->trustProxies(at: $proxies);
         }
 
+        // Global Security Headers
+        $middleware->append(\App\Http\Middleware\SecurityHeadersMiddleware::class);
+
         // Daftarkan middleware role dan status aktif sebagai alias
         $middleware->alias([
             'admin'   => \App\Http\Middleware\EnsureAdmin::class,

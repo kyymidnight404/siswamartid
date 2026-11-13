@@ -11,7 +11,7 @@ Route::get('/', [\App\Http\Controllers\Public\HomeController::class, 'index'])->
 Route::get('/kategori', [\App\Http\Controllers\Public\KategoriController::class, 'index'])->name('public.kategori.index');
 Route::get('/kategori/{kategori:slug}', [\App\Http\Controllers\Public\KategoriController::class, 'show'])->name('public.kategori.show');
 
-Route::get('/produk', [\App\Http\Controllers\Public\ProdukController::class, 'index'])->name('public.produk.index');
+Route::get('/produk', fn () => redirect()->route('public.kategori.index', [], 301));
 Route::get('/produk/{produk:slug}', [\App\Http\Controllers\Public\ProdukController::class, 'show'])
     ->name('public.produk.show')
     ->middleware('throttle:60,1');
@@ -21,6 +21,7 @@ Route::get('/produk/{produk:slug}/whatsapp', [\App\Http\Controllers\Public\Produ
 
 Route::view('/cara-pemesanan', 'public.cara-pemesanan')->name('public.cara_pemesanan');
 Route::view('/tentang-kami', 'public.tentang-kami')->name('public.tentang_kami');
+Route::get('/sitemap.xml', [\App\Http\Controllers\Public\SitemapController::class, 'index'])->name('public.sitemap');
 
 // Submit ulasan dengan throttle (3 request / 1 menit)
 Route::post('/produk/{produk:slug}/ulasan', [\App\Http\Controllers\Public\UlasanController::class, 'store'])
@@ -42,9 +43,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/laporan/ulasan/pdf', [\App\Http\Controllers\Admin\LaporanController::class, 'ulasanPdf'])->name('laporan.ulasan.pdf');
     Route::get('/laporan/penjual/sheet', [\App\Http\Controllers\Admin\LaporanController::class, 'penjualSheet'])->name('laporan.penjual.sheet');
     Route::get('/laporan/ulasan/sheet', [\App\Http\Controllers\Admin\LaporanController::class, 'ulasanSheet'])->name('laporan.ulasan.sheet');
+    Route::get('/laporan/penjual/{penjual}', [\App\Http\Controllers\Admin\LaporanController::class, 'penjualDetail'])->name('laporan.penjual.detail');
+    Route::get('/laporan/penjual/{penjual}/pdf', [\App\Http\Controllers\Admin\LaporanController::class, 'penjualDetailPdf'])->name('laporan.penjual.detail.pdf');
+    Route::get('/laporan/penjual/{penjual}/sheet', [\App\Http\Controllers\Admin\LaporanController::class, 'penjualDetailSheet'])->name('laporan.penjual.detail.sheet');
+    Route::get('/laporan/produk/{produk}/rating', [\App\Http\Controllers\Admin\LaporanController::class, 'produkRating'])->name('laporan.produk.rating');
     Route::get('/laporan/pdf', [\App\Http\Controllers\Admin\LaporanController::class, 'pdf'])->name('laporan.pdf');
 
     // Manajemen Penjual
+    Route::get('penjual/export', [\App\Http\Controllers\Admin\LaporanController::class, 'penjualExport'])->name('penjual.export');
     Route::resource('penjual', \App\Http\Controllers\Admin\PenjualController::class)
         ->parameters(['penjual' => 'penjual']);
     Route::patch('penjual/{penjual}/toggle-status', [\App\Http\Controllers\Admin\PenjualController::class, 'toggleStatus'])
@@ -72,6 +78,7 @@ Route::prefix('penjual')->name('penjual.')->middleware(['auth', 'penjual'])->gro
     Route::get('/dashboard', [PenjualDashboardController::class, 'index'])->name('dashboard');
     Route::patch('/status-toko', [PenjualDashboardController::class, 'toggleStatusToko'])->name('status_toko.toggle');
     Route::get('/laporan', [\App\Http\Controllers\Penjual\LaporanController::class, 'index'])->name('laporan');
+    Route::get('/laporan/sheet', [\App\Http\Controllers\Penjual\LaporanController::class, 'sheet'])->name('laporan.sheet');
     Route::get('/laporan/pdf', [\App\Http\Controllers\Penjual\LaporanController::class, 'pdf'])->name('laporan.pdf');
 
     // Manajemen Produk
@@ -87,3 +94,19 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// ─── Local Mail Preview (Hanya aktif di environment local) ──────────────────
+if (app()->environment('local')) {
+    Route::get('/preview/reset-password-email', function () {
+        $user = \App\Models\User::first() ?? new \App\Models\User([
+            'name' => 'kyymidnights',
+            'email' => 'user@siswamartid.test',
+            'role' => 'penjual',
+        ]);
+
+        return (new \App\Notifications\ResetPasswordNotification('sample-preview-token-123456'))
+            ->toMail($user)
+            ->render();
+    })->name('preview.reset_password_email');
+}
+

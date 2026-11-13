@@ -1,367 +1,459 @@
 @extends('layouts.penjual')
 
-@section('title', 'Rekapitulasi Mingguan — SiswaMart')
-@section('page-title', 'Rekapitulasi Mingguan')
+@section('title', 'Laporan — SiswaMart')
+@section('page-title', 'Laporan')
 
 @section('content')
 <style>
-    @media print {
-        .no-print { display: none !important; }
-        .app-sidebar, .app-topbar { display: none !important; }
-        body { background: white !important; color: black !important; }
-        .admin-card, .stat-card { box-shadow: none !important; border: 1px solid var(--sm-primary-soft) !important; }
+    .seller-report {
+        width: 100%;
+        max-width: 1240px;
+        margin: 0;
+        color: var(--sm-ink);
+        font-size: 16px;
+    }
+    .seller-report__header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+    .summary-card__top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .summary-card__bottom {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 14px;
+    }
+    .summary-card__reading {
+        min-width: 0;
+    }
+    .seller-report__store {
+        margin: 0 0 6px;
+        color: var(--sm-text-muted);
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .seller-report__title {
+        margin: 0;
+        color: var(--sm-ink);
+        font-size: clamp(28px, 3vw, 36px);
+        font-weight: 800;
+        line-height: 1.15;
+    }
+    .seller-report__period {
+        margin: 8px 0 0;
+        color: var(--sm-text-muted);
+        font-size: 16px;
+        font-weight: 600;
+    }
+    .seller-report__actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+    .seller-report__actions .ui-button {
+        min-height: 48px;
+        font-size: 14px;
+    }
+    .seller-report__actions button:disabled {
+        opacity: .5;
+        box-shadow: none;
+        transform: none;
+        cursor: not-allowed;
+    }
+    .seller-report__stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .seller-report .summary-card {
+        min-width: 0;
+        padding: 22px;
+        border-width: 3px;
+        border-color: var(--sm-ink);
+        border-radius: 24px;
+        box-shadow: 0 5px 0 var(--sm-ink);
+    }
+    .seller-report .summary-card--popular {
+        background: var(--sm-primary-soft);
+    }
+    .summary-card__icon {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+        place-items: center;
+        border: 2px solid var(--sm-ink);
+        border-radius: 50%;
+        background: var(--sm-primary-soft);
+        color: var(--sm-ink);
+    }
+    .summary-card--popular .summary-card__icon {
+        background: var(--sm-surface);
+    }
+    .summary-card__label {
+        margin: 0;
+        color: var(--sm-text-muted);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.35;
+    }
+    .summary-card__value {
+        margin: 0;
+        color: var(--sm-ink);
+        font-size: 42px;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+    .summary-card__note {
+        margin: 8px 0 0;
+        color: var(--sm-text-muted);
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.45;
+    }
+    .summary-card__chart {
+        display: block;
+        width: 100px;
+        height: 44px;
+        flex: 0 0 100px;
+    }
+    .seller-report .popular-card {
+        padding: 22px;
+    }
+    .popular-card__heading {
+        margin-bottom: 18px;
+    }
+    .popular-card__title {
+        margin: 0;
+        color: var(--sm-ink);
+        font-size: 20px;
+        font-weight: 800;
+    }
+    .popular-card__description {
+        margin: 5px 0 0;
+        color: var(--sm-text-muted);
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .popular-list {
+        display: grid;
+        gap: 14px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .popular-list__item {
+        display: grid;
+        grid-template-columns: 36px 52px minmax(140px, 1fr) minmax(120px, 0.8fr) 84px;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 0;
+        border-top: 2px solid var(--sm-primary-soft);
+    }
+    .popular-list__rank {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border: 2px solid var(--sm-ink);
+        border-radius: 50%;
+        background: var(--sm-primary-soft);
+        color: var(--sm-ink);
+        font-size: 16px;
+        font-weight: 800;
+    }
+    .popular-list__rank--first {
+        background: var(--sm-accent);
+    }
+    .popular-list__image {
+        display: grid;
+        width: 52px;
+        height: 52px;
+        overflow: hidden;
+        place-items: center;
+        border: 2px solid var(--sm-ink);
+        border-radius: 14px;
+        background: var(--sm-primary-soft);
+        color: var(--sm-ink);
+    }
+    .popular-list__image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .popular-list__product {
+        min-width: 0;
+    }
+    .popular-list__name {
+        overflow: hidden;
+        color: var(--sm-ink);
+        font-size: 16px;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .popular-list__category {
+        display: block;
+        width: fit-content;
+        max-width: 100%;
+        margin-top: 5px;
+        padding: 3px 9px;
+        overflow: hidden;
+        border: 1px solid var(--sm-ink);
+        border-radius: 999px;
+        background: var(--sm-primary-soft);
+        color: var(--sm-ink);
+        font-size: 13px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .popular-list__track {
+        height: 18px;
+        overflow: hidden;
+        border: 2px solid var(--sm-ink);
+        border-radius: 999px;
+        background: var(--sm-primary-soft);
+        box-sizing: border-box;
+    }
+    .popular-list__bar {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--sm-primary);
+    }
+    .popular-list__views {
+        color: var(--sm-ink);
+        font-size: 16px;
+        font-weight: 800;
+        text-align: right;
+        white-space: nowrap;
+    }
+    .popular-card__empty,
+    .popular-card__note {
+        margin: 16px 0 0;
+        color: var(--sm-text-muted);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+    .seller-report :is(a, button):focus-visible {
+        outline: 3px solid var(--sm-primary);
+        outline-offset: 3px;
+    }
+    @media (max-width: 1100px) {
+        .seller-report__stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (max-width: 700px) {
+        .seller-report__header {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .seller-report__actions {
+            justify-content: flex-start;
+        }
+        .popular-list__item {
+            grid-template-columns: 36px 52px minmax(0, 1fr) 84px;
+            gap: 10px;
+        }
+        .popular-list__track {
+            grid-column: 1 / -1;
+            grid-row: 2;
+            width: 100%;
+        }
+        .popular-list__views {
+            grid-column: 4;
+            grid-row: 1;
+        }
+    }
+    @media (max-width: 560px) {
+        .seller-report__stats {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .seller-report__actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .seller-report__actions .ui-button {
+            width: 100%;
+            padding-right: 10px;
+            padding-left: 10px;
+        }
     }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<section class="seller-report" aria-labelledby="seller-report-title">
+    <header class="seller-report__header">
+        <div>
+            <p class="seller-report__store">{{ str_replace("'", '’', $penjual->nama_toko) }}</p>
+            <h1 id="seller-report-title" class="seller-report__title">Ringkasan 7 hari terakhir</h1>
+            <p class="seller-report__period">{{ $periodLabel }}</p>
+        </div>
 
-<div class="seller-report-page space-y-6">
-
-    {{-- ─── Header & Navigasi Periode ───────────────────────────────── --}}
-    <div class="admin-card p-6 bg-white relative overflow-hidden">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="text-xs font-black uppercase text-[var(--sm-primary)] bg-[var(--sm-bg)] border border-[var(--sm-border)] px-3 py-0.5 rounded-full shadow-[2px_2px_0px_0px_var(--sm-border)]">
-                        <x-public.home-icon name="chart-bar" size="18" class="inline-block align-[-3px]" aria-hidden="true" /> Performa Toko
-                    </span>
-                    <span class="text-xs font-bold text-[var(--sm-text-muted)]">{{ $penjual->nama_toko }}</span>
-                </div>
-                <h2 class="text-2xl md:text-3xl font-black text-[var(--sm-ink)] uppercase tracking-tight">Rekapitulasi Mingguan</h2>
-                <p class="text-sm font-semibold text-[var(--sm-text-muted)]">Lihat perkembangan toko dan produkmu minggu ini.</p>
-                <div class="mt-2 text-sm font-extrabold text-[var(--sm-ink)] flex items-center gap-2">
-                    <span><x-public.home-icon name="calendar" size="16" class="inline-block align-[-3px]" aria-hidden="true" /></span> <span>{{ $periodLabel }}</span>
-                </div>
-            </div>
-
-            {{-- Navigasi Minggu & Export --}}
-            <div class="flex flex-wrap items-center gap-2 no-print">
-                <a href="{{ route('penjual.laporan', ['week_offset' => $weekOffset - 1]) }}"
-                   class="btn-outline text-xs px-3.5 py-2">
-                    ← Minggu Lalu
+        <nav class="seller-report__actions" aria-label="Navigasi periode laporan">
+            <a
+                href="{{ route('penjual.laporan', ['week_offset' => $weekOffset - 1]) }}"
+                class="ui-button ui-button--secondary"
+            >
+                7 hari sebelumnya
+            </a>
+            @if($canGoNext)
+                <a href="{{ route('penjual.laporan', ['week_offset' => $weekOffset + 1]) }}" class="ui-button ui-button--secondary">
+                    7 hari berikutnya
                 </a>
+            @else
+                <button type="button" class="ui-button ui-button--secondary" disabled aria-disabled="true">
+                    7 hari berikutnya
+                </button>
+            @endif
+            <x-ui.download-menu
+                :pdf-url="route('penjual.laporan.pdf', ['week_offset' => $weekOffset])"
+                :xlsx-url="route('penjual.laporan.sheet', ['week_offset' => $weekOffset])"
+                label="Unduh Laporan"
+            />
+        </nav>
+    </header>
 
-                <a href="{{ route('penjual.laporan', ['week_offset' => 0]) }}"
-                   class="btn-outline text-xs px-3.5 py-2 {{ $weekOffset === 0 ? 'bg-[var(--sm-primary)] text-white font-black' : '' }}">
-                    Minggu Ini
-                </a>
-
-                @if($canGoNext)
-                    <a href="{{ route('penjual.laporan', ['week_offset' => $weekOffset + 1]) }}"
-                       class="btn-outline text-xs px-3.5 py-2">
-                        Minggu Depan →
-                    </a>
-                @else
-                    <button disabled class="btn-outline text-xs px-3.5 py-2 opacity-40 cursor-not-allowed">
-                        Minggu Depan →
-                    </button>
-                @endif
-
-                <a href="{{ route('penjual.laporan.pdf', ['week_offset' => $weekOffset]) }}" class="btn-primary text-xs px-4 py-2 ml-1">
-                    <x-public.home-icon name="download" size="16" class="inline-block align-[-3px]" aria-hidden="true" /> Unduh Rekap
-                </a>
+    <div class="seller-report__stats">
+        <x-ui.card class="summary-card">
+            <div class="summary-card__top">
+                <div class="summary-card__icon"><x-public.home-icon name="package" :size="21" aria-hidden="true" /></div>
+                <p class="summary-card__label">Produk diunggah</p>
             </div>
-        </div>
-    </div>
-
-    {{-- ─── 5 Compact Statistic Cards ──────────────────────────────── --}}
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {{-- Total Produk --}}
-        <div class="stat-card p-4 border-2 border-[var(--sm-border)]">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-black text-[var(--sm-text-muted)] uppercase tracking-wider">Total Produk</span>
-                <span class="text-lg"><x-public.home-icon name="package" size="18" class="inline-block align-[-3px]" aria-hidden="true" /></span>
-            </div>
-            <p class="text-2xl font-black text-[var(--sm-ink)]">{{ number_format($totalProdukCount) }}</p>
-            <p class="text-[11px] font-bold text-[var(--sm-text-muted)] mt-1">Produk di katalog</p>
-        </div>
-
-        {{-- Total Dilihat --}}
-        <div class="stat-card p-4 border-2 border-[var(--sm-border)]">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-black text-[var(--sm-text-muted)] uppercase tracking-wider">Dilihat Minggu Ini</span>
-                <span class="text-lg"><x-public.home-icon name="eye" size="18" class="inline-block align-[-3px]" aria-hidden="true" /></span>
-            </div>
-            <p class="text-2xl font-black text-[var(--sm-ink)]">{{ number_format($viewsThisWeek) }}</p>
-            <p class="text-[11px] font-extrabold mt-1 {{ $viewsComp['type'] === 'up' ? 'text-[var(--sm-ink)]' : ($viewsComp['type'] === 'down' ? 'text-[var(--sm-ink)]' : 'text-[var(--sm-text-muted)]') }}">
-                {{ $viewsComp['text'] }}
-            </p>
-        </div>
-
-        {{-- Ulasan Baru --}}
-        <div class="stat-card p-4 border-2 border-[var(--sm-border)]">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-black text-[var(--sm-text-muted)] uppercase tracking-wider">Ulasan Baru</span>
-                <span class="text-lg"><x-public.home-icon name="star" size="16" class="inline-block align-[-3px]" aria-hidden="true" /></span>
-            </div>
-            <p class="text-2xl font-black text-[var(--sm-on-accent)]">{{ number_format($ulasanThisWeek) }}</p>
-            <p class="text-[11px] font-extrabold mt-1 {{ $ulasanComp['type'] === 'up' ? 'text-[var(--sm-ink)]' : ($ulasanComp['type'] === 'down' ? 'text-[var(--sm-ink)]' : 'text-[var(--sm-text-muted)]') }}">
-                {{ $ulasanComp['text'] }}
-            </p>
-        </div>
-    </div>
-
-    {{-- ─── GRAFIK PERFORMA 7 HARI ──────────────────────────────────── --}}
-    <div class="admin-card p-6 bg-white">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <h3 class="text-lg font-black uppercase text-[var(--sm-ink)]">Performa 7 Hari</h3>
-                <p class="text-xs font-semibold text-[var(--sm-text-muted)]">Kunjungan produk per hari pada periode yang dipilih.</p>
-            </div>
-            <div class="flex items-center gap-4 text-xs font-bold">
-                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[var(--sm-primary)] inline-block"></span> Kunjungan Views</span>
-            </div>
-        </div>
-
-        <div class="relative h-64 w-full">
-            <canvas id="performaChart"></canvas>
-        </div>
-    </div>
-
-    {{-- ─── LAYOUT 2 KOLOM: PRODUK TERPOPULER & INTERAKSI PENGUNJUNG ──── --}}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-        {{-- Produk Terpopuler (Top 5) --}}
-        <div class="lg:col-span-7 admin-card bg-white">
-            <div class="admin-card-header bg-[var(--sm-bg)]">
-                <h3 class="font-black text-sm uppercase text-[var(--sm-ink)] flex items-center gap-2">
-                    <span><x-public.home-icon name="trend-up" size="18" class="inline-block align-[-3px]" aria-hidden="true" /></span> Produk Terpopuler
-                </h3>
-                <span class="text-xs font-bold text-[var(--sm-text-muted)]">Top 5 Periode Ini</span>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="border-b-2 border-[var(--sm-border)] text-xs font-black uppercase text-[var(--sm-text-muted)]">
-                            <th class="py-3 px-4 text-center w-12">Rank</th>
-                            <th class="py-3 px-4">Produk</th>
-                            <th class="py-3 px-4 text-right">Views</th>
-                            <th class="py-3 px-4 text-center">Rating</th>
-                            <th class="py-3 px-4 text-center">Ulasan</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y border-[var(--sm-border)] font-semibold">
-                        @forelse($produkTerpopuler as $index => $item)
-                            <tr class="hover:bg-[var(--sm-primary-soft)] transition-colors">
-                                <td class="py-3 px-4 text-center font-black">
-                                    @if($index < 3) <span class="inline-grid h-8 w-8 place-items-center rounded-full border-2 border-[var(--sm-ink)] bg-[var(--sm-primary-soft)] text-sm">{{ $index + 1 }}</span>
-                                    @else <span class="text-xs text-[var(--sm-text-muted)]">#{{ $index + 1 }}</span>
-                                    @endif
-                                </td>
-                                <td class="py-3 px-4">
-                                    <div class="font-extrabold text-[var(--sm-ink)]">{{ $item->nama }}</div>
-                                    <span class="text-[10px] text-[var(--sm-text-muted)] uppercase font-bold">{{ $item->kategori->nama ?? '-' }}</span>
-                                </td>
-                                <td class="py-3 px-4 text-right font-black text-[var(--sm-primary)]">
-                                    {{ number_format($item->cur_views ?? $item->period_views) }}
-                                </td>
-                                <td class="py-3 px-4 text-center text-[var(--sm-ink)] font-bold whitespace-nowrap">
-                                    <x-public.home-icon name="star" size="16" class="inline-block align-[-3px]" aria-hidden="true" /> {{ number_format($item->average_rating, 1) }}
-                                </td>
-                                <td class="py-3 px-4 text-center font-bold text-[var(--sm-text-muted)]">
-                                    {{ $item->review_count }}
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="py-8 text-center text-[var(--sm-text-muted)] font-bold">
-                                    Belum ada data produk populer untuk periode ini.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        {{-- Interaksi Pengunjung --}}
-        <div class="lg:col-span-5 admin-card bg-white p-6 flex flex-col justify-between">
-            <div>
-                <h3 class="font-black text-sm uppercase text-[var(--sm-ink)] mb-1 flex items-center gap-2">
-                    <span><x-public.home-icon name="info-circle" size="18" class="inline-block align-[-3px]" aria-hidden="true" /></span> Interaksi Pengunjung
-                </h3>
-                <p class="text-xs font-semibold text-[var(--sm-text-muted)] mb-6">Seberapa tertarik pengunjung pada tokomu.</p>
-
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between p-3 bg-[var(--sm-bg)] rounded-2xl border border-[var(--sm-border)]">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl"><x-public.home-icon name="eye" size="18" class="inline-block align-[-3px]" aria-hidden="true" /></span>
-                            <div>
-                                <p class="text-xs font-bold text-[var(--sm-text-muted)] uppercase">Views Produk</p>
-                                <p class="text-lg font-black text-[var(--sm-ink)]">{{ number_format($viewsThisWeek) }}</p>
-                            </div>
-                        </div>
-                        <span class="text-xs font-extrabold text-[var(--sm-primary)] bg-[var(--sm-primary-soft)] px-2.5 py-1 rounded-full">Kunjungan</span>
-                    </div>
-
-                    <div class="flex items-center justify-between p-3 bg-[var(--sm-bg)] rounded-2xl border border-[var(--sm-border)]">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl"><x-public.home-icon name="star" size="16" class="inline-block align-[-3px]" aria-hidden="true" /></span>
-                            <div>
-                                <p class="text-xs font-bold text-[var(--sm-text-muted)] uppercase">Ulasan Pengunjung</p>
-                                <p class="text-lg font-black text-[var(--sm-on-accent)]">{{ number_format($ulasanThisWeek) }}</p>
-                            </div>
-                        </div>
-                        <span class="text-xs font-extrabold text-[var(--sm-ink)] bg-[var(--sm-primary-soft)] px-2.5 py-1 rounded-full">Ulasan</span>
-                    </div>
+            <div class="summary-card__bottom">
+                <div class="summary-card__reading">
+                    <p class="summary-card__value">{{ number_format($uploadedProductsCount) }}</p>
+                    <p class="summary-card__note">7 hari terakhir</p>
                 </div>
             </div>
-        </div>
-    </div>
+        </x-ui.card>
 
-    {{-- ─── TABEL PERFORMA SETIAP PRODUK ───────────────────────────── --}}
-    <div class="admin-card bg-white">
-        <div class="admin-card-header bg-[var(--sm-bg)]">
-            <div>
-                <h3 class="font-black text-sm uppercase text-[var(--sm-ink)]">Performa Semua Produk</h3>
-                <p class="text-xs font-semibold text-[var(--sm-text-muted)]">Perbandingan kunjungan dan ulasan untuk semua produkmu.</p>
+        <x-ui.card class="summary-card">
+            <div class="summary-card__top">
+                <div class="summary-card__icon"><x-public.home-icon name="message-circle" :size="21" aria-hidden="true" /></div>
+                <p class="summary-card__label">Ulasan baru</p>
             </div>
-            <span class="text-xs font-bold text-[var(--sm-text-muted)]">{{ count($performaProduk) }} produk</span>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-sm">
-                <thead>
-                    <tr class="border-b-2 border-[var(--sm-border)] text-xs font-black uppercase text-[var(--sm-text-muted)]">
-                        <th class="py-3.5 px-4">Nama Produk</th>
-                        <th class="py-3.5 px-4 text-right">Views Minggu Ini</th>
-                        <th class="py-3.5 px-4 text-right">Views Minggu Lalu</th>
-                        <th class="py-3.5 px-4 text-center">Perubahan</th>
-                        <th class="py-3.5 px-4 text-center">Ulasan Baru</th>
-                        <th class="py-3.5 px-4 text-center">Rating</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y border-[var(--sm-border)] font-semibold">
-                    @forelse($performaProduk as $p)
-                        <tr class="hover:bg-[var(--sm-primary-soft)] transition-colors">
-                            <td class="py-3.5 px-4 font-extrabold text-[var(--sm-ink)]">
-                                {{ $p->nama }}
-                                <span class="block text-[10px] text-[var(--sm-text-muted)] font-normal uppercase">{{ $p->kategori->nama ?? '-' }}</span>
-                            </td>
-                            <td class="py-3.5 px-4 text-right font-black text-[var(--sm-ink)]">
-                                {{ number_format($p->cur_views) }}
-                            </td>
-                            <td class="py-3.5 px-4 text-right text-[var(--sm-text-muted)] font-bold">
-                                {{ number_format($p->prev_views) }}
-                            </td>
-                            <td class="py-3.5 px-4 text-center">
-                                @if($p->trend === 'up')
-                                    <span class="inline-flex items-center gap-1 text-xs font-black text-[var(--sm-ink)] bg-[var(--sm-primary-soft)] border border-[var(--sm-border)] px-2.5 py-0.5 rounded-full">
-                                        ↑ +{{ $p->views_diff }}
-                                    </span>
-                                @elseif($p->trend === 'down')
-                                    <span class="inline-flex items-center gap-1 text-xs font-black text-[var(--sm-ink)] bg-[var(--sm-primary-soft)] border border-[var(--sm-border)] px-2.5 py-0.5 rounded-full">
-                                        ↓ {{ $p->views_diff }}
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-[var(--sm-text-muted)] bg-[var(--sm-primary-soft)] border border-[var(--sm-border)] px-2.5 py-0.5 rounded-full">
-                                        — Tetap
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="py-3.5 px-4 text-center font-bold text-[var(--sm-ink)]">
-                                {{ $p->new_reviews }}
-                            </td>
-                            <td class="py-3.5 px-4 text-center text-[var(--sm-ink)] font-bold">
-                                <x-public.home-icon name="star" size="16" class="inline-block align-[-3px]" aria-hidden="true" /> {{ number_format($p->average_rating, 1) }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="py-8 text-center text-[var(--sm-text-muted)] font-bold">
-                                Belum ada produk di katalogmu.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {{-- ─── ULASAN MINGGU INI ───────────────────────────────────────── --}}
-    <div class="admin-card bg-white p-6 space-y-4">
-        <div class="flex items-center justify-between border-b-2 border-[var(--sm-border)] pb-3">
-            <div>
-                <h3 class="text-lg font-black uppercase text-[var(--sm-ink)] flex items-center gap-2">
-                    <span><x-public.home-icon name="message-circle" size="18" class="inline-block align-[-3px]" aria-hidden="true" /></span> Ulasan Minggu Ini
-                </h3>
-                <p class="text-xs font-semibold text-[var(--sm-text-muted)]">Komentar terbaru pengunjung tentang produkmu minggu ini.</p>
+            <div class="summary-card__bottom">
+                <div class="summary-card__reading">
+                    <p class="summary-card__value">{{ number_format($newReviewsCount) }}</p>
+                    <p class="summary-card__note">7 hari terakhir</p>
+                </div>
             </div>
-            <span class="text-xs font-bold text-[var(--sm-text-muted)]">{{ count($ulasanMingguan) }} ulasan</span>
-        </div>
+        </x-ui.card>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            @forelse($ulasanMingguan as $rev)
-                <div class="bg-[var(--sm-bg)] p-4 rounded-2xl border-2 border-[var(--sm-border)] space-y-2">
-                    <div class="flex items-center justify-between">
-                        <div class="font-extrabold text-sm text-[var(--sm-ink)]">{{ $rev->guest_username }}</div>
-                        <div class="review-rating-stars inline-flex shrink-0 items-center gap-0.5 text-[var(--sm-primary)]" role="img" aria-label="{{ $rev->rating }} dari 5 bintang">
-                            @for($i=1; $i<=5; $i++)
-                                <x-public.home-icon name="star" size="14" aria-hidden="true" />
-                            @endfor
-                        </div>
-                    </div>
-                    <p class="text-xs font-bold text-[var(--sm-text-muted)] leading-relaxed">
-                        "{{ $rev->komentar ?? '-' }}"
+        <x-ui.card class="summary-card">
+            <div class="summary-card__top">
+                <div class="summary-card__icon"><x-public.home-icon name="eye" :size="21" aria-hidden="true" /></div>
+                <p class="summary-card__label">Total views semua produk</p>
+            </div>
+            @php
+                $maxDailyViews = max(1, (int) $dailyViews->max('count'));
+                $dailyViewDescription = $dailyViews
+                    ->map(fn ($day) => $day['date']->translatedFormat('l') . ' ' . $day['count'] . ' views')
+                    ->implode(', ');
+                $weekdayInitials = [1 => 'S', 2 => 'S', 3 => 'R', 4 => 'K', 5 => 'J', 6 => 'S', 7 => 'M'];
+            @endphp
+            <div class="summary-card__bottom">
+                <div class="summary-card__reading">
+                    <p class="summary-card__value">{{ number_format($totalViews) }}</p>
+                    <p class="summary-card__note">{{ $viewsComparison }}</p>
+                </div>
+                <svg class="summary-card__chart" viewBox="0 0 100 46" role="img" aria-label="Views per hari: {{ $dailyViewDescription }}">
+                    @foreach($dailyViews as $day)
+                        @php
+                            $index = $loop->index;
+                            $barHeight = $day['count'] > 0 ? max(3, (int) round($day['count'] / $maxDailyViews * 25)) : 3;
+                            $barY = 29 - $barHeight;
+                            $weekday = (int) $day['date']->format('N');
+                        @endphp
+                        <rect
+                            x="{{ 3 + ($index * 14) }}"
+                            y="{{ $barY }}"
+                            width="8"
+                            height="{{ $barHeight }}"
+                            rx="2"
+                            fill="{{ $day['count'] > 0 ? 'var(--sm-primary)' : '#B9C7D8' }}"
+                            @if($day['date']->isToday()) stroke="var(--sm-ink)" stroke-width="2" @endif
+                        />
+                        <text x="{{ 7 + ($index * 14) }}" y="44" text-anchor="middle" font-size="12" fill="var(--sm-text-muted)" aria-hidden="true">{{ $weekdayInitials[$weekday] }}</text>
+                    @endforeach
+                </svg>
+            </div>
+        </x-ui.card>
+
+        <x-ui.card class="summary-card summary-card--popular">
+            <div class="summary-card__top">
+                <div class="summary-card__icon"><x-public.home-icon name="trend-up" :size="21" aria-hidden="true" /></div>
+                <p class="summary-card__label">Views produk populer</p>
+            </div>
+            <div class="summary-card__bottom">
+                <div class="summary-card__reading">
+                    <p class="summary-card__value">{{ number_format($popularViews) }}</p>
+                    <p class="summary-card__note">
+                        @if($totalViews > 0)
+                            {{ $viewsFromPopularPercent }}% dari semua views
+                        @else
+                            0
+                        @endif
                     </p>
-                    <div class="flex items-center justify-between text-[10px] font-bold text-[var(--sm-text-muted)] pt-1 border-t border-[var(--sm-border)]">
-                        <span class="truncate max-w-[200px] text-[var(--sm-primary-hover)]"><x-public.home-icon name="package" size="18" class="inline-block align-[-3px]" aria-hidden="true" /> {{ $rev->produk->nama ?? 'Produk' }}</span>
-                        <span>{{ $rev->created_at->format('d M Y, H:i') }}</span>
-                    </div>
                 </div>
-            @empty
-                <div class="md:col-span-2 py-8 text-center text-[var(--sm-text-muted)] font-bold">
-                    Belum ada ulasan baru pada periode minggu ini.
-                </div>
-            @endforelse
-        </div>
+            </div>
+        </x-ui.card>
     </div>
 
-    {{-- ─── INSIGHT PERFORMA ────────────────────────────────────────── --}}
-</div>
+    <x-ui.card class="popular-card">
+        <div class="popular-card__heading">
+            <h3 class="popular-card__title">Top 5 produk terpopuler</h3>
+            <p class="popular-card__description">Berdasarkan views, 7 hari terakhir</p>
+        </div>
 
-{{-- Script Inisialisasi Chart.js --}}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('performaChart');
-    if (!ctx) return;
+        @if($popularProducts->isEmpty())
+            <p class="popular-card__empty">Belum ada views pada periode ini.</p>
+        @else
+            <ol class="popular-list">
+                @foreach($popularProducts as $index => $product)
+                    <li class="popular-list__item">
+                        <span class="popular-list__rank {{ $index === 0 ? 'popular-list__rank--first' : '' }}" aria-label="Peringkat {{ $index + 1 }}">
+                            {{ $index + 1 }}
+                        </span>
+                        <span class="popular-list__image">
+                            @if($product->foto_utama)
+                                <img src="{{ asset('storage/' . $product->foto_utama) }}" alt="" loading="lazy">
+                            @else
+                                <x-public.home-icon name="package" :size="22" aria-hidden="true" />
+                            @endif
+                        </span>
+                        <span class="popular-list__product">
+                            <span class="popular-list__name">{{ $product->nama }}</span>
+                            <span class="popular-list__category">{{ $product->kategori?->nama ?? 'Tanpa kategori' }}</span>
+                        </span>
+                        <span class="popular-list__track" role="img" aria-label="{{ $product->period_views }} views">
+                            <span class="popular-list__bar" style="width: {{ $product->bar_width }}%"></span>
+                        </span>
+                        <span class="popular-list__views">{{ number_format($product->period_views) }} views</span>
+                    </li>
+                @endforeach
+            </ol>
 
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: @json($chartLabels),
-            datasets: [
-                {
-                    label: 'Views Produk',
-                    data: @json($chartViewsData),
-                    borderColor: 'var(--sm-primary)',
-                    backgroundColor: 'color-mix(in srgb, var(--sm-primary) 15%, transparent)',
-                    borderWidth: 3,
-                    tension: 0.3,
-                    fill: true,
-                    pointRadius: 5,
-                    pointBackgroundColor: 'var(--sm-primary)'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { precision: 0, font: { weight: 'bold' } }
-                },
-                x: {
-                    ticks: { font: { weight: 'bold' } }
-                }
-            }
-        }
-    });
-});
-</script>
+            @if($popularProducts->count() < 5)
+                <p class="popular-card__note">
+                    Baru {{ $popularProducts->count() }} produk yang punya views. Produk lain akan muncul di sini setelah dilihat pengunjung.
+                </p>
+            @endif
+        @endif
+    </x-ui.card>
+</section>
 @endsection

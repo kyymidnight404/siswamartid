@@ -64,7 +64,7 @@ class UlasanController extends Controller
             'url' => route('admin.komentar.index', ['status' => 'semua', 'tab' => 'komentar']),
         ]);
 
-        return redirect()->route('public.produk.show', $produk->slug)
+        return redirect()->to(route('public.produk.show', $produk->slug) . '#ulasan')
             ->with('success', 'Ulasanmu berhasil dikirim.');
     }
 }

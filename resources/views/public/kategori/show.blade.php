@@ -2,6 +2,7 @@
 
 @section('title', $kategori->nama . ' | Katalog SiswaMart')
 @section('meta_description', 'Jelajahi produk ' . strtolower($kategori->nama) . ' karya siswa di SiswaMart.')
+@section('canonical_url', route('public.kategori.show', $kategori->slug))
 
 @section('content')
 
@@ -169,7 +170,8 @@
             </aside>
 
             {{-- ─── Main Content ──────────────────────────────────────── --}}
-            <main class="flex-1 min-w-0">
+            <div class="flex-1 min-w-0">
+                <h2 class="sr-only">Daftar Produk</h2>
                 
                 {{-- Product Grid --}}
                 @if($produk->isEmpty())
@@ -202,7 +204,7 @@
                     </div>
                 @endif
 
-            </main>
+            </div>
         </div>
     </div>
 </div>

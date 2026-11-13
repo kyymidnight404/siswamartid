@@ -3,23 +3,53 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Produk;
+use App\Models\ProdukViewLog;
+use App\Services\WhatsappUrlService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ProductController extends ApiController
 {
+    /**
+     * Cari produk aktif berdasarkan id atau slug.
+     */
+    public function findPublicProduct(mixed $identifier): Produk
+    {
+        if ($identifier instanceof Produk) {
+            $product = $identifier;
+        } else {
+            $product = Produk::where('slug', (string) $identifier)
+                ->orWhere('id', is_numeric($identifier) ? (int) $identifier : 0)
+                ->firstOrFail();
+        }
+
+        abort_if(
+            $product->status !== 'aktif' || ! ($product->penjual?->user?->is_active),
+            404,
+            'Produk tidak ditemukan atau tidak aktif'
+        );
+
+        return $product;
+    }
+
+    /**
+     * Daftar produk publik dengan paginasi, pencarian, filter kategori, dan pengurutan.
+     */
     public function index(Request $request)
     {
         $query = Produk::query()
             ->publicVisible()
-            ->with(['kategori', 'penjual'])
-            ->withAvg(['ulasan' => fn ($reviews) => $reviews->publicVisible()], 'rating');
+            ->with(['kategori', 'penjual.user'])
+            ->withAvg(['ulasan' => fn ($reviews) => $reviews->publicVisible()], 'rating')
+            ->withCount(['ulasan' => fn ($reviews) => $reviews->publicVisible()]);
 
         $search = $request->string('search', $request->string('q'))->trim()->toString();
         if ($search !== '') {
-            $query->where(function ($products) use ($search) {
-                $products->where('nama', 'like', "%{$search}%")
-                    ->orWhere('deskripsi', 'like', "%{$search}%")
-                    ->orWhereHas('penjual', fn ($seller) => $seller->where('nama_toko', 'like', "%{$search}%"));
+            $escapedSearch = addcslashes($search, '%_\\');
+            $query->where(function ($products) use ($escapedSearch) {
+                $products->where('nama', 'like', "%{$escapedSearch}%")
+                    ->orWhere('deskripsi', 'like', "%{$escapedSearch}%")
+                    ->orWhereHas('penjual', fn ($seller) => $seller->where('nama_toko', 'like', "%{$escapedSearch}%"));
             });
         }
 
@@ -54,122 +84,176 @@ class ProductController extends ApiController
         return $this->success($products, 'Daftar produk berhasil diambil');
     }
 
-    public function show(Produk $product)
+    /**
+     * Detail produk by slug atau id.
+     */
+    public function show(Request $request, mixed $product)
     {
-        abort_if($product->status !== 'aktif' || ! ($product->penjual?->user?->is_active), 404);
+        $productModel = $this->findPublicProduct($product);
 
-        $product->increment('views');
-        try {
-            \App\Models\ProdukViewLog::create([
-                'produk_id' => $product->id,
-                'type' => 'view',
-            ]);
-        } catch (\Throwable $e) {
-            // Safe fallback
+        $deviceId = $request->header('X-Device-Id');
+        $cacheKey = $deviceId ? "view_product_{$productModel->id}_{$deviceId}" : null;
+
+        // Dedupe view jika request menyertakan X-Device-Id
+        if (! $cacheKey || ! Cache::has($cacheKey)) {
+            $productModel->increment('views');
+            try {
+                ProdukViewLog::create([
+                    'produk_id' => $productModel->id,
+                    'type'      => 'view',
+                ]);
+            } catch (\Throwable $e) {
+                // Safe fallback
+            }
+
+            if ($cacheKey) {
+                Cache::put($cacheKey, true, now()->addHours(24));
+            }
         }
 
-        $product->load(['kategori', 'penjual.user'])->loadAvg(
-            ['ulasan' => fn ($reviews) => $reviews->publicVisible()],
-            'rating'
-        );
+        $productModel->load(['kategori', 'penjual.user'])
+            ->loadAvg(['ulasan' => fn ($reviews) => $reviews->publicVisible()], 'rating')
+            ->loadCount(['ulasan' => fn ($reviews) => $reviews->publicVisible()]);
 
-        return $this->success($this->productData($product, true), 'Detail produk berhasil diambil');
+        return $this->success($this->productData($productModel, true), 'Detail produk berhasil diambil');
     }
 
-        public function trackView(Produk $product)
+    /**
+     * Endpoint untuk mencatat view secara eksplisit dengan deduplikasi berbasis device_id.
+     */
+    public function trackView(Request $request, mixed $product)
     {
-        abort_if($product->status !== 'aktif' || ! ($product->penjual?->user?->is_active), 404);
+        $productModel = $this->findPublicProduct($product);
 
-        $product->increment('views');
-        try {
-            \App\Models\ProdukViewLog::create([
-                'produk_id' => $product->id,
-                'type' => 'view',
-            ]);
-        } catch (\Throwable $e) {
-            // Safe fallback
+        $deviceId = $request->header('X-Device-Id');
+        $cacheKey = $deviceId ? "view_product_{$productModel->id}_{$deviceId}" : null;
+        $incremented = false;
+
+        if (! $cacheKey || ! Cache::has($cacheKey)) {
+            $productModel->increment('views');
+            $incremented = true;
+            try {
+                ProdukViewLog::create([
+                    'produk_id' => $productModel->id,
+                    'type'      => 'view',
+                ]);
+            } catch (\Throwable $e) {
+                // Safe fallback
+            }
+
+            if ($cacheKey) {
+                Cache::put($cacheKey, true, now()->addHours(24));
+            }
         }
 
+        $productModel->refresh();
+
         return $this->success([
-            'id' => $product->id,
-            'views' => (int) $product->views,
+            'id' => $productModel->id,
+            'views' => (int) $productModel->views,
+            'incremented' => $incremented,
         ], 'View produk berhasil dicatat');
     }
 
-    public function trackWhatsapp(Produk $product)
+    /**
+     * Catat interaksi WhatsApp dan kembalikan URL wa.me.
+     */
+    public function trackWhatsapp(mixed $product, WhatsappUrlService $waService)
     {
-        abort_if($product->status !== 'aktif' || ! ($product->penjual?->user?->is_active), 404);
+        $productModel = $this->findPublicProduct($product);
+        $result = $waService->generateForProduct($productModel);
 
-        $waNumber = preg_replace('/[^0-9]/', '', $product->penjual->nomor_whatsapp ?? '');
-        if (empty($waNumber)) {
-            return $this->error('Nomor kontak WhatsApp penjual belum tersedia.', [], 422);
+        if (! $result['success']) {
+            return $this->error($result['message'], [], 422);
         }
-
-        if (str_starts_with($waNumber, '0')) {
-            $waNumber = '62'.substr($waNumber, 1);
-        }
-
-        try {
-            \App\Models\ProdukViewLog::create([
-                'produk_id' => $product->id,
-                'type' => 'whatsapp',
-            ]);
-        } catch (\Throwable $e) {
-            // Safe fallback
-        }
-
-        $prefixNotice = ($product->penjual->status_toko === 'tutup')
-            ? "[Pemberitahuan: Toko sedang tutup, balasan mungkin tertunda]\n\n"
-            : '';
-
-        $waMsg = $prefixNotice."Halo, saya tertarik dengan produk:\n*".$product->nama."*\n\nApakah produk ini masih tersedia?";
-        $waLink = 'https://wa.me/'.$waNumber.'?text='.rawurlencode($waMsg);
 
         return $this->success([
-            'whatsapp_url' => $waLink,
-            'phone' => $waNumber,
-            'message' => $waMsg,
+            'whatsapp_url' => $result['whatsapp_url'],
+            'phone'        => $result['phone'],
+            'message'      => $result['message'],
+            'store_closed' => $result['store_closed'] ?? false,
         ], 'Tautan WhatsApp berhasil dibuat');
     }
 
+    /**
+     * Format representasi data produk untuk respons API.
+     */
     public function productData(Produk $product, bool $detail = false): array
     {
+        $imageUrl = $product->foto_utama ? url('storage/' . $product->foto_utama) : null;
+        $sellerImage = $product->penjual?->foto_toko ? url('storage/' . $product->penjual->foto_toko) : null;
+        $rating = round((float) ($product->ulasan_avg_rating ?? $product->average_rating), 1);
+        $reviewCount = (int) ($product->ulasan_count ?? $product->review_count);
+
         $data = [
-            'id' => $product->id,
-            'name' => $product->nama,
-            'slug' => $product->slug,
-            'description' => $product->deskripsi,
-            'price' => (float) $product->harga,
-            'stock_status' => $product->stok,
-            'available' => $product->stok !== 'habis',
-            'promotion_label' => $product->label_promosi,
-            'image' => $product->foto_utama ? asset('storage/'.$product->foto_utama) : null,
-            'category' => $product->kategori ? [
-                'id' => $product->kategori->id,
+            'id'               => $product->id,
+            'slug'             => $product->slug,
+            'nama'             => $product->nama,
+            'name'             => $product->nama,
+            'harga'            => (float) $product->harga,
+            'price'            => (float) $product->harga,
+            'deskripsi'        => $product->deskripsi,
+            'description'      => $product->deskripsi,
+            'stok'             => $product->stok,
+            'stock_status'     => $product->stok,
+            'available'        => $product->stok !== 'habis',
+            'label_promosi'    => $product->label_promosi,
+            'promotion_label'  => $product->label_promosi,
+            'foto_utama'       => $imageUrl,
+            'image'            => $imageUrl,
+            'views'            => (int) ($product->views ?? 0),
+            'rating'           => $rating,
+            'average_rating'   => $rating,
+            'review_count'     => $reviewCount,
+            'jumlah_ulasan'    => $reviewCount,
+            'nama_toko'        => $product->penjual?->nama_toko ?? '',
+            'status_toko'      => $product->penjual?->status_toko ?? 'buka',
+            'kategori'         => $product->kategori ? [
+                'id'   => $product->kategori->id,
+                'nama' => $product->kategori->nama,
                 'name' => $product->kategori->nama,
                 'slug' => $product->kategori->slug,
                 'icon' => $product->kategori->icon,
             ] : null,
-            'seller' => $product->penjual ? [
-                'id' => $product->penjual->id,
-                'name' => $product->penjual->nama_toko,
-                'description' => $product->penjual->deskripsi_toko,
-                'class_location' => $product->penjual->lokasi_kelas,
-                'location' => null, // Disembunyikan demi privasi siswa
-                'store_status' => $product->penjual->status_toko ?? 'buka',
-                'phone' => $product->penjual->nomor_whatsapp,
-                'image' => $product->penjual->foto_toko ? asset('storage/'.$product->penjual->foto_toko) : null,
+            'category'         => $product->kategori ? [
+                'id'   => $product->kategori->id,
+                'nama' => $product->kategori->nama,
+                'name' => $product->kategori->nama,
+                'slug' => $product->kategori->slug,
+                'icon' => $product->kategori->icon,
             ] : null,
-            'rating' => round((float) ($product->ulasan_avg_rating ?? $product->average_rating), 1),
-            'review_count' => $product->review_count,
-            'views' => (int) ($product->views ?? 0),
-            'created_at' => $product->created_at?->toISOString(),
+            'penjual'          => $product->penjual ? [
+                'id'             => $product->penjual->id,
+                'nama_toko'      => $product->penjual->nama_toko,
+                'name'           => $product->penjual->nama_toko,
+                'deskripsi_toko' => $product->penjual->deskripsi_toko,
+                'lokasi_kelas'   => $product->penjual->lokasi_kelas,
+                'class_location' => $product->penjual->lokasi_kelas,
+                'status_toko'    => $product->penjual->status_toko ?? 'buka',
+                'store_status'   => $product->penjual->status_toko ?? 'buka',
+                'foto_toko'      => $sellerImage,
+                'image'          => $sellerImage,
+            ] : null,
+            'seller'           => $product->penjual ? [
+                'id'             => $product->penjual->id,
+                'nama_toko'      => $product->penjual->nama_toko,
+                'name'           => $product->penjual->nama_toko,
+                'deskripsi_toko' => $product->penjual->deskripsi_toko,
+                'lokasi_kelas'   => $product->penjual->lokasi_kelas,
+                'class_location' => $product->penjual->lokasi_kelas,
+                'status_toko'    => $product->penjual->status_toko ?? 'buka',
+                'store_status'   => $product->penjual->status_toko ?? 'buka',
+                'foto_toko'      => $sellerImage,
+                'image'          => $sellerImage,
+            ] : null,
+            'created_at'       => $product->created_at?->toISOString(),
         ];
 
         if ($detail) {
             $related = Produk::publicVisible()
-                ->with(['kategori', 'penjual'])
+                ->with(['kategori', 'penjual.user'])
                 ->withAvg(['ulasan' => fn ($q) => $q->publicVisible()], 'rating')
+                ->withCount(['ulasan' => fn ($q) => $q->publicVisible()])
                 ->where('kategori_id', $product->kategori_id)
                 ->where('id', '!=', $product->id)
                 ->latest()
@@ -178,6 +262,7 @@ class ProductController extends ApiController
                 ->map(fn (Produk $item) => $this->productData($item, false));
 
             $data['related_products'] = $related;
+            $data['produk_terkait'] = $related;
         }
 
         return $data;

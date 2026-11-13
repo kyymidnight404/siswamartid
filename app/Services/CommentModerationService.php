@@ -9,14 +9,21 @@ use Illuminate\Support\Facades\Schema;
 class CommentModerationService
 {
     protected const CACHE_BAD_WORDS_KEY = 'moderation_active_bad_words_v4';
+
     protected const CACHE_TTL = 86400; // 24 jam
+
+    /**
+     * Cache in-memory selama lifecycle request berlangsung.
+     *
+     * @var array<array{word: string, severity: string}>|null
+     */
+    protected static ?array $runtimeWords = null;
 
     /**
      * Jalankan moderasi lengkap pada teks komentar.
      *
      * Alur: normalisasi teks -> deteksi kata terlarang -> hasil moderasi.
      *
-     * @param string|null $text
      * @return array{
      *     detected: bool,
      *     words: array<string>,
@@ -29,11 +36,11 @@ class CommentModerationService
     {
         if (empty($text) || trim($text) === '') {
             return [
-                'detected'      => false,
-                'words'         => [],
-                'severity'      => 'none',
+                'detected' => false,
+                'words' => [],
+                'severity' => 'none',
                 'censored_text' => '',
-                'match_count'   => 0,
+                'match_count' => 0,
             ];
         }
 
@@ -44,11 +51,11 @@ class CommentModerationService
 
         if (empty($badWordsData)) {
             return [
-                'detected'      => false,
-                'words'         => [],
-                'severity'      => 'none',
+                'detected' => false,
+                'words' => [],
+                'severity' => 'none',
                 'censored_text' => $text,
-                'match_count'   => 0,
+                'match_count' => 0,
             ];
         }
 
@@ -79,9 +86,9 @@ class CommentModerationService
 
                 // Hitung severity score
                 $severityScore = match (strtolower($severityStr)) {
-                    'high'   => 3,
-                    'low'    => 1,
-                    default  => 2,
+                    'high' => 3,
+                    'low' => 1,
+                    default => 2,
                 };
                 if ($severityScore > $highestSeverityScore) {
                     $highestSeverityScore = $severityScore;
@@ -89,7 +96,7 @@ class CommentModerationService
 
                 foreach ($matches[0] as [$matchedString, $normalizedOffset]) {
                     $normalizedEnd = $normalizedOffset + strlen($matchedString) - 1;
-                    if (!isset($originalStartByByte[$normalizedOffset], $originalEndByByte[$normalizedEnd])) {
+                    if (! isset($originalStartByByte[$normalizedOffset], $originalEndByByte[$normalizedEnd])) {
                         continue;
                     }
                     $matchedOriginalRanges[] = [
@@ -109,7 +116,7 @@ class CommentModerationService
         }
 
         $detectedWords = array_values(array_unique($detectedWords));
-        $isDetected = !empty($detectedWords);
+        $isDetected = ! empty($detectedWords);
 
         // Hitung tingkat keparahan akhir
         $finalSeverity = 'none';
@@ -124,11 +131,11 @@ class CommentModerationService
         }
 
         return [
-            'detected'      => $isDetected,
-            'words'         => $detectedWords,
-            'severity'      => $finalSeverity,
+            'detected' => $isDetected,
+            'words' => $detectedWords,
+            'severity' => $finalSeverity,
             'censored_text' => $censoredText,
-            'match_count'   => $matchCount,
+            'match_count' => $matchCount,
         ];
     }
 
@@ -138,6 +145,7 @@ class CommentModerationService
     public function normalizeText(string $text): string
     {
         $normalized = preg_replace('/\s+/', ' ', $this->normalizeCharacter($text));
+
         return trim($normalized ?? '');
     }
 
@@ -194,48 +202,85 @@ class CommentModerationService
     }
 
     /**
-     * Ambil kata-kata kasar aktif dari Cache.
+     * Ambil kata-kata kasar aktif dari Cache atau in-memory memoization.
      *
-     * @return array<array{word: string, severity: string, language: string}>
+     * @return array<array{word: string, severity: string}>
      */
     public function getActiveBadWords(): array
     {
-        return Cache::store('file')->remember(self::CACHE_BAD_WORDS_KEY, self::CACHE_TTL, function () {
-            $words = [];
-            $dictionaryPath = resource_path('dictionaries/badwords-list.json');
+        if (static::$runtimeWords !== null) {
+            return static::$runtimeWords;
+        }
 
-            if (is_file($dictionaryPath)) {
-                $dictionary = json_decode(file_get_contents($dictionaryPath), true) ?: [];
-                foreach (['en' => 'english', 'id' => 'indonesian'] as $key => $language) {
-                    foreach (($dictionary[$key] ?? []) as $word) {
-                        $words[] = ['word' => $word, 'severity' => 'medium', 'language' => $language];
-                    }
+        $cached = null;
+        try {
+            $cached = Cache::get(self::CACHE_BAD_WORDS_KEY);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        if (is_array($cached) && ! empty($cached)) {
+            return static::$runtimeWords = $cached;
+        }
+
+        $words = [];
+        $dictionaryPath = resource_path('dictionaries/badwords-list.json');
+
+        if (is_file($dictionaryPath)) {
+            $dictionary = json_decode((string) file_get_contents($dictionaryPath), true) ?: [];
+            foreach (['en', 'id'] as $key) {
+                foreach (($dictionary[$key] ?? []) as $word) {
+                    $words[] = ['word' => $word, 'severity' => 'medium'];
                 }
             }
+        }
 
-            try {
-                if (Schema::hasTable('bad_words')) {
-                    $customWords = BadWord::where('is_active', true)
-                        ->get(['word', 'severity', 'language'])
-                        ->toArray();
-                    $words = array_merge($words, $customWords);
-                }
-            } catch (\Throwable $e) {
-                // Daftar bawaan tetap dapat dipakai jika database belum tersedia.
+        try {
+            if (Schema::hasTable('bad_words')) {
+                $customWords = BadWord::where('is_active', true)
+                    ->get(['word', 'severity'])
+                    ->toArray();
+                $words = array_merge($words, $customWords);
             }
+        } catch (\Throwable $e) {
+            // Daftar bawaan tetap dapat dipakai jika database belum tersedia.
+        }
 
-            return collect($words)
-                ->filter(fn ($item) => !empty($item['word']))
-                ->unique(fn ($item) => mb_strtolower(trim($item['word'])) . '|' . ($item['language'] ?? ''))
-                ->values()
-                ->all();
-        });
+        $result = collect($words)
+            ->filter(fn ($item) => ! empty($item['word']))
+            ->unique(fn ($item) => mb_strtolower(trim($item['word'])))
+            ->map(fn ($item) => [
+                'word' => trim($item['word']),
+                'severity' => $item['severity'] ?? 'medium',
+            ])
+            ->values()
+            ->all();
+
+        try {
+            Cache::put(self::CACHE_BAD_WORDS_KEY, $result, self::CACHE_TTL);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return static::$runtimeWords = $result;
     }
 
     /** Bersihkan cache daftar kata terlarang. */
     public function clearCache(): void
     {
-        Cache::store('file')->forget(self::CACHE_BAD_WORDS_KEY);
+        static::$runtimeWords = null;
+
+        try {
+            Cache::forget(self::CACHE_BAD_WORDS_KEY);
+        } catch (\Throwable $e) {
+            // Ignore
+        }
+
+        try {
+            Cache::store('file')->forget(self::CACHE_BAD_WORDS_KEY);
+        } catch (\Throwable $e) {
+            // Ignore if store not supported
+        }
     }
 
     /**
@@ -252,6 +297,6 @@ class CommentModerationService
         $charPattern = implode('[\s\p{P}\p{S}\p{Cf}]*', $escapedChars);
 
         // Boundary agar tidak mencocokkan di dalam kata lain yang valid
-        return '/(?<![a-zA-Z0-9])' . $charPattern . '(?![a-zA-Z0-9])/iu';
+        return '/(?<![a-zA-Z0-9])'.$charPattern.'(?![a-zA-Z0-9])/iu';
     }
 }

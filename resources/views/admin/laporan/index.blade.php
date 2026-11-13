@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Rekap Admin')
-@section('page-title', 'Rekap Admin')
+@section('page-title', 'Laporan')
 
 @section('content')
 <div class="space-y-6">
@@ -18,14 +18,16 @@
                 <option value="monthly" @selected($period === 'monthly')>Bulanan</option>
             </select>
             <button type="submit" class="btn-primary min-h-11">Tampilkan</button>
-            <a href="{{ route('admin.laporan.penjual.sheet', ['period' => $period]) }}"
-               class="{{ $kategoriLaporan === 'penjual' ? 'btn-primary' : 'btn-outline' }} min-h-11">
-                <x-public.home-icon name="download" size="16" class="inline-block align-[-3px]" aria-hidden="true" /> Unduh Sheet Penjual
-            </a>
-            <a href="{{ route('admin.laporan.ulasan.sheet', ['period' => $period]) }}"
-               class="{{ $kategoriLaporan === 'ulasan' ? 'btn-primary' : 'btn-outline' }} min-h-11">
-                <x-public.home-icon name="download" size="16" class="inline-block align-[-3px]" aria-hidden="true" /> Unduh Sheet Ulasan
-            </a>
+            <x-ui.download-menu
+                :pdf-url="route('admin.laporan.penjual.pdf', ['period' => $period])"
+                :xlsx-url="route('admin.laporan.penjual.sheet', ['period' => $period])"
+                label="Unduh Laporan Penjual"
+            />
+            <x-ui.download-menu
+                :pdf-url="route('admin.laporan.ulasan.pdf', ['period' => $period])"
+                :xlsx-url="route('admin.laporan.ulasan.sheet', ['period' => $period])"
+                label="Unduh Laporan Ulasan"
+            />
         </form>
     </section>
 
@@ -42,44 +44,29 @@
 
     @if($kategoriLaporan === 'penjual')
         <section class="space-y-5" aria-label="Performa penjual">
-            <div class="grid grid-cols-2 gap-4 xl:grid-cols-6">
-                <div class="stat-card p-4"><p class="text-xs text-[var(--sm-text-muted)]">Total penjual</p><p class="mt-1 text-2xl font-black">{{ number_format($sellerReport['total_sellers']) }}</p></div>
-                <div class="stat-card p-4"><p class="text-xs text-[var(--sm-text-muted)]">Produk ditambahkan</p><p class="mt-1 text-2xl font-black text-[var(--sm-ink)]">{{ number_format($sellerReport['products_added']) }}</p></div>
-                <div class="stat-card p-4"><p class="text-xs text-[var(--sm-text-muted)]">Produk dihapus</p><p class="mt-1 text-2xl font-black text-[var(--sm-ink)]">{{ number_format($sellerReport['products_deleted']) }}</p></div>
-                <div class="stat-card p-4"><p class="text-xs text-[var(--sm-text-muted)]">Permintaan edit</p><p class="mt-1 text-2xl font-black">{{ number_format($sellerReport['edits_requested']) }}</p></div>
-                <div class="stat-card p-4"><p class="text-xs text-[var(--sm-text-muted)]">Dilihat</p><p class="mt-1 text-2xl font-black">{{ number_format($sellerReport['views']) }}</p></div>
-                <div class="stat-card p-4"><p class="text-xs text-[var(--sm-text-muted)]">Ulasan baru</p><p class="mt-1 text-2xl font-black">{{ number_format($sellerReport['reviews']) }}</p></div>
-            </div>
 
             <section class="admin-card">
                 {{-- Card Header --}}
-                <div class="p-5 border-b-2 border-[var(--sm-border)] flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-[var(--sm-surface)]">
-                    <div>
+                <div class="p-5 border-b-2 border-[var(--sm-border)] flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 bg-[var(--sm-surface)]">
+                    <div class="min-w-0">
                         <div class="flex items-center gap-2">
                             <div class="w-8 h-8 rounded-lg bg-[var(--sm-primary-soft)] flex items-center justify-center text-[var(--sm-border)] font-bold">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                             </div>
                             <h3 class="text-lg font-black text-[var(--sm-ink)]">Rekap Penjual</h3>
                         </div>
-                        <p class="text-xs text-[var(--sm-text-muted)] mt-1">
+                        <p class="text-xs text-[var(--sm-text-muted)] mt-1 max-w-xl">
                             Ringkasan performa penjual, katalog produk, ulasan & rating, serta riwayat upload & hapus dalam periode {{ $periodLabel }}.
                         </p>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-3">
-                        {{-- Quick Live Filter / Search Input --}}
-                        <div class="admin-search-field relative min-w-[240px]">
-                            <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--sm-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            <input type="text"
-                                   id="rekapSearchInput"
-                                   placeholder="Cari toko atau penjual..."
-                                   class="form-input !h-10 !text-xs pl-12 !py-2 w-full">
-                        </div>
-
-                        <a href="{{ route('admin.laporan.penjual.sheet', ['period' => $period]) }}"
-                           class="btn-primary !text-xs !py-2 !px-3.5">
-                            <x-public.home-icon name="download" size="16" class="inline-block align-[-3px]" aria-hidden="true" /> Unduh Sheet
-                        </a>
+                    {{-- Quick Live Filter / Search Input --}}
+                    <div class="admin-search-field relative flex-shrink-0 w-full xl:w-72 2xl:w-80">
+                        <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--sm-text-muted)] pointer-events-none flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text"
+                               id="rekapSearchInput"
+                               placeholder="Cari username atau nama toko penjual..."
+                               class="form-input !h-10 !text-xs pl-12 !py-2 w-full">
                     </div>
                 </div>
 
@@ -107,8 +94,9 @@
                         </thead>
                         <tbody class="divide-y divide-[var(--sm-border)]/20">
                             @forelse($sellerReport['sellers'] as $seller)
-                            <tr class="hover:bg-[var(--sm-primary-soft)] transition-colors rekap-row"
-                                data-search="{{ strtolower($seller->nama_toko . ' ' . ($seller->user?->name ?? '') . ' ' . ($seller->user?->email ?? '')) }}">
+                            <tr class="hover:bg-[var(--sm-primary-soft)] transition-colors rekap-row cursor-pointer"
+                                data-search="{{ strtolower($seller->nama_toko . ' ' . ($seller->user?->username ?? '') . ' ' . ($seller->user?->name ?? '') . ' ' . ($seller->user?->email ?? '')) }}"
+                                data-url="{{ route('admin.laporan.penjual.detail', $seller->id) }}">
 
                                 {{-- a. Nama Penjual dan Nama Toko --}}
                                 <td class="px-5 py-4">
@@ -124,7 +112,7 @@
                                         @endif
                                         <div>
                                             <div class="flex items-center gap-2">
-                                                <a href="{{ route('admin.penjual.show', $seller->user) }}" class="font-bold text-[var(--sm-ink)] hover:text-[var(--sm-primary)] transition">
+                                                <a href="{{ route('admin.laporan.penjual.detail', $seller->id) }}" class="font-bold text-[var(--sm-ink)] hover:text-[var(--sm-primary)] transition" title="Lihat Laporan Penjual">
                                                     {{ $seller->nama_toko }}
                                                 </a>
                                                 @if($seller->status_toko === 'buka')
@@ -138,8 +126,13 @@
                                                 @endif
                                             </div>
                                             <div class="text-xs text-[var(--sm-text-muted)] mt-0.5 flex items-center gap-1.5 font-medium">
-                                                <svg class="w-3.5 h-3.5 text-[var(--sm-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                                <span>{{ $seller->user?->name ?? 'Penjual' }}</span>
+                                                <svg class="w-3.5 h-3.5 text-[var(--sm-text-muted)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                <a href="{{ route('admin.laporan.penjual.detail', $seller->id) }}" class="hover:text-[var(--sm-primary)] hover:underline inline-flex items-center gap-1">
+                                                    <span>{{ $seller->user?->name ?? 'Penjual' }}</span>
+                                                    @if($seller->user?->username)
+                                                        <span class="text-[var(--sm-primary)] font-bold">({{ '@' . $seller->user->username }})</span>
+                                                    @endif
+                                                </a>
                                                 @if($seller->lokasi_kelas)
                                                     <span class="text-[var(--sm-text-muted)]">•</span>
                                                     <span>{{ $seller->lokasi_kelas }}</span>
@@ -176,9 +169,9 @@
                                                 <div class="flex text-[var(--sm-ink)]">
                                                     @for($i = 1; $i <= 5; $i++)
                                                         @if($i <= round($seller->avg_rating))
-                                                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                                            <svg class="w-3.5 h-3.5 flex-shrink-0 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                                         @else
-                                                            <svg class="w-3.5 h-3.5 text-[var(--sm-text-muted)] fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                                            <svg class="w-3.5 h-3.5 flex-shrink-0 text-[var(--sm-text-muted)] fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                                         @endif
                                                     @endfor
                                                 </div>
@@ -202,14 +195,14 @@
                                         {{-- Upload Baru Periode Ini --}}
                                         <div class="flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-bold {{ $seller->period_added > 0 ? 'bg-[var(--sm-primary-soft)] text-[var(--sm-primary)] border-[var(--sm-primary)]/30 shadow-xs' : 'bg-[var(--sm-primary-soft)] text-[var(--sm-text-muted)] border-[var(--sm-border)]' }}"
                                              title="{{ $seller->period_added }} produk baru diupload pada periode {{ $periodLabel }}">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
+                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
                                             <span>{{ $seller->period_added }} Baru</span>
                                         </div>
 
                                         {{-- Dihapus Periode Ini --}}
                                         <div class="flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-bold {{ $seller->period_deleted > 0 ? 'bg-[var(--sm-primary-soft)] text-[var(--sm-primary)] border-[var(--sm-primary)]/30 shadow-xs' : 'bg-[var(--sm-primary-soft)] text-[var(--sm-text-muted)] border-[var(--sm-border)]' }}"
                                              title="{{ $seller->period_deleted }} produk dihapus pada periode {{ $periodLabel }}">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             <span>{{ $seller->period_deleted }} Dihapus</span>
                                         </div>
                                     </div>
@@ -224,16 +217,22 @@
                                 {{-- Aksi --}}
                                 <td class="px-5 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
+                                        <a href="{{ route('admin.laporan.penjual.detail', $seller->id) }}"
+                                           class="btn-primary !text-xs !py-1 !px-2.5 font-bold inline-flex items-center gap-1 shadow-xs"
+                                           title="Lihat Laporan Detail Penjual">
+                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            <span>Lihat Laporan</span>
+                                        </a>
                                         <a href="{{ route('admin.penjual.show', $seller->user) }}"
-                                           class="btn-outline !text-xs !py-1 !px-2.5" title="Detail Penjual">
-                                            Detail
+                                           class="btn-outline !text-xs !py-1 !px-2 font-bold" title="Detail Akun Penjual">
+                                            Profil
                                         </a>
                                         @if($seller->nomor_whatsapp)
                                             <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $seller->nomor_whatsapp) }}"
                                                target="_blank" rel="noopener noreferrer"
-                                               class="p-1.5 rounded-lg border border-[var(--sm-border)] text-[var(--sm-text-muted)] hover:text-[var(--sm-ink)] hover:border-[var(--sm-border)] hover:bg-[var(--sm-primary-soft)] transition"
+                                               class="p-1.5 rounded-lg border border-[var(--sm-border)] text-[var(--sm-text-muted)] hover:text-[var(--sm-ink)] hover:border-[var(--sm-border)] hover:bg-[var(--sm-primary-soft)] transition inline-flex items-center justify-center flex-shrink-0"
                                                title="Hubungi WhatsApp ({{ $seller->nomor_whatsapp }})">
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.044c.101-.116.433-.506.549-.68.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.423-14.416c-6.627 0-12 5.373-12 12 0 2.159.57 4.184 1.564 5.938l-1.637 5.98 6.136-1.61c1.704.935 3.661 1.469 5.741 1.469 6.627 0 12-5.373 12-12 0-6.627-5.373-12-12-12z"/></svg>
+                                                <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.044c.101-.116.433-.506.549-.68.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.423-14.416c-6.627 0-12 5.373-12 12 0 2.159.57 4.184 1.564 5.938l-1.637 5.98 6.136-1.61c1.704.935 3.661 1.469 5.741 1.469 6.627 0 12-5.373 12-12 0-6.627-5.373-12-12-12z"/></svg>
                                             </a>
                                         @endif
                                     </div>
@@ -283,11 +282,11 @@
 
                         {{-- Prev / Next Nav Buttons --}}
                         <div class="flex items-center gap-1">
-                            <button type="button" id="rekapPrevBtn" class="p-1.5 rounded-xl border-2 border-[var(--sm-border)] bg-[var(--sm-surface)] text-[var(--sm-ink)] hover:bg-[var(--sm-primary-soft)] shadow-[2px_2px_0px_0px_var(--sm-border)] transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" title="Halaman sebelumnya">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                            <button type="button" id="rekapPrevBtn" class="pagination-icon-btn cursor-pointer" title="Halaman sebelumnya">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                             </button>
-                            <button type="button" id="rekapNextBtn" class="p-1.5 rounded-xl border-2 border-[var(--sm-border)] bg-[var(--sm-surface)] text-[var(--sm-ink)] hover:bg-[var(--sm-primary-soft)] shadow-[2px_2px_0px_0px_var(--sm-border)] transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" title="Halaman selanjutnya">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                            <button type="button" id="rekapNextBtn" class="pagination-icon-btn cursor-pointer" title="Halaman selanjutnya">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                             </button>
                         </div>
                     </div>
@@ -299,42 +298,20 @@
                         Menampilkan <strong>{{ $sellerReport['sellers']->count() }}</strong> toko penjual terdaftar.
                     </div>
                     <div class="flex items-center gap-4">
-                        <span>Rata-rata Rating Keseluruhan: <strong class="text-[var(--sm-ink)]">{{ $sellerReport['avg_rating_semua'] !== null ? $sellerReport['avg_rating_semua'] . ' / 5.0 ⭐' : '—' }}</strong></span>
+                        <span class="inline-flex items-center gap-1">Rata-rata Rating Keseluruhan: 
+                            <strong class="text-[var(--sm-ink)] inline-flex items-center gap-1">
+                                @if($sellerReport['avg_rating_semua'] !== null)
+                                    <span>{{ $sellerReport['avg_rating_semua'] }} / 5.0</span>
+                                    <svg class="w-3.5 h-3.5 text-amber-500 fill-current inline-block" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                @else
+                                    <span>—</span>
+                                @endif
+                            </strong>
+                        </span>
                         <span>Total Ulasan Masuk: <strong class="text-[var(--sm-ink)]">{{ number_format($sellerReport['total_ulasan_semua']) }}</strong></span>
                     </div>
                 </div>
             </section>
-
-            <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
-                <section class="admin-card">
-                    <div class="admin-card-header"><div><h3 class="font-black">Produk paling banyak dilihat</h3><p class="mt-1 text-xs text-[var(--sm-text-muted)]">Kunjungan tercatat pada periode ini.</p></div></div>
-                    <div class="divide-y divide-[var(--sm-border)]/15 px-5">
-                        @forelse($sellerReport['top_products'] as $product)
-                            <div class="flex items-center justify-between gap-4 py-3 text-sm">
-                                <div class="min-w-0"><p class="truncate font-bold">{{ $product->nama }}</p><p class="truncate text-xs text-[var(--sm-text-muted)]">{{ $product->penjual?->nama_toko ?? 'Penjual tidak tersedia' }} · {{ $product->period_reviews }} ulasan</p></div>
-                                <div class="shrink-0 text-right"><p class="font-black">{{ number_format($product->period_views) }} dilihat</p></div>
-                            </div>
-                        @empty
-                            <p class="py-8 text-center text-sm text-[var(--sm-text-muted)]">Belum ada kunjungan produk pada periode ini.</p>
-                        @endforelse
-                    </div>
-                </section>
-
-                <section class="admin-card">
-                    <div class="admin-card-header"><div><h3 class="font-black">Aktivitas produk</h3><p class="mt-1 text-xs text-[var(--sm-text-muted)]">Penambahan dan penghapusan yang tercatat pada periode ini.</p></div></div>
-                    <div class="divide-y divide-[var(--sm-border)]/15 px-5">
-                        @forelse($sellerReport['events'] as $event)
-                            <div class="flex items-start justify-between gap-4 py-3 text-sm">
-                                <div><p class="font-bold">{{ $event['description'] }}</p><p class="text-xs text-[var(--sm-text-muted)]">{{ $event['seller_name'] }} · {{ match($event['activity']) { 'produk.ditambahkan' => 'Produk ditambahkan', 'produk.dihapus' => 'Produk dihapus', default => 'Permintaan edit produk' } }}</p></div>
-                                <time class="shrink-0 text-xs text-[var(--sm-text-muted)]">{{ $event['created_at']->format('d M, H:i') }}</time>
-                            </div>
-                        @empty
-                            <p class="py-8 text-center text-sm text-[var(--sm-text-muted)]">Belum ada aktivitas tambah/hapus yang tercatat pada periode ini.</p>
-                        @endforelse
-                    </div>
-                    <p class="border-t border-[var(--sm-border)]/15 px-5 py-3 text-xs text-[var(--sm-text-muted)]">Aktivitas tambah, hapus, dan permintaan edit dihitung dari notifikasi yang tersimpan. Riwayat kunjungan produk yang sudah dihapus tidak tersedia karena log ikut terhapus.</p>
-                </section>
-            </div>
         </section>
     @else
         <section class="space-y-5" aria-label="Rekap ulasan">
@@ -384,6 +361,19 @@
 
             const allRows = Array.from(document.querySelectorAll('.rekap-row'));
             if (!allRows.length) return;
+
+            // Klik baris untuk menuju ke Laporan Detail Penjual
+            allRows.forEach(row => {
+                row.addEventListener('click', function(e) {
+                    if (e.target.closest('a, button, input, select, textarea, form')) {
+                        return;
+                    }
+                    const targetUrl = this.getAttribute('data-url');
+                    if (targetUrl) {
+                        window.location.href = targetUrl;
+                    }
+                });
+            });
 
             let currentPage = 1;
             let perPage = 10;

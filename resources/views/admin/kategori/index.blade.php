@@ -27,7 +27,7 @@
             <p class="text-sm text-[var(--sm-text-muted)] mt-1">Kelola kategori produk SiswaMart.</p>
         </div>
         <button onclick="openModal('createModal')" class="btn-primary">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah Kategori
         </button>
     </div>
@@ -38,7 +38,7 @@
             <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
 
             <div class="admin-search-field relative min-w-[240px] flex-1 sm:flex-initial">
-                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--sm-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--sm-text-muted)] pointer-events-none flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <input type="text"
                        name="search"
                        value="{{ request('search') }}"
@@ -92,7 +92,7 @@
                         <td class="px-5 py-4 text-center font-medium">{{ $kategoris->firstItem() + $index }}</td>
                         @php($categoryIcon = array_key_exists($kategori->icon, $iconOptions) ? $kategori->icon : ($fallbackCategoryImages[$kategori->slug] ?? 'images/category/snack.png'))
                         <td class="px-5 py-4 text-center">
-                            <span class="mx-auto flex h-11 w-11 items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-primary-soft)] p-1.5">
+                            <span class="mx-auto flex h-11 w-11 items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-primary-soft)] p-1.5 flex-shrink-0">
                                 <x-public.home-icon :name="$categoryIcons[$kategori->slug] ?? 'package'" :size="24" class="text-[var(--sm-ink)]" aria-hidden="true" />
                             </span>
                         </td>
@@ -127,7 +127,7 @@
                     <tr>
                         <td colspan="6" class="px-5 py-12">
                             <div class="flex flex-col items-center justify-center text-[var(--sm-text-muted)]">
-                                <svg class="w-16 h-16 mb-4 text-[var(--sm-primary)] opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                <svg class="w-16 h-16 mb-4 text-[var(--sm-primary)] opacity-50 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                                 <p class="font-bold text-lg text-[var(--sm-ink)] mb-1">Belum ada kategori</p>
                                 <p class="text-sm">Tambahkan kategori untuk mengelompokkan produk.</p>
                             </div>
@@ -144,7 +144,7 @@
     <div id="createModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div class="fixed inset-0 bg-[var(--sm-primary-soft)] bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal('createModal')"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&var(--sm-ink);</span>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             <div class="inline-block align-bottom bg-[var(--sm-surface)] border-2 border-[var(--sm-border)] rounded-2xl text-left overflow-hidden shadow-[8px_8px_0px_0px_var(--sm-border)] transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                 <form action="{{ route('admin.categories.store') }}" method="POST">
                     @csrf
@@ -187,7 +187,7 @@
     <div id="editModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div class="fixed inset-0 bg-[var(--sm-primary-soft)] bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal('editModal')"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&var(--sm-ink);</span>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             <div class="inline-block align-bottom bg-[var(--sm-surface)] border-2 border-[var(--sm-border)] rounded-2xl text-left overflow-hidden shadow-[8px_8px_0px_0px_var(--sm-border)] transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                 <form id="editForm" method="POST">
                     @csrf

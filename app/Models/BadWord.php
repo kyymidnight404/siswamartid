@@ -26,4 +26,10 @@ class BadWord extends Model
             'is_active' => 'boolean',
         ];
     }
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => (new \App\Services\CommentModerationService())->clearCache());
+        static::deleted(fn () => (new \App\Services\CommentModerationService())->clearCache());
+    }
 }

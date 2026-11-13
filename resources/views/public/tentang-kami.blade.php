@@ -5,7 +5,7 @@
 
 @section('content')
 
-<main class="bg-[var(--sm-bg)] min-h-screen overflow-hidden">
+<div class="bg-[var(--sm-bg)] min-h-screen overflow-hidden">
     <div class="max-w-[1400px] mx-auto px-6 lg:px-[60px]">
         <nav class="pt-8 flex items-center gap-2 text-sm text-[var(--sm-text-muted)] font-bold uppercase tracking-widest" aria-label="Breadcrumb">
             <a href="{{ route('public.home') }}" class="hover:text-[var(--sm-primary)] transition-colors">BERANDA</a>
@@ -74,7 +74,7 @@
             </div>
         </section>
     </div>
-</main>
+</div>
 
 @endsection
 
