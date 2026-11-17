@@ -59,7 +59,7 @@
                                         <table border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
                                             <tr>
                                                 <td valign="middle">
-                                                    <img src="{{ $logoUrl ?? 'https://siswamartid.my.id/favicon.png' }}" alt="SiswaMart" width="60" height="60" style="display: block; width: 60px; height: 60px; border-radius: 12px; border: 0; outline: none; text-decoration: none;" />
+                                                    <img src="{{ $logoUrl ?? 'https://siswamart.app/favicon.png' }}" alt="SiswaMart" width="60" height="60" style="display: block; width: 60px; height: 60px; border-radius: 12px; border: 0; outline: none; text-decoration: none;" />
                                                 </td>
                                             </tr>
                                         </table>

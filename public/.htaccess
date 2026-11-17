@@ -5,6 +5,18 @@
 
     RewriteEngine On
 
+    # Redirect domain lama, varian www, dan HTTP siswamart.app ke canonical https://siswamart.app
+    RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/ [NC]
+    RewriteCond %{HTTP_HOST} ^(www\.)?siswamartid\.my\.id$ [NC,OR]
+    RewriteCond %{HTTP_HOST} ^www\.siswamart\.app$ [NC]
+    RewriteRule ^(.*)$ https://siswamart.app/$1 [L,R=301,NE]
+
+    RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/ [NC]
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+    RewriteCond %{HTTP_HOST} ^siswamart\.app$ [NC]
+    RewriteRule ^(.*)$ https://siswamart.app/$1 [L,R=301,NE]
+
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 

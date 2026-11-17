@@ -7,8 +7,8 @@
 --------------------------------------------------------------------------------
 - Panel Hosting   : DirectAdmin (https://siswamartid.my.id:2222)
 - User Hosting    : siswamartidmy
-- Domain Utama    : https://siswamartid.my.id
-- Domain Pointer  : siswamart.app
+- Domain Publik   : https://siswamart.app (canonical utama via redirect 301)
+- Domain Akun DA  : siswamartid.my.id (otomatis redirect 301 ke https://siswamart.app)
 - Versi PHP Aktif : PHP 8.5 (tersedia selector PHP 7.2 - 8.5 di DirectAdmin)
 - SSL             : Secure SSL aktif
 - Database MySQL  : siswamartidmy_siswamart
@@ -76,11 +76,11 @@ PENTING sebelum mengaktifkan Deploy Otomatis di menu Git > Modify:
 - Pastikan nilai utama sesuai environment hosting:
     APP_ENV=production
     APP_DEBUG=false
-    APP_URL=https://siswamartid.my.id
+    APP_URL=https://siswamart.app
     DB_DATABASE=siswamartidmy_siswamart
     DB_USERNAME=<user_mysql_hosting>
     DB_PASSWORD=<password_mysql_hosting>
-    GOOGLE_REDIRECT_URI=https://siswamartid.my.id/auth/google/callback
+    GOOGLE_REDIRECT_URI=https://siswamart.app/auth/google/callback
     FILESYSTEM_DISK=public
     SESSION_SECURE_COOKIE=true
 
@@ -88,7 +88,7 @@ PENTING sebelum mengaktifkan Deploy Otomatis di menu Git > Modify:
 --------------------------------------------------------------------------------
 Jika `scripts/deploy/deploy-helper.php` diunggah ke `public_html/deploy-helper.php`:
 1. Buka di browser:
-   https://siswamartid.my.id/deploy-helper.php?key=siswamart2026
+   https://siswamart.app/deploy-helper.php?key=siswamart2026
 2. Helper akan otomatis:
    - Mendeteksi folder core `/domains/siswamartid.my.id/siswamart`
    - Menjalankan migrasi database (`php artisan migrate --force`)
@@ -105,8 +105,8 @@ Jika `scripts/deploy/deploy-helper.php` diunggah ke `public_html/deploy-helper.p
 3. Pastikan `APP_DEBUG=false` di `siswamart/.env` dan file `.env` tidak pernah
    berada di dalam `public_html/`.
 4. Jika menggunakan Google OAuth, pastikan `GOOGLE_REDIRECT_URI` di Google Cloud
-   Console terdaftar sebagai `https://siswamartid.my.id/auth/google/callback`.
+   Console terdaftar sebagai `https://siswamart.app/auth/google/callback`.
 
 ================================================================================
-SiswaMart - https://siswamartid.my.id
+SiswaMart - https://siswamart.app
 ================================================================================

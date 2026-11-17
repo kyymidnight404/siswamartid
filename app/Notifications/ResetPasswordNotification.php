@@ -49,7 +49,7 @@ class ResetPasswordNotification extends Notification
         $logoUrl = env('MAIL_LOGO_URL', (
             str_starts_with((string) config('app.url'), 'https://')
                 ? asset('favicon.png')
-                : 'https://siswamartid.my.id/favicon.png'
+                : 'https://siswamart.app/favicon.png'
         ));
 
         $userName = $notifiable->name ?? null;
