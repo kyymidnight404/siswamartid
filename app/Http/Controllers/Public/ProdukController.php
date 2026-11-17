@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\Penjual;
 use App\Models\Produk;
 use App\Services\WhatsappUrlService;
 use Illuminate\Http\Request;
@@ -16,9 +17,9 @@ class ProdukController extends Controller
      * Tampilkan detail produk.
      * Hanya produk aktif dari penjual aktif yang dapat diakses; increment views untuk produk aktif.
      */
-    public function show(Request $request, Produk $produk, WhatsappUrlService $waService): View
+    public function show(Request $request, Penjual $penjual, Produk $produk, WhatsappUrlService $waService): View
     {
-        abort_if($produk->status !== 'aktif' || ! ($produk->penjual?->user?->is_active), 404);
+        abort_if($produk->status !== 'aktif' || ! ($penjual->user?->is_active), 404);
 
         $viewSessionKey = 'viewed_produk_' . $produk->id;
         if (! $request->session()->has($viewSessionKey)) {
@@ -62,9 +63,9 @@ class ProdukController extends Controller
      * Catat interaksi klik WhatsApp dan alihkan ke WhatsApp penjual.
      * Jika request AJAX / JSON, kembalikan JSON agar tidak memicu CORS error redirect ke wa.me.
      */
-    public function trackWhatsapp(Request $request, Produk $produk, WhatsappUrlService $waService): RedirectResponse|JsonResponse
+    public function trackWhatsapp(Request $request, Penjual $penjual, Produk $produk, WhatsappUrlService $waService): RedirectResponse|JsonResponse
     {
-        abort_if($produk->status !== 'aktif' || ! ($produk->penjual?->user?->is_active), 404);
+        abort_if($produk->status !== 'aktif' || ! ($penjual->user?->is_active), 404);
 
         $result = $waService->generateForProduct($produk, true);
         if (! $result['success']) {

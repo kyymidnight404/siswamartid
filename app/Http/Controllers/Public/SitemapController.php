@@ -16,7 +16,9 @@ class SitemapController extends Controller
     {
         $categories = Kategori::orderBy('nama')->get();
         $products = Produk::publicVisible()
-            ->select(['id', 'slug', 'updated_at'])
+            ->whereHas('penjual')
+            ->with('penjual:id,slug')
+            ->select(['id', 'penjual_id', 'slug', 'updated_at'])
             ->latest('updated_at')
             ->get();
 

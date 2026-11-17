@@ -4,7 +4,7 @@
 
 @section('meta_description', 'Lihat detail ' . $produk->nama . ' dari ' . ($produk->penjual->nama_toko ?? 'SiswaMart') . '. ' . \Illuminate\Support\Str::limit($produk->deskripsi ?? '', 120))
 
-@section('canonical_url', route('public.produk.show', $produk->slug))
+@section('canonical_url', route('public.produk.show', [$produk->penjual->slug, $produk->slug]))
 @section('og_type', 'product')
 @section('og_image', $produk->foto_utama ? asset('storage/' . $produk->foto_utama) : asset('images/food.png'))
 
@@ -29,14 +29,14 @@
             '@type' => 'ListItem',
             'position' => 3,
             'name' => $produk->nama,
-            'item' => route('public.produk.show', $produk->slug),
+            'item' => route('public.produk.show', [$produk->penjual->slug, $produk->slug]),
         ];
     } else {
         $breadcrumbItems[] = [
             '@type' => 'ListItem',
             'position' => 2,
             'name' => $produk->nama,
-            'item' => route('public.produk.show', $produk->slug),
+            'item' => route('public.produk.show', [$produk->penjual->slug, $produk->slug]),
         ];
     }
 
@@ -50,7 +50,7 @@
         'sku' => 'SM-' . $produk->id,
         'offers' => [
             '@type' => 'Offer',
-            'url' => route('public.produk.show', $produk->slug),
+            'url' => route('public.produk.show', [$produk->penjual->slug, $produk->slug]),
             'priceCurrency' => 'IDR',
             'price' => (string) ((int) $produk->harga),
             'availability' => $produk->stok === 'tersedia' ? 'https://schema.org/InStock' : ($produk->stok === 'po' ? 'https://schema.org/PreOrder' : 'https://schema.org/OutOfStock'),
@@ -96,13 +96,13 @@
 @endphp
 
 
-<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-[60px] py-6 pb-28 sm:py-12 sm:pb-32 lg:py-16">
+<div class="home-container -mt-2 pt-0 pb-24 sm:pb-24 lg:pb-16">
 
     {{-- ============================================================
          BREADCRUMB
          ============================================================ --}}
     <nav
-        class="flex flex-wrap items-center gap-2 text-sm text-[var(--sm-text-muted)] font-bold mb-8 uppercase tracking-widest"
+        class="flex flex-wrap items-center gap-2 text-sm text-[var(--sm-text-muted)] font-bold mb-4 uppercase tracking-widest"
         aria-label="Breadcrumb"
     >
         <a
@@ -137,7 +137,7 @@
          PRODUCT DETAIL
          ============================================================ --}}
     <div
-        class="bg-[var(--sm-surface)] border-2 lg:border-4 border-[var(--sm-border)] rounded-[24px] lg:rounded-[40px] overflow-hidden shadow-solid-lg mb-10 lg:mb-16 relative z-10"
+        class="bg-[var(--sm-surface)] border-2 lg:border-4 border-[var(--sm-border)] rounded-[24px] lg:rounded-[32px] overflow-hidden shadow-solid-lg mb-8 lg:mb-12 relative z-10"
     >
 
         <div class="flex flex-col lg:flex-row">
@@ -146,7 +146,7 @@
                  FOTO PRODUK
                  ==================================================== --}}
             <div
-                class="lg:w-[45%] xl:w-[50%] bg-[var(--sm-primary-soft)] relative flex items-center justify-center min-h-[280px] sm:min-h-[360px] lg:min-h-[600px] p-5 sm:p-8 lg:p-12 border-b-2 lg:border-b-0 lg:border-r-4 border-[var(--sm-border)]"
+                class="lg:w-[42%] xl:w-[44%] bg-[var(--sm-primary-soft)] relative flex items-center justify-center min-h-[240px] sm:min-h-[280px] lg:min-h-[340px] p-4 sm:p-5 lg:p-6 border-b-2 lg:border-b-0 lg:border-r-4 border-[var(--sm-border)]"
             >
 
                 @php
@@ -159,7 +159,7 @@
                     <img
                         src="{{ asset('storage/' . $produk->foto_utama) }}"
                         alt="{{ $produk->nama }}"
-                        class="max-w-full max-h-[340px] lg:max-h-[500px] object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+                        class="max-w-full max-h-[250px] sm:max-h-[300px] lg:max-h-[330px] object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                         loading="eager"
                         onerror="this.onerror=null;this.hidden=true;this.parentElement.querySelector('[data-detail-fallback]').hidden=false;"
                     >
@@ -192,15 +192,15 @@
                  DETAIL PRODUK
                  ==================================================== --}}
             <div
-                class="lg:w-[55%] xl:w-[50%] p-5 sm:p-8 md:p-12 xl:p-16 flex flex-col bg-white"
+                class="lg:w-[58%] xl:w-[56%] p-4 sm:p-5 lg:px-6 lg:py-5 flex flex-col bg-white"
             >
 
                 {{-- Kategori --}}
-                <div class="mb-4">
+                <div class="mb-1.5">
 
                     <a
                         href="{{ route('public.kategori.show', $produk->kategori->slug ?? '') }}"
-                        class="inline-flex items-center text-xs font-black uppercase tracking-widest text-[var(--sm-ink)] bg-[var(--sm-surface)] border-2 border-[var(--sm-border)] shadow-[2px_2px_0px_0px_var(--sm-border)] px-4 py-1.5 rounded-full hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform"
+                        class="inline-flex items-center text-[11px] font-black uppercase tracking-widest text-[var(--sm-ink)] bg-[var(--sm-surface)] border-2 border-[var(--sm-border)] shadow-[2px_2px_0px_0px_var(--sm-border)] px-3 py-0.5 rounded-full hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform"
                     >
                         {{ $produk->kategori->nama ?? 'Umum' }}
                     </a>
@@ -210,7 +210,7 @@
 
                 {{-- Nama Produk --}}
                 <h1
-                    class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[var(--sm-ink)] leading-[1.1] mb-4 sm:mb-6 uppercase tracking-tighter"
+                    class="text-2xl sm:text-3xl lg:text-[2rem] font-black text-[var(--sm-ink)] leading-[1.1] mb-1.5 sm:mb-2 uppercase tracking-tighter"
                 >
                     {{ $produk->nama }}
                 </h1>
@@ -218,7 +218,7 @@
 
                 {{-- Harga --}}
                 <p
-                    class="text-3xl sm:text-4xl md:text-5xl font-black text-[var(--sm-primary)] mb-5 sm:mb-8 drop-shadow-sm"
+                    class="text-xl sm:text-2xl lg:text-[1.65rem] font-black text-[var(--sm-primary)] mb-2.5 sm:mb-3 drop-shadow-sm"
                 >
                     Rp {{ number_format($produk->harga, 0, ',', '.') }}
                 </p>
@@ -228,17 +228,17 @@
                      STATUS + RATING + VIEWS
                      ================================================= --}}
                 <div
-                    class="flex flex-wrap items-center gap-2 sm:gap-4 mb-6 sm:mb-10"
+                    class="flex flex-wrap items-center gap-2 mb-2.5"
                 >
 
                     @if($produk->stok === 'tersedia')
 
                         <span
-                            class="inline-flex items-center gap-2 text-sm font-black text-[var(--sm-primary)] bg-[var(--sm-primary-soft)] border-2 border-[var(--sm-primary)] shadow-[2px_2px_0px_0px_var(--sm-primary)] px-4 py-2 rounded-full uppercase tracking-wider"
+                            class="inline-flex items-center gap-1.5 text-xs font-black text-[var(--sm-primary)] bg-[var(--sm-primary-soft)] border-2 border-[var(--sm-primary)] shadow-[2px_2px_0px_0px_var(--sm-primary)] px-3 py-1 rounded-full uppercase tracking-wider"
                         >
 
                             <svg
-                                class="w-4 h-4"
+                                class="w-3.5 h-3.5"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
@@ -256,7 +256,7 @@
                     @elseif($produk->stok === 'po')
 
                         <span
-                            class="inline-flex items-center gap-2 text-sm font-black text-[var(--sm-ink)] bg-[var(--sm-accent)] border-2 border-[var(--sm-ink)] shadow-[2px_2px_0px_0px_var(--sm-ink)] px-4 py-2 rounded-full uppercase tracking-wider"
+                            class="inline-flex items-center gap-1.5 text-xs font-black text-[var(--sm-ink)] bg-[var(--sm-accent)] border-2 border-[var(--sm-ink)] shadow-[2px_2px_0px_0px_var(--sm-ink)] px-3 py-1 rounded-full uppercase tracking-wider"
                         >
                             PRE-ORDER
                         </span>
@@ -264,7 +264,7 @@
                     @else
 
                         <span
-                            class="inline-flex items-center gap-2 text-sm font-black text-white bg-[var(--sm-ink)] border-2 border-[var(--sm-border)] shadow-[2px_2px_0px_0px_var(--sm-border)] px-4 py-2 rounded-full uppercase tracking-wider"
+                            class="inline-flex items-center gap-1.5 text-xs font-black text-white bg-[var(--sm-ink)] border-2 border-[var(--sm-border)] shadow-[2px_2px_0px_0px_var(--sm-border)] px-3 py-1 rounded-full uppercase tracking-wider"
                         >
                             Saat Ini Habis
                         </span>
@@ -276,21 +276,21 @@
                     @if($produk->review_count > 0)
 
                         <div
-                            class="flex items-center gap-1.5 bg-white px-4 py-2 rounded-full border-2 border-[var(--sm-border)] shadow-[2px_2px_0px_0px_var(--sm-border)]"
+                            class="flex items-center gap-1.5 bg-white px-3 py-1 rounded-full border-2 border-[var(--sm-border)] shadow-[2px_2px_0px_0px_var(--sm-border)]"
                         >
 
-                            <span class="text-[var(--sm-ink)] text-lg leading-none">
-                                <x-public.home-icon name="star" :filled="true" :size="32" aria-hidden="true" />
+                            <span class="text-[var(--sm-ink)] text-sm leading-none">
+                                <x-public.home-icon name="star" :filled="true" :size="16" aria-hidden="true" />
                             </span>
 
                             <span
-                                class="text-sm font-black text-[var(--sm-ink)]"
+                                class="text-xs font-black text-[var(--sm-ink)]"
                             >
                                 {{ number_format($produk->average_rating, 1) }}
                             </span>
 
                             <span
-                                class="text-sm font-bold text-[var(--sm-text-muted)]"
+                                class="text-xs font-bold text-[var(--sm-text-muted)]"
                             >
                                 ({{ $produk->review_count }})
                             </span>
@@ -304,7 +304,7 @@
                     @if($produk->views > 0)
 
                         <span
-                            class="inline-flex items-center gap-1.5 text-sm font-bold text-[var(--sm-text-muted)]"
+                            class="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-[var(--sm-text-muted)]"
                         >
                             <x-public.click-icon class="h-4 w-4 shrink-0" />
                             {{ number_format($produk->views, 0, ',', '.') }} views
@@ -321,19 +321,19 @@
 @if($produk->deskripsi)
 
     <div
-        class="mb-6 sm:mb-10 bg-[var(--sm-bg)] p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-2 border-[var(--sm-border)] shadow-solid-sm"
+        class="mb-2.5 bg-[var(--sm-bg)] p-3 rounded-2xl border-2 border-[var(--sm-border)] shadow-solid-sm"
         style="text-align: left !important;"
     >
 
         <h2
-            class="text-sm font-black text-[var(--sm-ink)] uppercase tracking-widest mb-3"
+            class="text-[11px] font-black text-[var(--sm-ink)] uppercase tracking-widest mb-1"
             style="text-align: left !important;"
         >
             TENTANG PRODUK
         </h2>
 
         <p
-            class="text-base font-bold text-[var(--sm-text-muted)] leading-relaxed whitespace-pre-wrap w-full"
+            class="text-sm font-bold text-[var(--sm-text-muted)] leading-snug whitespace-pre-wrap w-full"
             style="text-align: left !important; margin-left: 0 !important; margin-right: 0 !important;"
         >{{ $produk->deskripsi }}</p>
 
@@ -348,11 +348,11 @@
                 <div class="mt-auto">
 
                     <div
-                        class="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8 p-3 sm:p-4 bg-[var(--sm-primary-soft)] border-2 border-[var(--sm-border)] rounded-2xl sm:rounded-[24px] shadow-solid-sm transform sm:rotate-1"
+                        class="flex items-center gap-3 mb-2.5 p-2.5 bg-[var(--sm-primary-soft)] border-2 border-[var(--sm-border)] rounded-2xl shadow-solid-sm"
                     >
 
                         <div
-                            class="w-16 h-16 rounded-full bg-white border-2 border-[var(--sm-border)] flex items-center justify-center text-[var(--sm-ink)] font-black text-2xl flex-shrink-0 shadow-sm"
+                            class="w-10 h-10 rounded-full bg-white border-2 border-[var(--sm-border)] flex items-center justify-center text-[var(--sm-ink)] font-black text-lg flex-shrink-0 shadow-sm"
                         >
                             {{ strtoupper(substr($produk->penjual->nama_toko ?? '?', 0, 1)) }}
                         </div>
@@ -360,13 +360,13 @@
                         <div class="min-w-0">
 
                             <h2
-                                class="text-xs font-black text-[var(--sm-ink)] opacity-70 uppercase tracking-widest mb-1"
+                                class="text-[11px] font-black text-[var(--sm-ink)] opacity-70 uppercase tracking-widest"
                             >
                                 DARI TOKO
                             </h2>
 
                             <div
-                                class="font-black text-[var(--sm-ink)] text-xl leading-snug uppercase flex items-center gap-2 flex-wrap"
+                                class="font-black text-[var(--sm-ink)] text-sm sm:text-base leading-snug uppercase flex items-center gap-2 flex-wrap"
                             >
                                 <span>{{ $produk->penjual->nama_toko ?? '-' }}</span>
                                 @if(($produk->penjual->status_toko ?? 'buka') === 'tutup')
@@ -397,15 +397,35 @@
                     </div>
 
 
-                    {{-- Jika WhatsApp tidak tersedia --}}
-                    @if(!$waNumber)
-
+                    {{-- Inline WhatsApp CTA / Status Stok --}}
+                    @if($produk->stok === 'habis')
+                        <div
+                            id="inline-whatsapp-cta"
+                            class="mb-2 flex min-h-[44px] w-full cursor-not-allowed items-center justify-center gap-2.5 rounded-full border-2 border-[var(--sm-border)] bg-gray-200 px-5 py-2.5 text-sm font-black uppercase tracking-wider text-gray-600"
+                            aria-disabled="true"
+                        >
+                            <x-public.home-icon name="message-circle" :size="18" aria-hidden="true" />
+                            <span>Stok Saat Ini Habis</span>
+                        </div>
+                    @elseif($waNumber)
+                        <a
+                            id="inline-whatsapp-cta"
+                            href="{{ $waLink }}"
+                            onclick="fetch('{{ route('public.produk.whatsapp', [$produk->penjual->slug, $produk->slug]) }}', {method: 'GET', headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}, keepalive: true}).catch(() => {})"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="mb-2 flex min-h-[44px] w-full items-center justify-center gap-2.5 rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-accent)] px-5 py-2.5 text-sm font-black uppercase tracking-wider text-[var(--sm-on-accent)] shadow-[4px_4px_0px_0px_var(--sm-border)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[var(--sm-accent-hover)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-[var(--sm-ink)]"
+                        >
+                            <x-public.home-icon name="message-circle" :size="18" aria-hidden="true" />
+                            <span>{{ $produk->stok === 'po' ? 'Pre-Order via WhatsApp' : 'Pesan via WhatsApp' }}</span>
+                        </a>
+                    @else
                         <p
+                            id="inline-whatsapp-cta"
                             class="mb-4 rounded-2xl border-2 border-[var(--sm-border)] bg-[var(--sm-bg)] px-4 py-3 text-center text-sm font-bold text-[var(--sm-text-muted)]"
                         >
                             Nomor WhatsApp penjual belum tersedia.
                         </p>
-
                     @endif
 
 
@@ -713,56 +733,58 @@
 
 <div
     id="floating-whatsapp"
-    class="fixed right-4 bottom-5 sm:right-6 sm:bottom-6 z-[99999] flex flex-col items-center gap-2"
-    style="position:fixed !important;right:16px !important;bottom:20px !important;z-index:99999 !important;"
+    x-data="{
+        inlineVisible: false,
+        init() {
+            const inlineEl = document.getElementById('inline-whatsapp-cta');
+            if (inlineEl && 'IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries) => {
+                    this.inlineVisible = entries[0].isIntersecting;
+                }, { threshold: 0.15 });
+                observer.observe(inlineEl);
+            }
+        }
+    }"
+    x-show="!inlineVisible"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+    x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+    class="fixed right-[max(16px,env(safe-area-inset-right))] bottom-[max(16px,env(safe-area-inset-bottom))] sm:right-[max(24px,env(safe-area-inset-right))] sm:bottom-[max(24px,env(safe-area-inset-bottom))] z-[9999]"
 >
 
     @if($produk->stok === 'habis')
-        <span
-            class="whitespace-nowrap rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-bg)] px-4 py-2 text-xs sm:text-sm font-black text-[var(--sm-text-muted)] shadow-[3px_3px_0px_0px_var(--sm-border)]"
-        >
-            Stok Saat Ini Habis
-        </span>
-
         <div
-            class="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-gray-200 text-gray-400 shadow-[4px_4px_0px_0px_var(--sm-border)] cursor-not-allowed"
+            class="inline-flex min-h-[48px] items-center justify-center gap-2 sm:gap-2.5 rounded-full border-2 border-[var(--sm-border)] bg-gray-200 px-4 sm:px-5 py-2.5 text-sm font-black text-gray-600 shadow-[4px_4px_0px_0px_var(--sm-border)] cursor-not-allowed"
             title="Produk saat ini sedang habis"
             aria-label="Produk saat ini sedang habis"
         >
-            <x-public.home-icon name="message-circle" :size="24" aria-hidden="true" />
+            <x-public.home-icon name="message-circle" :size="20" aria-hidden="true" />
+            <span>Stok Saat Ini Habis</span>
         </div>
     @elseif($waNumber)
-        <span
-            class="whitespace-nowrap rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-bg)] px-4 py-2 text-xs sm:text-sm font-black text-[var(--sm-ink)] shadow-[3px_3px_0px_0px_var(--sm-border)]"
-        >
-            {{ $produk->stok === 'po' ? 'Pre-Order via WhatsApp' : 'Pesan via WhatsApp' }}
-        </span>
-
         <a
             href="{{ $waLink }}"
-            onclick="fetch('{{ route('public.produk.whatsapp', $produk->slug) }}', {method: 'GET', headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}, keepalive: true}).catch(() => {})"
+            onclick="fetch('{{ route('public.produk.whatsapp', [$produk->penjual->slug, $produk->slug]) }}', {method: 'GET', headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}, keepalive: true}).catch(() => {})"
             target="_blank"
             rel="noopener noreferrer"
-            class="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-accent)] text-2xl sm:text-3xl text-[var(--sm-on-accent)] shadow-[4px_4px_0px_0px_var(--sm-border)] transition-all duration-200 hover:scale-105 hover:bg-[var(--sm-accent-hover)] active:translate-x-1 active:translate-y-1 active:shadow-none focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-[var(--sm-ink)]"
+            class="inline-flex min-h-[48px] items-center justify-center gap-2 sm:gap-2.5 rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-accent)] px-4 sm:px-5 py-2.5 text-sm font-black text-[var(--sm-on-accent)] shadow-[4px_4px_0px_0px_var(--sm-border)] transition-all duration-200 hover:scale-[1.02] hover:bg-[var(--sm-accent-hover)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-[var(--sm-ink)]"
             aria-label="{{ $produk->stok === 'po' ? 'Pre-Order ' . $produk->nama . ' melalui WhatsApp' : 'Pesan ' . $produk->nama . ' melalui WhatsApp' }}"
         >
-            <span aria-hidden="true">
-                <x-public.home-icon name="message-circle" :size="24" aria-hidden="true" />
-            </span>
+            <x-public.home-icon name="message-circle" :size="22" aria-hidden="true" />
+            <span>{{ $produk->stok === 'po' ? 'Pre-Order via WhatsApp' : 'Pesan via WhatsApp' }}</span>
         </a>
     @else
-        <span
-            class="whitespace-nowrap rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-bg)] px-4 py-2 text-xs sm:text-sm font-black text-[var(--sm-text-muted)] shadow-[3px_3px_0px_0px_var(--sm-border)]"
-        >
-            Kontak Belum Tersedia
-        </span>
-
         <div
-            class="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-primary-soft)] text-xl text-white shadow-[4px_4px_0px_0px_var(--sm-border)]"
+            class="inline-flex min-h-[48px] items-center justify-center gap-2 sm:gap-2.5 rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-bg)] px-4 sm:px-5 py-2.5 text-sm font-black text-[var(--sm-text-muted)] shadow-[3px_3px_0px_0px_var(--sm-border)]"
             title="Nomor WhatsApp penjual belum tersedia"
             aria-label="Nomor WhatsApp penjual belum tersedia"
         >
-            <x-public.home-icon name="message-circle" :size="24" aria-hidden="true" />
+            <x-public.home-icon name="message-circle" :size="20" aria-hidden="true" />
+            <span>Kontak Belum Tersedia</span>
         </div>
     @endif
 
@@ -850,7 +872,7 @@
 
             {{-- Form --}}
             <form
-                action="{{ route('public.ulasan.store', $produk->slug) }}"
+                action="{{ route('public.ulasan.store', [$produk->penjual->slug, $produk->slug]) }}"
                 method="POST"
             >
 

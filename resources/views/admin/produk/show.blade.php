@@ -86,8 +86,8 @@
                             @csrf
                             @method('PATCH')
                             <div class="mb-5">
-                                <label class="mb-1.5 block text-sm font-medium text-[var(--sm-ink)]">Catatan untuk penjual</label>
-                                <textarea name="alasan_ditolak" rows="3" class="form-input" placeholder="Isi jika pengajuan ditolak atau perlu diperbaiki...">{{ old('alasan_ditolak') }}</textarea>
+                                <label for="pending_alasan_ditolak" class="mb-1.5 block text-sm font-medium text-[var(--sm-ink)]">Catatan untuk penjual</label>
+                                <textarea id="pending_alasan_ditolak" name="alasan_ditolak" rows="3" class="form-input" placeholder="Isi jika pengajuan ditolak atau perlu diperbaiki...">{{ old('alasan_ditolak') }}</textarea>
                                 @error('alasan_ditolak') <p class="mt-1 text-xs text-[var(--sm-primary)]">{{ $message }}</p> @enderror
                             </div>
                             <div class="flex flex-wrap gap-3">
@@ -100,16 +100,16 @@
                             @csrf
                             @method('PATCH')
                             <div class="mb-5">
-                                <label class="mb-1.5 block text-sm font-medium text-[var(--sm-ink)]">Pilih Status</label>
-                                <select name="status" class="form-input" required>
+                                <label for="status" class="mb-1.5 block text-sm font-medium text-[var(--sm-ink)]">Pilih Status</label>
+                                <select id="status" name="status" class="form-input" required>
                                     <option value="pending" {{ $produk->status == 'pending' ? 'selected' : '' }}>Pending (Menunggu)</option>
                                     <option value="aktif" {{ $produk->status == 'aktif' ? 'selected' : '' }}>Aktif (Setujui & Tampilkan)</option>
                                     <option value="ditolak" {{ $produk->status == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                                 </select>
                             </div>
                             <div class="mb-6">
-                                <label class="mb-1.5 block text-sm font-medium text-[var(--sm-ink)]">Catatan untuk Penjual</label>
-                                <textarea name="alasan_ditolak" rows="3" class="form-input" placeholder="Tambahkan catatan jika produk perlu diperbaiki...">{{ old('alasan_ditolak', $produk->alasan_ditolak) }}</textarea>
+                                <label for="alasan_ditolak" class="mb-1.5 block text-sm font-medium text-[var(--sm-ink)]">Catatan untuk Penjual</label>
+                                <textarea id="alasan_ditolak" name="alasan_ditolak" rows="3" class="form-input" placeholder="Tambahkan catatan jika produk perlu diperbaiki...">{{ old('alasan_ditolak', $produk->alasan_ditolak) }}</textarea>
                                 @error('alasan_ditolak') <p class="mt-1 text-xs text-[var(--sm-primary)]">{{ $message }}</p> @enderror
                             </div>
                             <button type="submit" class="btn-primary">Simpan Status</button>

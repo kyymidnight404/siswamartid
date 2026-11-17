@@ -26,12 +26,13 @@
                 <input type="text"
                        name="search"
                        value="{{ request('search') }}"
+                       aria-label="Cari toko, nama, email, atau kelas"
                        placeholder="Cari toko, nama, email, kelas..."
                        class="form-input !h-10 !text-xs pl-12 !py-2 w-full">
             </div>
 
             {{-- Status Filter --}}
-            <select name="status" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--sm-surface)]">
+            <select name="status" aria-label="Filter status penjual" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--sm-surface)]">
                 <option value="">Semua Status</option>
                 <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Akun Aktif</option>
                 <option value="nonaktif" {{ request('status') === 'nonaktif' ? 'selected' : '' }}>Akun Nonaktif</option>
@@ -53,7 +54,7 @@
 
     <div class="admin-card">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
+            <table class="w-full min-w-[680px] text-sm text-left">
                 <thead class="bg-[var(--sm-primary-soft)] border-b border-[var(--sm-border)]">
                     <tr>
                         <th class="px-5 py-4 text-xs font-semibold text-[var(--sm-text-muted)] uppercase tracking-wider">Toko / Penjual</th>

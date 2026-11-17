@@ -159,7 +159,7 @@
                     <a href="{{ route('penjual.dashboard') }}"
                        id="nav-penjual-dashboard"
                        class="text-xs sm:text-sm font-extrabold text-white bg-[var(--sm-ink)] hover:bg-[var(--sm-ink)] px-4 py-2 rounded-full transition-colors shadow-sm">
-                        {{ $isHome ? 'Dashboard' : 'Toko Saya' }}
+                        Dashboard
                     </a>
                 @endif
             @else
@@ -266,14 +266,14 @@
                        @click="mobileMenuOpen = false"
                        id="mobile-nav-admin-dashboard"
                        class="flex items-center justify-center px-4 py-2.5 mt-2 rounded-xl text-sm font-extrabold text-[var(--sm-bg)] hover:text-[var(--sm-ink)] bg-[var(--sm-ink)] hover:bg-[var(--sm-bg)] transition-colors shadow-sm">
-                        Dashboard Admin
+                        Dashboard
                     </a>
                 @elseif(auth()->user()->role === 'penjual')
                     <a href="{{ route('penjual.dashboard') }}"
                        @click="mobileMenuOpen = false"
                        id="mobile-nav-penjual-dashboard"
                        class="flex items-center justify-center px-4 py-2.5 mt-2 rounded-xl text-sm font-extrabold text-[var(--sm-bg)] hover:text-[var(--sm-ink)] bg-[var(--sm-ink)] hover:bg-[var(--sm-bg)] transition-colors shadow-sm">
-                        Toko Saya
+                        Dashboard
                     </a>
                 @endif
             @else

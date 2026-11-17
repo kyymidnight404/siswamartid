@@ -114,15 +114,20 @@ class ProdukController extends Controller
     }
 
     /**
-     * Hasilkan slug unik.
+     * Hasilkan slug unik dalam ruang lingkup toko penjual.
      */
-    private function generateUniqueSlug(string $nama, ?int $ignoreId = null): string
+    private function generateUniqueSlug(string $nama, int $penjualId, ?int $ignoreId = null): string
     {
-        $slug = Str::slug($nama);
+        $slug = Str::slug($nama) ?: 'produk';
         $originalSlug = $slug;
         $count = 1;
 
-        while (Produk::where('slug', $slug)->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))->exists()) {
+        while (
+            Produk::where('penjual_id', $penjualId)
+                ->where('slug', $slug)
+                ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+                ->exists()
+        ) {
             $slug = $originalSlug.'-'.$count;
             $count++;
         }
@@ -149,7 +154,7 @@ class ProdukController extends Controller
         ]);
 
         $validated['penjual_id'] = $penjualId;
-        $validated['slug'] = $this->generateUniqueSlug($request->nama);
+        $validated['slug'] = $this->generateUniqueSlug($request->nama, $penjualId);
         $validated['status'] = 'pending';
         $validated['pending_action'] = 'create';
 
@@ -228,7 +233,7 @@ class ProdukController extends Controller
         ]);
 
         if ($request->nama !== $produk->nama) {
-            $validated['slug'] = $this->generateUniqueSlug($request->nama, $produk->id);
+            $validated['slug'] = $this->generateUniqueSlug($request->nama, $penjualId, $produk->id);
         }
 
         $validated['stok'] = $request->stok;

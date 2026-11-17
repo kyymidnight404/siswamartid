@@ -53,15 +53,15 @@
                     <h3 class="text-sm font-bold text-[var(--sm-ink)] border-b border-[var(--sm-border)] pb-2 mb-4 uppercase tracking-widest">Informasi Utama</h3>
 
                     <div>
-                        <label class="block text-sm font-medium text-[var(--sm-ink)] mb-1.5">Nama Produk</label>
-                        <input type="text" name="nama" value="{{ old('nama', $produk->nama) }}" required class="form-input">
+                        <label for="nama" class="block text-sm font-medium text-[var(--sm-ink)] mb-1.5">Nama Produk</label>
+                        <input id="nama" type="text" name="nama" value="{{ old('nama', $produk->nama) }}" required class="form-input">
                         @error('nama') <p class="text-[var(--sm-primary)] text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label class="block text-sm font-medium text-[var(--sm-ink)] mb-1.5">Kategori</label>
-                            <select name="kategori_id" required class="form-input">
+                            <label for="kategori_id" class="block text-sm font-medium text-[var(--sm-ink)] mb-1.5">Kategori</label>
+                            <select id="kategori_id" name="kategori_id" required class="form-input">
                                 @foreach($kategori as $k)
                                     <option value="{{ $k->id }}" {{ (old('kategori_id', $produk->kategori_id) == $k->id) ? 'selected' : '' }}>{{ $k->nama }}</option>
                                 @endforeach
@@ -69,15 +69,15 @@
                             @error('kategori_id') <p class="text-[var(--sm-primary)] text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-[var(--sm-ink)] mb-1.5">Harga (Rp)</label>
-                            <input type="number" name="harga" value="{{ old('harga', $produk->harga) }}" required min="0" class="form-input">
+                            <label for="harga" class="block text-sm font-medium text-[var(--sm-ink)] mb-1.5">Harga (Rp)</label>
+                            <input id="harga" type="number" name="harga" value="{{ old('harga', $produk->harga) }}" required min="0" class="form-input">
                             @error('harga') <p class="text-[var(--sm-primary)] text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-[var(--sm-ink)] mb-1.5">Deskripsi Produk</label>
-                        <textarea name="deskripsi" rows="5" required class="form-input">{{ old('deskripsi', $produk->deskripsi) }}</textarea>
+                        <label for="deskripsi" class="block text-sm font-medium text-[var(--sm-ink)] mb-1.5">Deskripsi Produk</label>
+                        <textarea id="deskripsi" name="deskripsi" rows="5" required class="form-input">{{ old('deskripsi', $produk->deskripsi) }}</textarea>
                         @error('deskripsi') <p class="text-[var(--sm-primary)] text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
@@ -118,7 +118,7 @@
                             <!-- Preview Container (New Selection) -->
                             <div id="foto_preview_wrapper" class="hidden mt-3 p-3 bg-[var(--sm-surface)] border-2 border-[var(--sm-border)] rounded-2xl shadow-[2px_2px_0px_0px_var(--sm-border)] flex items-center justify-between">
                                 <div class="flex items-center gap-3 min-w-0">
-                                    <img id="foto_preview_img" src="#" alt="Preview Baru" class="w-12 h-12 rounded-xl object-cover border-2 border-[var(--sm-border)] flex-shrink-0 shadow-[2px_2px_0px_0px_var(--sm-border)]">
+                                    <img id="foto_preview_img" alt="Preview Baru" class="w-12 h-12 rounded-xl object-cover border-2 border-[var(--sm-border)] flex-shrink-0 shadow-[2px_2px_0px_0px_var(--sm-border)]" hidden>
                                     <div class="min-w-0">
                                         <p id="foto_preview_name" class="text-xs font-bold text-[var(--sm-ink)] truncate"></p>
                                         <p id="foto_preview_size" class="text-[10px] text-[var(--sm-text-muted)]"></p>
@@ -134,10 +134,10 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-[var(--sm-ink)] mb-1.5">Status Ketersediaan</label>
-                        <div class="flex gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer">
+                    <div role="radiogroup" aria-labelledby="stok-label">
+                        <span id="stok-label" class="block text-sm font-medium text-[var(--sm-ink)] mb-1.5">Status Ketersediaan</span>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex min-h-[40px] items-center gap-2 cursor-pointer">
                                 <input type="radio" name="stok" value="tersedia" {{ old('stok', $produk->stok) === 'tersedia' ? 'checked' : '' }} class="w-4 h-4 accent-[var(--sm-primary)] border-[var(--sm-border)]">
                                 <span class="text-sm text-[var(--sm-ink)]">Ready (Tersedia)</span>
                             </label>
@@ -169,7 +169,7 @@
                         Ajukan Perubahan
                     </button>
                     <div class="mt-3 text-center">
-                        <a href="{{ route('penjual.produk.index') }}" class="text-xs text-[var(--sm-text-muted)] hover:text-[var(--sm-primary)] hover:underline font-bold">Batal</a>
+                        <a href="{{ route('penjual.produk.index') }}" class="btn-outline w-full min-h-[44px] justify-center text-sm">Batal</a>
                     </div>
                 </div>
             </div>
@@ -186,7 +186,7 @@
                     <p class="text-3xl font-display font-black text-[var(--sm-ink)] my-1">{{ number_format($produk->views) }}</p>
                     <p class="text-xs text-[var(--sm-text-muted)]">kali oleh pengunjung</p>
 
-                    <a href="{{ route('penjual.laporan') }}" class="inline-block mt-4 text-xs font-bold text-[var(--sm-ink)] hover:text-[var(--sm-primary)] hover:underline">
+                    <a href="{{ route('penjual.laporan') }}" class="inline-flex min-h-[40px] items-center justify-center px-3 mt-3 text-xs font-bold text-[var(--sm-ink)] hover:text-[var(--sm-primary)] hover:underline">
                         Lihat Laporan Toko →
                     </a>
                 </div>
@@ -213,6 +213,7 @@
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         previewImg.src = e.target.result;
+                        previewImg.hidden = false;
                         previewName.textContent = file.name;
                         previewSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
                         previewWrapper.classList.remove('hidden');
@@ -237,7 +238,8 @@
                 previewWrapper.classList.add('hidden');
             }
             if (previewImg) {
-                previewImg.src = '#';
+                previewImg.removeAttribute('src');
+                previewImg.hidden = true;
             }
         }
     </script>

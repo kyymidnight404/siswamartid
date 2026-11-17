@@ -28,12 +28,13 @@
                 <input type="text"
                        name="search"
                        value="{{ request('search') }}"
+                       aria-label="Cari ulasan, pengunjung, produk, atau toko"
                        placeholder="Cari ulasan, pengunjung, produk, toko..."
                        class="form-input !h-10 !text-xs pl-12 !py-2 w-full">
             </div>
 
             {{-- Kategori Filter --}}
-            <select name="kategori_id" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--sm-surface)]">
+            <select name="kategori_id" aria-label="Filter kategori ulasan" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--sm-surface)]">
                 <option value="">Semua Kategori</option>
                 @foreach($kategoris as $kat)
                     <option value="{{ $kat->id }}" {{ (string) request('kategori_id') === (string) $kat->id ? 'selected' : '' }}>
@@ -43,7 +44,7 @@
             </select>
 
             {{-- Rating Filter --}}
-            <select name="rating" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--sm-surface)]">
+            <select name="rating" aria-label="Filter rating ulasan" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--sm-surface)]">
                 <option value="">Semua Rating</option>
                 @for($r = 5; $r >= 1; $r--)
                     <option value="{{ $r }}" {{ (string) request('rating') === (string) $r ? 'selected' : '' }}>
@@ -82,7 +83,7 @@
                                 <span>{{ $ulasan->rating }}/5</span>
                             </span>
                             @if($ulasan->produk?->kategori)
-                                <span class="text-[10px] bg-[var(--sm-primary)] text-[var(--sm-border)] border border-[var(--sm-border)] font-bold px-2 py-0.5 rounded-full inline-block">
+                                <span class="text-[11px] bg-[var(--sm-primary)] text-[var(--sm-border)] border border-[var(--sm-border)] font-bold px-2.5 py-0.5 rounded-full inline-block">
                                     {{ $ulasan->produk->kategori->nama }}
                                 </span>
                             @endif

@@ -79,7 +79,7 @@
                     <div class="home-showcase__track" aria-label="Produk pilihan">
                     @foreach($produkHero as $index => $item)
                         @php
-                            $productUrl = route('public.produk.show', $item->slug);
+                            $productUrl = route('public.produk.show', [$item->penjual->slug, $item->slug]);
                             $photoUrl = $item->foto_utama ? asset('storage/' . $item->foto_utama) : null;
                             $waNumber = preg_replace('/[^0-9]/', '', $item->penjual?->nomor_whatsapp ?? '');
                             if (str_starts_with($waNumber, '0')) {

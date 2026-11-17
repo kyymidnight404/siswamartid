@@ -150,7 +150,12 @@ class ProdukController extends Controller
                     $baseSlug = $changes['slug'];
                     $slug = $baseSlug;
                     $suffix = 1;
-                    while (Produk::where('slug', $slug)->where('id', '!=', $produk->id)->exists()) {
+                    while (
+                        Produk::where('penjual_id', $produk->penjual_id)
+                            ->where('slug', $slug)
+                            ->where('id', '!=', $produk->id)
+                            ->exists()
+                    ) {
                         $slug = $baseSlug . '-' . $suffix++;
                     }
                     $changes['slug'] = $slug;

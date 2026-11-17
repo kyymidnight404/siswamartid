@@ -42,6 +42,7 @@
                 <input type="text"
                        name="search"
                        value="{{ request('search') }}"
+                       aria-label="Cari kategori"
                        placeholder="Cari kategori..."
                        class="form-input !h-10 !text-xs pl-12 !py-2 w-full">
             </div>
@@ -75,7 +76,7 @@
 
     <div class="admin-card">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
+            <table class="w-full min-w-[640px] text-sm text-left">
                 <thead class="bg-[var(--sm-primary-soft)] border-b border-[var(--sm-border)]">
                     <tr>
                         <th class="px-5 py-4 text-xs font-semibold text-[var(--sm-text-muted)] uppercase tracking-wider w-16 text-center">No</th>
@@ -141,7 +142,7 @@
     </div>
 
     {{-- Modal Create --}}
-    <div id="createModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="createModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="create-modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div class="fixed inset-0 bg-[var(--sm-primary-soft)] bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal('createModal')"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -149,7 +150,7 @@
                 <form action="{{ route('admin.categories.store') }}" method="POST">
                     @csrf
                     <div class="bg-[var(--sm-surface)] px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg leading-6 font-bold text-[var(--sm-ink)] mb-4" id="modal-title">Tambah Kategori Baru</h3>
+                        <h3 class="text-lg leading-6 font-bold text-[var(--sm-ink)] mb-4" id="create-modal-title">Tambah Kategori Baru</h3>
                         <div class="mb-4">
                             <label for="nama" class="block text-sm font-bold text-[var(--sm-ink)] mb-1">Nama Kategori <span class="text-[var(--sm-primary)]">*</span></label>
                             <input type="text" name="nama" id="nama" class="form-input" placeholder="Contoh: Makanan & Minuman" required>
@@ -184,7 +185,7 @@
     </div>
 
     {{-- Modal Edit --}}
-    <div id="editModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="editModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="edit-modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div class="fixed inset-0 bg-[var(--sm-primary-soft)] bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal('editModal')"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -193,7 +194,7 @@
                     @csrf
                     @method('PUT')
                     <div class="bg-[var(--sm-surface)] px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg leading-6 font-bold text-[var(--sm-ink)] mb-4" id="modal-title">Edit Kategori</h3>
+                        <h3 class="text-lg leading-6 font-bold text-[var(--sm-ink)] mb-4" id="edit-modal-title">Edit Kategori</h3>
                         <div class="mb-4">
                             <label for="edit_nama" class="block text-sm font-bold text-[var(--sm-ink)] mb-1">Nama Kategori <span class="text-[var(--sm-primary)]">*</span></label>
                             <input type="text" name="nama" id="edit_nama" class="form-input" required>
@@ -251,6 +252,13 @@
         function previewCategoryIcon(select, previewId) {
             document.getElementById(previewId).src = `/${select.value}`;
         }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeModal('createModal');
+                closeModal('editModal');
+            }
+        });
     </script>
 
 @endsection

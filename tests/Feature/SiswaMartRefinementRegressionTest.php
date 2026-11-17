@@ -90,7 +90,7 @@ class SiswaMartRefinementRegressionTest extends TestCase
             'status' => 'aktif',
         ]);
 
-        $response = $this->get(route('public.produk.show', $product->slug));
+        $response = $this->get(route('public.produk.show', [$this->seller->slug, $product->slug]));
         $response->assertStatus(200);
         $response->assertSee('Stok Saat Ini Habis');
         $response->assertSee('cursor-not-allowed');
@@ -124,7 +124,7 @@ class SiswaMartRefinementRegressionTest extends TestCase
         $this->assertTrue($result['success']);
         $this->assertStringContainsString('Pemberitahuan: Toko sedang tutup', urldecode($result['whatsapp_url']));
 
-        $response = $this->get(route('public.produk.show', $product->slug));
+        $response = $this->get(route('public.produk.show', [$this->seller->slug, $product->slug]));
         $response->assertStatus(200);
         $response->assertSee('Toko Tutup');
     }
@@ -145,7 +145,7 @@ class SiswaMartRefinementRegressionTest extends TestCase
             'status' => 'aktif',
         ]);
 
-        $response = $this->getJson(route('public.produk.whatsapp', $product->slug));
+        $response = $this->getJson(route('public.produk.whatsapp', [$this->seller->slug, $product->slug]));
         $response->assertStatus(200);
         $response->assertJsonStructure(['success', 'whatsapp_url']);
         $this->assertTrue($response->json('success'));
@@ -170,11 +170,11 @@ class SiswaMartRefinementRegressionTest extends TestCase
         ]);
 
         // Kunjungan pertama
-        $this->get(route('public.produk.show', $product->slug));
+        $this->get(route('public.produk.show', [$this->seller->slug, $product->slug]));
         $this->assertEquals(11, $product->fresh()->views);
 
         // Kunjungan kedua dalam sesi yang sama
-        $this->get(route('public.produk.show', $product->slug));
+        $this->get(route('public.produk.show', [$this->seller->slug, $product->slug]));
         $this->assertEquals(11, $product->fresh()->views);
     }
 
@@ -208,8 +208,8 @@ class SiswaMartRefinementRegressionTest extends TestCase
         $response = $this->get(route('public.sitemap'));
         $response->assertStatus(200);
         $this->assertStringContainsString('xml', $response->headers->get('Content-Type'));
-        $response->assertSee(route('public.produk.show', $product->slug));
-        $response->assertDontSee(route('public.produk.show', $inactiveProduct->slug));
+        $response->assertSee(route('public.produk.show', [$this->seller->slug, $product->slug]));
+        $response->assertDontSee(route('public.produk.show', [$this->seller->slug, $inactiveProduct->slug]));
         $response->assertDontSee('/admin');
         $response->assertDontSee('/penjual');
     }
@@ -230,11 +230,11 @@ class SiswaMartRefinementRegressionTest extends TestCase
             'status' => 'aktif',
         ]);
 
-        $response = $this->get(route('public.produk.show', $product->slug));
+        $response = $this->get(route('public.produk.show', [$this->seller->slug, $product->slug]));
         $response->assertStatus(200);
 
         // Canonical & Open Graph
-        $response->assertSee('<link rel="canonical" href="'.route('public.produk.show', $product->slug).'">', false);
+        $response->assertSee('<link rel="canonical" href="'.route('public.produk.show', [$this->seller->slug, $product->slug]).'">', false);
         $response->assertSee('<meta property="og:type" content="product">', false);
         $response->assertSee('<meta property="og:title" content="'.e($product->nama).' — SiswaMart">', false);
 
@@ -256,7 +256,7 @@ class SiswaMartRefinementRegressionTest extends TestCase
             'status_moderasi' => 'disetujui',
         ]);
 
-        $reviewedResponse = $this->get(route('public.produk.show', $product->slug));
+        $reviewedResponse = $this->get(route('public.produk.show', [$this->seller->slug, $product->slug]));
         $reviewedResponse->assertSee('aggregateRating');
         $reviewedResponse->assertSee('"ratingValue": "5.0"', false);
         $reviewedResponse->assertSee('"reviewCount": "1"', false);
@@ -432,13 +432,13 @@ class SiswaMartRefinementRegressionTest extends TestCase
             'status' => 'aktif',
         ]);
 
-        $response = $this->post(route('public.ulasan.store', $product->slug), [
+        $response = $this->post(route('public.ulasan.store', [$this->seller->slug, $product->slug]), [
             'guest_username' => 'Pembeli Bersih',
             'rating' => 5,
             'komentar' => 'Produk ini sangat enak, higienis, dan pengiriman tepat waktu!',
         ]);
 
-        $response->assertRedirect(route('public.produk.show', $product->slug).'#ulasan');
+        $response->assertRedirect(route('public.produk.show', [$this->seller->slug, $product->slug]).'#ulasan');
         $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('ulasan', [
@@ -447,5 +447,84 @@ class SiswaMartRefinementRegressionTest extends TestCase
             'rating' => 5,
             'moderation_status' => 'approved',
         ]);
+    }
+
+    /**
+     * 14. Dua toko berbeda dapat menjual produk dengan nama & slug sama melalui /{toko}/{produk}
+     */
+    public function test_two_stores_can_sell_same_product_name_with_store_scoped_urls(): void
+    {
+        $secondSellerUser = User::create([
+            'name' => 'Penjual Kedua',
+            'email' => 'seller2-'.uniqid().'@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'penjual',
+            'is_active' => true,
+        ]);
+
+        $secondSeller = Penjual::create([
+            'user_id' => $secondSellerUser->id,
+            'nama_toko' => 'Kedai Kedua',
+            'nomor_whatsapp' => '081234560099',
+            'lokasi_kelas' => 'XI RPL 2',
+            'status_toko' => 'buka',
+        ]);
+
+        $this->actingAs($this->sellerUser)->post(route('penjual.produk.store'), [
+            'nama' => 'Es Teh Manis',
+            'kategori_id' => $this->category->id,
+            'deskripsi' => 'Es teh manis dari toko pertama.',
+            'harga' => 4000,
+            'stok' => 'tersedia',
+        ])->assertRedirect(route('penjual.produk.index'));
+
+        $this->actingAs($secondSellerUser)->post(route('penjual.produk.store'), [
+            'nama' => 'Es Teh Manis',
+            'kategori_id' => $this->category->id,
+            'deskripsi' => 'Es teh manis dari toko kedua.',
+            'harga' => 5000,
+            'stok' => 'tersedia',
+        ])->assertRedirect(route('penjual.produk.index'));
+
+        $firstProduct = Produk::where('penjual_id', $this->seller->id)->where('nama', 'Es Teh Manis')->firstOrFail();
+        $secondProduct = Produk::where('penjual_id', $secondSeller->id)->where('nama', 'Es Teh Manis')->firstOrFail();
+
+        $this->assertSame('es-teh-manis', $firstProduct->slug);
+        $this->assertSame('es-teh-manis', $secondProduct->slug);
+
+        $firstProduct->update(['status' => 'aktif', 'pending_action' => null]);
+        $secondProduct->update(['status' => 'aktif', 'pending_action' => null]);
+
+        $this->get('/'.$this->seller->slug.'/es-teh-manis')
+            ->assertStatus(200)
+            ->assertSee('Es teh manis dari toko pertama.');
+
+        $this->get('/'.$secondSeller->slug.'/es-teh-manis')
+            ->assertStatus(200)
+            ->assertSee('Es teh manis dari toko kedua.');
+
+        // Pastikan slug produk milik toko lain yang tidak ada di toko pertama mengembalikan 404
+        $onlySecond = Produk::create([
+            'penjual_id' => $secondSeller->id,
+            'kategori_id' => $this->category->id,
+            'nama' => 'Matcha Latte Unik',
+            'slug' => 'matcha-latte-unik',
+            'deskripsi' => 'Hanya di toko kedua.',
+            'harga' => 12000,
+            'stok' => 'tersedia',
+            'status' => 'aktif',
+        ]);
+
+        $this->get('/'.$this->seller->slug.'/'.$onlySecond->slug)->assertStatus(404);
+        $this->get('/'.$secondSeller->slug.'/'.$onlySecond->slug)->assertStatus(200);
+
+        // Legacy /produk/{slug} redirect 301 ke /{toko}/{produk}
+        $this->get('/produk/'.$onlySecond->slug)
+            ->assertStatus(301)
+            ->assertRedirect(route('public.produk.show', [$secondSeller->slug, $onlySecond->slug]));
+
+        // Reserved slug seperti 'admin' atau 'produk' tidak membajak route sistem
+        $reservedSlug = Penjual::generateUniqueSlug('admin');
+        $this->assertNotSame('admin', $reservedSlug);
     }
 }

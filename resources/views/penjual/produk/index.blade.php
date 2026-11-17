@@ -53,12 +53,13 @@
                 <input type="text"
                        name="search"
                        value="{{ request('search') }}"
+                       aria-label="Cari produk saya"
                        placeholder="Cari produk saya..."
                        class="form-input !h-10 !text-xs pl-12 !py-2 w-full">
             </div>
 
             {{-- Kategori Filter --}}
-            <select name="kategori_id" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--sm-surface)]">
+            <select name="kategori_id" aria-label="Filter kategori produk" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--sm-surface)]">
                 <option value="">Semua Kategori</option>
                 @foreach($kategoris as $kat)
                     <option value="{{ $kat->id }}" {{ (string) request('kategori_id') === (string) $kat->id ? 'selected' : '' }}>
@@ -68,7 +69,7 @@
             </select>
 
             {{-- Stok Filter --}}
-            <select name="stok" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--sm-surface)]">
+            <select name="stok" aria-label="Filter ketersediaan stok" onchange="this.form.submit()" class="form-input !h-10 !text-xs !py-2 !w-auto font-bold bg-[var(--sm-surface)]">
                 <option value="">Semua Stok</option>
                 <option value="ready" {{ in_array(request('stok'), ['ready', 'tersedia'], true) ? 'selected' : '' }}>Ready (Tersedia)</option>
                 <option value="habis" {{ request('stok') === 'habis' ? 'selected' : '' }}>Habis</option>
@@ -89,7 +90,7 @@
 
     <div class="admin-card">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
+            <table class="w-full min-w-[740px] text-sm text-left">
                 <thead class="bg-[var(--sm-primary-soft)] border-b border-[var(--sm-border)]">
                     <tr>
                         <th class="px-5 py-4 text-xs font-semibold text-[var(--sm-text-muted)] uppercase tracking-wider">Info Produk</th>
@@ -103,28 +104,28 @@
                     @forelse($produk as $p)
                     <tr class="hover:bg-[var(--sm-primary-soft)] transition-colors">
                         <td class="px-5 py-4">
-                            <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-4 min-w-[200px]">
                                 @if($p->foto_utama)
-                                    <img src="{{ asset('storage/' . $p->foto_utama) }}" class="w-12 h-12 rounded-lg object-cover border border-[var(--sm-border)]" alt="{{ $p->nama }}">
+                                    <img src="{{ asset('storage/' . $p->foto_utama) }}" class="w-12 h-12 rounded-lg object-cover border border-[var(--sm-border)] flex-shrink-0" alt="{{ $p->nama }}">
                                 @else
                                     <div class="w-12 h-12 rounded-lg bg-[var(--sm-primary-soft)] border border-[var(--sm-border)] flex items-center justify-center text-[var(--sm-text-muted)] flex-shrink-0">
                                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     </div>
                                 @endif
-                                <div>
+                                <div class="min-w-0">
                                     <div class="font-semibold text-[var(--sm-ink)]">{{ $p->nama }}</div>
-                                    <div class="text-[10px] bg-[var(--sm-primary)] text-[var(--sm-border)] border border-[var(--sm-border)] shadow-[1px_1px_0px_0px_var(--sm-border)] font-bold px-2 py-0.5 rounded-full inline-block mt-1">{{ $p->kategori->nama }}</div>
+                                    <div class="text-[11px] bg-[var(--sm-primary)] text-[var(--sm-border)] border border-[var(--sm-border)] shadow-[1px_1px_0px_0px_var(--sm-border)] font-bold px-2.5 py-0.5 rounded-full inline-block mt-1 whitespace-nowrap">{{ $p->kategori->nama }}</div>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-5 py-4">
+                        <td class="px-5 py-4 whitespace-nowrap">
                             <div class="font-medium text-[var(--sm-ink)]">Rp {{ number_format($p->harga, 0, ',', '.') }}</div>
                             <div class="text-xs text-[var(--sm-text-muted)] mt-0.5">{{ $p->stok === 'po' ? 'Pre-Order' : ucfirst($p->stok) }}</div>
                         </td>
-                        <td class="px-5 py-4">
-                            <div class="font-bold text-[var(--sm-ink)]">{{ number_format($p->views) }} <span class="font-normal text-[var(--sm-text-muted)] text-[10px]">kali</span></div>
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="font-bold text-[var(--sm-ink)]">{{ number_format($p->views) }} <span class="font-normal text-[var(--sm-text-muted)] text-[11px]">kali</span></div>
                         </td>
-                        <td class="px-5 py-4">
+                        <td class="px-5 py-4 whitespace-nowrap">
                             <span class="badge badge-{{ $p->pending_action ? 'pending' : ($p->status === 'aktif' ? 'aktif' : ($p->status === 'pending' ? 'pending' : ($p->status === 'ditolak' ? 'ditolak' : 'draft'))) }}">
                                 @if($p->pending_action === 'create') Menunggu persetujuan
                                 @elseif($p->pending_action === 'update') Menunggu persetujuan perubahan
@@ -132,10 +133,10 @@
                                 @else {{ ucfirst($p->status) }} @endif
                             </span>
                             @if($p->alasan_ditolak && !$p->pending_action)
-                                <div class="text-[10px] text-[var(--sm-primary)] mt-1 line-clamp-1" title="{{ $p->alasan_ditolak }}">Alasan: {{ $p->alasan_ditolak }}</div>
+                                <div class="text-[11px] text-[var(--sm-primary)] mt-1 line-clamp-1" title="{{ $p->alasan_ditolak }}">Alasan: {{ $p->alasan_ditolak }}</div>
                             @endif
                         </td>
-                        <td class="px-5 py-4">
+                        <td class="px-5 py-4 whitespace-nowrap">
                             <div class="flex items-center justify-end gap-2">
                                 @if(!$p->pending_action)
                                     <a href="{{ route('penjual.produk.edit', $p) }}" class="btn-outline text-xs px-3 py-1.5">Edit</a>

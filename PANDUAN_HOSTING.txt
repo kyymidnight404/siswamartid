@@ -1,61 +1,112 @@
 ﻿================================================================================
                     PANDUAN DEPLOY SISWAMART KE HOSTING
-                  (DirectAdmin / cPanel / Shared Hosting)
+                 (DirectAdmin - siswamartid.my.id / siswamartidmy)
 ================================================================================
 
-Struktur File & Folder di Hosting:
+1. INFORMASI ENVIRONMENT HOSTING AKTUAL
 --------------------------------------------------------------------------------
-domains/siswamartid.my.id/   (atau /home/username/)
-â”œâ”€â”€ core/                    <-- Folder aplikasi Laravel (app, vendor, storage, .env)
-â””â”€â”€ public_html/             <-- Web root publik (index.php, css, assets, build)
+- Panel Hosting   : DirectAdmin (https://siswamartid.my.id:2222)
+- User Hosting    : siswamartidmy
+- Domain Utama    : https://siswamartid.my.id
+- Domain Pointer  : siswamart.app
+- Versi PHP Aktif : PHP 8.5 (tersedia selector PHP 7.2 - 8.5 di DirectAdmin)
+- SSL             : Secure SSL aktif
+- Database MySQL  : siswamartidmy_siswamart
 
-index.php di public_html otomatis mendeteksi:
-- core
-- siswamart
-- siswamart_core
-sehingga path langsung terhubung otomatis tanpa perlu mengedit index.php!
-
+2. STRUKTUR FOLDER DI HOSTING
 --------------------------------------------------------------------------------
-PILIHAN CARA UPLOAD & EKSTRAK:
+/domains/siswamartid.my.id/
+|-- siswamart/        <-- Core aplikasi Laravel aktif (app, vendor, storage, .env)
+|-- public_html/      <-- Web root publik (index.php, .htaccess, build, css, images, storage symlink)
+|-- siswamartid.git/  <-- Bare Git repository DirectAdmin (sinkron dengan GitHub)
+|-- private_html/
+|-- logs/
+'-- stats/
+
+Catatan:
+- `public_html/index.php` mendeteksi folder core Laravel (`siswamart`, `core`,
+  `siswamart_core`, dll.) secara otomatis tanpa perlu mengubah path.
+- Di hosting saat ini, core Laravel berada di `/domains/siswamartid.my.id/siswamart/`.
+
+3. CARA PACKING & UPLOAD UPDATE (ZIP - DIREKOMENDASIKAN)
 --------------------------------------------------------------------------------
+Struktur production memisahkan `siswamart/` (core) dan `public_html/` (web root).
+Gunakan script berikut dari root project lokal (Windows PowerShell):
 
-[OPSI A - PALING CEPAT (1 File ZIP)]
-1. Upload berkas hosting.zip ke folder induk domain Anda:
-   - DirectAdmin: /domains/siswamartid.my.id/
-   - cPanel: /home/username/
-2. Klik kanan / menu "Extract" pada hosting.zip.
-3. Folder public_html/ dan core/ akan langsung terisi rapi secara otomatis!
+  powershell -ExecutionPolicy Bypass -File scripts/deploy/create-siswamart-root-zip.ps1
 
-[OPSI B - DUA FILE ZIP TERPISAH]
-1. Upload public_html.zip ke dalam folder public_html/ lalu "Extract".
-2. Upload core.zip ke dalam folder core/ (sejajar dengan public_html) lalu "Extract".
+Script ini otomatis menjalankan `npm run build`, membersihkan cache/file `.tmp`,
+lalu membuat `dist/hosting.zip` yang berisi folder `siswamart/` dan `public_html/`.
 
+Langkah upload di DirectAdmin File Manager:
+1. Buka `/domains/siswamartid.my.id/`.
+2. Upload `dist/hosting.zip` lalu klik "Extract".
+   - Isi `siswamart/` dan `public_html/` akan diperbarui otomatis.
+   - File `.env` yang sudah ada di `siswamart/.env` dan file upload user di
+     `siswamart/storage/app/public/` tidak tertimpa karena tidak disertakan di ZIP.
+   - Pastikan tidak mengekstrak `public_html.zip` atau `hosting.zip` di dalam
+     `public_html/` lalu membiarkan arsip `.zip` tertinggal di web root.
+
+(Alternatif script ZIP terpisah: `scripts/deploy/create-hosting-zip.ps1`
+menghasilkan `core.zip` -> ekstrak ke `siswamart/` atau `core/`, serta
+`public_html.zip` -> ekstrak ke `public_html/`.)
+
+4. KONFIGURASI GIT DI DIRECTADMIN
 --------------------------------------------------------------------------------
-LANGKAH SELANJUTNYA:
+Di DirectAdmin > Git (`https://siswamartid.my.id:2222/evo/git-version`):
+- Nama Repository : siswamartid
+- Remote GitHub   : https://github.com/kyymidnight404/siswamartid.git
+- Branch Utama    : main
+- URL SSH Hosting : siswamartidmy@lion-da.namahosting.id:domains/siswamartid.my.id/siswamartid.git
+  (Terdaftar sebagai remote `hosting` di `.git/config` lokal)
+
+PENTING sebelum mengaktifkan Deploy Otomatis di menu Git > Modify:
+- Repository GitHub berisi struktur root Laravel standar (`app/`, `public/`, dll.),
+  sedangkan hosting produksi memisahkan `siswamart/` dan `public_html/`.
+- Karena itu, `Deploy Branch` & `Deploy Directory` sengaja dibiarkan `None` agar
+  deploy Git tidak langsung menimpa `public_html/` atau menghapus `.env`/aset build.
+- Gunakan tombol **Fetch** di DirectAdmin untuk menarik commit terbaru ke
+  `siswamartid.git`, atau arahkan deployment ke folder staging terpisah sebelum
+  disinkronkan ke `siswamart/` dan `public_html/`.
+
+5. KONFIGURASI .ENV & DATABASE
 --------------------------------------------------------------------------------
+- Lokasi file konfigurasi production: `/domains/siswamartid.my.id/siswamart/.env`
+- Template acuan: `.env.hosting.example`
+- Pastikan nilai utama sesuai environment hosting:
+    APP_ENV=production
+    APP_DEBUG=false
+    APP_URL=https://siswamartid.my.id
+    DB_DATABASE=siswamartidmy_siswamart
+    DB_USERNAME=<user_mysql_hosting>
+    DB_PASSWORD=<password_mysql_hosting>
+    GOOGLE_REDIRECT_URI=https://siswamartid.my.id/auth/google/callback
+    FILESYSTEM_DISK=public
+    SESSION_SECURE_COOKIE=true
 
-1. KONFIGURASI DATABASE & .ENV:
-   - Masuk ke folder core/.
-   - Salin file .env.hosting.example menjadi .env.
-   - Buka dan sesuaikan kredensial database di .env:
-       APP_URL=https://siswamartid.my.id
-       DB_DATABASE=nama_db_hosting
-       DB_USERNAME=user_db_hosting
-       DB_PASSWORD=password_db_hosting
-
-2. SETUP OTOMATIS 1-KLIK (MIGRASI + STORAGE LINK + CACHE):
-   Buka URL berikut di browser Anda:
+6. SETUP / UPDATE OTOMATIS VIA DEPLOY HELPER (TANPA TERMINAL)
+--------------------------------------------------------------------------------
+Jika `scripts/deploy/deploy-helper.php` diunggah ke `public_html/deploy-helper.php`:
+1. Buka di browser:
    https://siswamartid.my.id/deploy-helper.php?key=siswamart2026
+2. Helper akan otomatis:
+   - Mendeteksi folder core `/domains/siswamartid.my.id/siswamart`
+   - Menjalankan migrasi database (`php artisan migrate --force`)
+   - Membuat symlink `public_html/storage` -> `siswamart/storage/app/public`
+   - Membersihkan dan mengoptimasi cache Laravel (`config`, `route`, `view`)
 
-   Helper ini akan otomatis:
-   - Menjalankan migrasi tabel database (php artisan migrate --force)
-   - Membuat symlink storage agar gambar produk & avatar toko tampil
-   - Membersihkan dan mengoptimasi cache Laravel
-
-3. KEAMANAN:
-   Setelah muncul pesan "SETUP SELESAI!", segera HAPUS berkas deploy-helper.php 
-   dari folder public_html/.
+7. DAFTAR PERIKSA KEAMANAN (WAJIB SETELAH DEPLOY)
+--------------------------------------------------------------------------------
+1. Segera HAPUS `public_html/deploy-helper.php` setelah setup/migrasi selesai
+   (saat audit terakhir berkas ini masih berada di `public_html/` — segera hapus
+   jika tidak sedang dipakai deploy).
+2. Segera HAPUS arsip `.zip` di `public_html/` (mis. `public_html.zip`) agar tidak
+   dapat diunduh publik.
+3. Pastikan `APP_DEBUG=false` di `siswamart/.env` dan file `.env` tidak pernah
+   berada di dalam `public_html/`.
+4. Jika menggunakan Google OAuth, pastikan `GOOGLE_REDIRECT_URI` di Google Cloud
+   Console terdaftar sebagai `https://siswamartid.my.id/auth/google/callback`.
 
 ================================================================================
-SiswaMart siap melayani pengunjung di https://siswamartid.my.id
+SiswaMart - https://siswamartid.my.id
 ================================================================================

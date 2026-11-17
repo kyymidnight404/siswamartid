@@ -65,6 +65,7 @@
                         <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--sm-text-muted)] pointer-events-none flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <input type="text"
                                id="rekapSearchInput"
+                               aria-label="Cari username atau nama toko penjual"
                                placeholder="Cari username atau nama toko penjual..."
                                class="form-input !h-10 !text-xs pl-12 !py-2 w-full">
                     </div>
@@ -264,7 +265,7 @@
                         {{-- Paging 10 - 25 - 50 - Semua --}}
                         <div class="flex items-center gap-1.5">
                             <span class="text-[11px] uppercase tracking-wider font-bold">Baris:</span>
-                            <select id="rekapPerPageSelect" aria-label="Pilih jumlah baris" class="form-input !h-8 !py-1 !px-2.5 !text-xs !w-auto font-bold bg-[var(--sm-bg)] border-2 border-[var(--sm-border)] rounded-xl cursor-pointer">
+                            <select id="rekapPerPageSelect" aria-label="Pilih jumlah baris" class="form-input !h-10 !min-h-[40px] !py-1 !px-2.5 !text-xs !w-auto font-bold bg-[var(--sm-bg)] border-2 border-[var(--sm-border)] rounded-xl cursor-pointer">
                                 <option value="10">10</option>
                                 <option value="25">25</option>
                                 <option value="50">50</option>
@@ -275,18 +276,18 @@
                         {{-- Dropdown Lompat Halaman --}}
                         <div class="flex items-center gap-1.5">
                             <span class="text-[11px] uppercase tracking-wider font-bold">Halaman:</span>
-                            <select id="rekapPageSelect" aria-label="Lompat ke halaman" class="form-input !h-8 !py-1 !px-2.5 !text-xs !w-auto font-bold bg-[var(--sm-bg)] border-2 border-[var(--sm-border)] rounded-xl cursor-pointer">
+                            <select id="rekapPageSelect" aria-label="Lompat ke halaman" class="form-input !h-10 !min-h-[40px] !py-1 !px-2.5 !text-xs !w-auto font-bold bg-[var(--sm-bg)] border-2 border-[var(--sm-border)] rounded-xl cursor-pointer">
                                 <option value="1">1 dari 1</option>
                             </select>
                         </div>
 
                         {{-- Prev / Next Nav Buttons --}}
-                        <div class="flex items-center gap-1">
-                            <button type="button" id="rekapPrevBtn" class="pagination-icon-btn cursor-pointer" title="Halaman sebelumnya">
-                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" id="rekapPrevBtn" class="pagination-icon-btn cursor-pointer" aria-label="Halaman sebelumnya" title="Halaman sebelumnya">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                             </button>
-                            <button type="button" id="rekapNextBtn" class="pagination-icon-btn cursor-pointer" title="Halaman selanjutnya">
-                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                            <button type="button" id="rekapNextBtn" class="pagination-icon-btn cursor-pointer" aria-label="Halaman selanjutnya" title="Halaman selanjutnya">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                             </button>
                         </div>
                     </div>

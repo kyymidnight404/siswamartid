@@ -26,7 +26,7 @@
     {{-- Detail Produk Aktif --}}
     @foreach($products as $product)
     <url>
-        <loc>{{ route('public.produk.show', $product->slug) }}</loc>
+        <loc>{{ route('public.produk.show', [$product->penjual->slug, $product->slug]) }}</loc>
         <lastmod>{{ $product->updated_at?->tz('UTC')->toAtomString() ?? now()->tz('UTC')->toAtomString() }}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>

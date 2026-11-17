@@ -100,13 +100,23 @@ body.account-page>div {
 
 body.account-page>div>nav {
     border: var(--border) !important;
-    border-radius: var(--r-pill);
+    border-radius: 28px;
     background: var(--sm-primary) !important;
     box-shadow: var(--shadow);
 }
 
-body.account-page>div>nav a {
+@media (min-width: 640px) {
+    body.account-page>div>nav {
+        border-radius: var(--r-pill);
+    }
+}
+
+body.account-page>div>nav a:not(.sm-brand-logo) {
     color: var(--sm-on-primary);
+}
+
+body.account-page>div>nav :is(.bg-white, #account-mobile-menu) a {
+    color: var(--sm-ink);
 }
 
 body:not(.home-page) :is(h1, h2, h3, h4, .font-display) {
@@ -295,9 +305,10 @@ body.public-site-page .home-navbar :is(#nav-beranda, #nav-kategori, #nav-cara-pe
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 14px;
+    min-height: 40px;
+    padding: 8px 16px;
     border-radius: var(--r-pill);
-    color: var(--sm-ink);
+    color: var(--sm-on-primary);
     font-weight: 700;
     line-height: 1.25;
     white-space: nowrap;
@@ -308,7 +319,7 @@ body.public-site-page .home-navbar :is(#nav-beranda, #nav-kategori, #nav-cara-pe
 body.public-site-page .home-navbar :is(#nav-beranda, #nav-kategori, #nav-cara-pemesanan, #nav-tentang-kami):hover,
 body.public-site-page .home-navbar :is(#nav-beranda, #nav-kategori, #nav-cara-pemesanan, #nav-tentang-kami).is-active,
 body.public-site-page .home-navbar :is(#nav-beranda, #nav-kategori, #nav-cara-pemesanan, #nav-tentang-kami)[class*="bg-white/20"] {
-    background: var(--sm-primary-soft);
+    background: var(--sm-bg);
     color: var(--sm-ink);
 }
 
@@ -319,15 +330,25 @@ body.public-site-page .home-footer__grid>div:first-child>a>span:last-child {
 body.public-site-page .home-navbar :is(#nav-admin-dashboard, #nav-penjual-dashboard, #nav-login, #mobile-nav-admin-dashboard, #mobile-nav-penjual-dashboard, #mobile-nav-login) {
     border: 2px solid var(--sm-ink);
     border-radius: var(--r-pill);
-    background: var(--sm-ink);
-    box-shadow: 3px 3px 0 color-mix(in srgb, var(--sm-ink) 42%, transparent);
-    color: var(--sm-bg);
+    background: var(--sm-primary-hover);
+    box-shadow: 3px 3px 0 var(--sm-ink);
+    color: var(--sm-on-primary);
     font-weight: 700;
+}
+
+body.public-site-page .home-navbar :is(#nav-admin-dashboard, #nav-penjual-dashboard, #mobile-nav-admin-dashboard, #mobile-nav-penjual-dashboard) {
+    background: var(--sm-accent) !important;
+    color: var(--sm-on-accent) !important;
 }
 
 body.public-site-page .home-navbar :is(#nav-admin-dashboard, #nav-penjual-dashboard, #nav-login, #mobile-nav-admin-dashboard, #mobile-nav-penjual-dashboard, #mobile-nav-login):hover {
     transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0 color-mix(in srgb, var(--sm-ink) 42%, transparent);
+    box-shadow: 5px 5px 0 rgba(31, 53, 80, .42);
+}
+
+body.public-site-page .home-navbar :is(#nav-admin-dashboard, #nav-penjual-dashboard, #mobile-nav-admin-dashboard, #mobile-nav-penjual-dashboard):hover {
+    background: var(--sm-accent-hover) !important;
+    color: var(--sm-on-accent) !important;
 }
 
 body.public-site-page .home-navbar :is(button[aria-label="Cari produk"], button[aria-label="Cari"], #mobile-menu-btn) {
@@ -363,13 +384,23 @@ body.public-site-page .home-navbar #mobile-navigation-menu a:not(:is(#mobile-nav
 }
 
 body.public-site-page .home-navbar #mobile-navigation-menu :is(#mobile-nav-login, #mobile-nav-admin-dashboard, #mobile-nav-penjual-dashboard) {
-    background: var(--sm-ink) !important;
-    color: var(--sm-bg) !important;
+    background: var(--sm-primary-hover) !important;
+    color: var(--sm-on-primary) !important;
+}
+
+body.public-site-page .home-navbar #mobile-navigation-menu :is(#mobile-nav-admin-dashboard, #mobile-nav-penjual-dashboard) {
+    background: var(--sm-accent) !important;
+    color: var(--sm-on-accent) !important;
 }
 
 body.public-site-page .home-navbar #mobile-navigation-menu :is(#mobile-nav-login, #mobile-nav-admin-dashboard, #mobile-nav-penjual-dashboard):hover {
     background: var(--sm-bg) !important;
     color: var(--sm-ink) !important;
+}
+
+body.public-site-page .home-navbar #mobile-navigation-menu :is(#mobile-nav-admin-dashboard, #mobile-nav-penjual-dashboard):hover {
+    background: var(--sm-accent-hover) !important;
+    color: var(--sm-on-accent) !important;
 }
 
 body.public-site-page .home-navbar :is(#nav-search-form, #mobile-nav-search-form) svg {
@@ -2520,9 +2551,19 @@ body.admin-dashboard .seller-confirm-submit--delete:hover { background:#B91C1C!i
         color: var(--sm-on-primary) !important;
     }
 
+    body.public-site-page .home-navbar #mobile-navigation-menu :is(#mobile-nav-admin-dashboard, #mobile-nav-penjual-dashboard) {
+        background: var(--sm-accent) !important;
+        color: var(--sm-on-accent) !important;
+    }
+
     body.public-site-page .home-navbar #mobile-navigation-menu :is(#mobile-nav-login, #mobile-nav-admin-dashboard, #mobile-nav-penjual-dashboard):hover {
         background: var(--sm-primary-hover) !important;
         color: var(--sm-on-primary) !important;
+    }
+
+    body.public-site-page .home-navbar #mobile-navigation-menu :is(#mobile-nav-admin-dashboard, #mobile-nav-penjual-dashboard):hover {
+        background: var(--sm-accent-hover) !important;
+        color: var(--sm-on-accent) !important;
     }
 
     body.public-site-page main {
@@ -3619,18 +3660,32 @@ body:is(.seller-dashboard, .admin-dashboard) .pagination-icon-btn {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
     padding: 0 !important;
+    border: 2px solid var(--sm-border) !important;
     border-radius: 12px !important;
+    background: var(--sm-surface) !important;
+    color: var(--sm-ink) !important;
+    box-shadow: 2px 2px 0px 0px var(--sm-border) !important;
     flex-shrink: 0 !important;
     line-height: 1 !important;
+    transition: transform 0.15s ease, background-color 0.15s ease !important;
+}
+body:is(.seller-dashboard, .admin-dashboard) .pagination-icon-btn:not(.disabled):not(:disabled):hover {
+    background: var(--sm-primary-soft) !important;
+    transform: translate(-1px, -1px) !important;
+}
+body:is(.seller-dashboard, .admin-dashboard) .pagination-icon-btn:is(.disabled, :disabled) {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
 }
 body:is(.seller-dashboard, .admin-dashboard) .pagination-icon-btn svg {
-    width: 16px !important;
-    height: 16px !important;
+    width: 18px !important;
+    height: 18px !important;
     flex-shrink: 0 !important;
     display: block !important;
 }

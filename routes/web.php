@@ -12,21 +12,22 @@ Route::get('/kategori', [\App\Http\Controllers\Public\KategoriController::class,
 Route::get('/kategori/{kategori:slug}', [\App\Http\Controllers\Public\KategoriController::class, 'show'])->name('public.kategori.show');
 
 Route::get('/produk', fn () => redirect()->route('public.kategori.index', [], 301));
-Route::get('/produk/{produk:slug}', [\App\Http\Controllers\Public\ProdukController::class, 'show'])
-    ->name('public.produk.show')
-    ->middleware('throttle:60,1');
-Route::get('/produk/{produk:slug}/whatsapp', [\App\Http\Controllers\Public\ProdukController::class, 'trackWhatsapp'])
-    ->name('public.produk.whatsapp')
-    ->middleware('throttle:30,1');
+Route::get('/produk/{slug}', function (string $slug) {
+    $produk = \App\Models\Produk::with('penjual')
+        ->where('slug', $slug)
+        ->where('status', 'aktif')
+        ->whereHas('penjual.user', fn ($q) => $q->where('is_active', true))
+        ->firstOrFail();
+
+    return redirect()->route('public.produk.show', [
+        'penjual' => $produk->penjual->slug,
+        'produk' => $produk->slug,
+    ], 301);
+})->name('public.produk.legacy');
 
 Route::view('/cara-pemesanan', 'public.cara-pemesanan')->name('public.cara_pemesanan');
 Route::view('/tentang-kami', 'public.tentang-kami')->name('public.tentang_kami');
 Route::get('/sitemap.xml', [\App\Http\Controllers\Public\SitemapController::class, 'index'])->name('public.sitemap');
-
-// Submit ulasan dengan throttle (3 request / 1 menit)
-Route::post('/produk/{produk:slug}/ulasan', [\App\Http\Controllers\Public\UlasanController::class, 'store'])
-    ->name('public.ulasan.store')
-    ->middleware('throttle:3,1');
 
 // ─── Admin Area ───────────────────────────────────────────────────────────────
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
@@ -110,3 +111,16 @@ if (app()->environment('local')) {
     })->name('preview.reset_password_email');
 }
 
+// ─── Halaman Detail Produk Publik ({toko}/{produk}) ───────────────────────────
+// Ditempatkan paling bawah agar tidak membayangi rute statis dan prefix lain.
+Route::scopeBindings()->group(function () {
+    Route::get('/{penjual:slug}/{produk:slug}', [\App\Http\Controllers\Public\ProdukController::class, 'show'])
+        ->name('public.produk.show')
+        ->middleware('throttle:60,1');
+    Route::get('/{penjual:slug}/{produk:slug}/whatsapp', [\App\Http\Controllers\Public\ProdukController::class, 'trackWhatsapp'])
+        ->name('public.produk.whatsapp')
+        ->middleware('throttle:30,1');
+    Route::post('/{penjual:slug}/{produk:slug}/ulasan', [\App\Http\Controllers\Public\UlasanController::class, 'store'])
+        ->name('public.ulasan.store')
+        ->middleware('throttle:3,1');
+});

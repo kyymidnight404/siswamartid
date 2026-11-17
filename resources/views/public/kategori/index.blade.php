@@ -102,8 +102,8 @@
             </div>
             
             <div class="hidden lg:flex items-center gap-3 w-full lg:w-auto">
-                    <span class="text-sm font-bold text-[var(--sm-text-muted)] uppercase tracking-wider">URUTKAN</span>
-                    <select x-model="sort" @change="submitForm()"
+                    <label for="kategori-sort-select" class="text-sm font-bold text-[var(--sm-text-muted)] uppercase tracking-wider">URUTKAN</label>
+                    <select id="kategori-sort-select" x-model="sort" @change="submitForm()"
                             class="w-full sm:w-auto pl-4 pr-10 py-3 text-sm font-bold uppercase tracking-wider border-2 border-[var(--sm-border)] bg-white rounded-xl shadow-solid-sm focus:outline-none focus:ring-0 appearance-none cursor-pointer hover:-translate-y-0.5 transition-transform">
                         <option value="terbaru">Terbaru</option>
                         <option value="terpopuler">Terpopuler</option>
@@ -136,11 +136,13 @@
                                      x-bind:style="`left: ${(sliderMin / 50000) * 100}%; right: ${100 - (sliderMax / 50000) * 100}%;`"></div>
                                 
                                 <input type="range" min="0" max="50000" step="1000" 
+                                       aria-label="Harga minimum"
                                        x-model="sliderMin" 
                                        @input="if(sliderMin > sliderMax) sliderMin = sliderMax"
                                        class="absolute w-full h-3 opacity-0 cursor-pointer pointer-events-none appearance-none z-20">
                                        
                                 <input type="range" min="0" max="50000" step="1000" 
+                                       aria-label="Harga maksimum"
                                        x-model="sliderMax" 
                                        @input="if(sliderMax < sliderMin) sliderMax = sliderMin"
                                        class="absolute w-full h-3 opacity-0 cursor-pointer pointer-events-none appearance-none z-20">
@@ -149,12 +151,12 @@
 
                         <div class="flex items-center gap-3 mb-6">
                             <div class="flex-1">
-                                <label class="text-xs font-bold text-[var(--sm-text-muted)] block mb-2 uppercase tracking-wider">Min (Rp)</label>
-                                <input type="text" x-model="min_price" @input="min_price = min_price.toString().replace(/[^0-9]/g, '')" @change="validateInput()" placeholder="0" class="w-full px-3 py-2 text-sm font-bold border-2 border-[var(--sm-border)] rounded-xl focus:outline-none focus:ring-0">
+                                <label for="desktop-min-price" class="text-xs font-bold text-[var(--sm-text-muted)] block mb-2 uppercase tracking-wider">Min (Rp)</label>
+                                <input id="desktop-min-price" type="text" x-model="min_price" @input="min_price = min_price.toString().replace(/[^0-9]/g, '')" @change="validateInput()" placeholder="0" class="w-full px-3 py-2 text-sm font-bold border-2 border-[var(--sm-border)] rounded-xl focus:outline-none focus:ring-0">
                             </div>
                             <div class="flex-1">
-                                <label class="text-xs font-bold text-[var(--sm-text-muted)] block mb-2 uppercase tracking-wider">Max (Rp)</label>
-                                <input type="text" x-model="max_price" @input="max_price = max_price.toString().replace(/[^0-9]/g, '')" @change="validateInput()" placeholder="50000" class="w-full px-3 py-2 text-sm font-bold border-2 border-[var(--sm-border)] rounded-xl focus:outline-none focus:ring-0">
+                                <label for="desktop-max-price" class="text-xs font-bold text-[var(--sm-text-muted)] block mb-2 uppercase tracking-wider">Max (Rp)</label>
+                                <input id="desktop-max-price" type="text" x-model="max_price" @input="max_price = max_price.toString().replace(/[^0-9]/g, '')" @change="validateInput()" placeholder="50000" class="w-full px-3 py-2 text-sm font-bold border-2 border-[var(--sm-border)] rounded-xl focus:outline-none focus:ring-0">
                             </div>
                         </div>
 

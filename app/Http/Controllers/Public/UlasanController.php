@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\Penjual;
 use App\Models\Produk;
 use App\Models\Ulasan;
 use App\Services\CommentModerationService;
@@ -15,9 +16,9 @@ class UlasanController extends Controller
     /**
      * Simpan ulasan guest baru dengan auto-moderation filter.
      */
-    public function store(Request $request, Produk $produk, CommentModerationService $moderationService, AdminNotificationService $notificationService): RedirectResponse
+    public function store(Request $request, Penjual $penjual, Produk $produk, CommentModerationService $moderationService, AdminNotificationService $notificationService): RedirectResponse
     {
-        abort_if($produk->status !== 'aktif' || ! ($produk->penjual?->user?->is_active), 404);
+        abort_if($produk->status !== 'aktif' || ! ($penjual->user?->is_active), 404);
 
         $validated = $request->validate([
             'guest_username' => ['required', 'string', 'max:100'],
@@ -36,7 +37,7 @@ class UlasanController extends Controller
                 ? 'Nama pengguna ulasan mengandung kata yang tidak pantas. Silakan perbaiki lalu kirim kembali.'
                 : 'Ulasan tidak terkirim karena mengandung kata yang tidak pantas. Silakan perbaiki isi ulasan lalu kirim kembali.';
 
-            return redirect()->to(route('public.produk.show', $produk->slug) . '#ulasan')
+            return redirect()->to(route('public.produk.show', [$penjual->slug, $produk->slug]) . '#ulasan')
                 ->withInput()
                 ->with('review_warning', $warningMsg);
         }
@@ -64,7 +65,7 @@ class UlasanController extends Controller
             'url' => route('admin.komentar.index', ['status' => 'semua', 'tab' => 'komentar']),
         ]);
 
-        return redirect()->to(route('public.produk.show', $produk->slug) . '#ulasan')
+        return redirect()->to(route('public.produk.show', [$penjual->slug, $produk->slug]) . '#ulasan')
             ->with('success', 'Ulasanmu berhasil dikirim.');
     }
 }

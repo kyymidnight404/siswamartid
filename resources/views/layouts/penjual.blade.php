@@ -341,7 +341,7 @@
             gap: 4px;
             padding: 4px 10px;
             border-radius: 9999px;
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;

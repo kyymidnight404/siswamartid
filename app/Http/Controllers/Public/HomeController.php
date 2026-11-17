@@ -19,7 +19,7 @@ class HomeController extends Controller
             ->select(['id', 'penjual_id', 'kategori_id', 'nama', 'slug', 'harga', 'foto_utama'])
             ->with([
                 'kategori:id,nama,slug',
-                'penjual:id,nama_toko,nomor_whatsapp,status_toko',
+                'penjual:id,nama_toko,slug,nomor_whatsapp,status_toko',
             ])
             ->withAvg(['ulasan' => fn ($query) => $query->publicVisible()], 'rating')
             ->latest('id')

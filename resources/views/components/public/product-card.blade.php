@@ -55,7 +55,7 @@
         }
     @endphp
 
-    <a href="{{ route('public.produk.show', $produk->slug) }}"
+    <a href="{{ route('public.produk.show', [$produk->penjual->slug, $produk->slug]) }}"
        id="produk-card-{{ $produk->id }}"
        class="product-card home-product-card group"
        aria-label="Lihat detail {{ $produk->nama }}">
@@ -91,7 +91,7 @@
                 <x-public.home-icon name="building-store" class="home-product-card__seller-icon" aria-hidden="true" />
                 <span>{{ $produk->penjual->nama_toko ?? 'Penjual' }}</span>
                 @if(($produk->penjual->status_toko ?? 'buka') === 'tutup')
-                    <span class="inline-block text-[9px] font-black text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider ml-1">Tutup</span>
+                    <span class="inline-block text-[11px] font-black text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full uppercase tracking-wider ml-1">Tutup</span>
                 @endif
             </p>
 
@@ -178,7 +178,7 @@
     </style>
 @endonce
 
-<a href="{{ route('public.produk.show', $produk->slug) }}"
+<a href="{{ route('public.produk.show', [$produk->penjual->slug, $produk->slug]) }}"
    id="produk-card-{{ $produk->id }}"
    class="product-card group flex h-full min-h-36 flex-row focus:outline-none bg-[var(--sm-surface)] border-2 border-[var(--sm-border)] shadow-solid-sm hover:shadow-solid-md hover:-translate-y-1 transition-all duration-200 rounded-[24px] overflow-hidden md:flex-col"
    aria-label="Lihat detail {{ $produk->nama }}">
@@ -228,12 +228,12 @@
             @endphp
 
             @if($badge)
-                <span class="inline-block {{ $badge['bg'] }} {{ $badge['textCol'] }} border-2 border-[var(--sm-border)] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-solid-sm transform -rotate-1">
+                <span class="inline-block {{ $badge['bg'] }} {{ $badge['textCol'] }} border-2 border-[var(--sm-border)] text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-solid-sm transform -rotate-1">
                     {{ $badge['text'] }}
                 </span>
             @endif
             @if($produk->stok === 'tersedia')
-                <span class="inline-block bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-ink)] text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Tersedia</span>
+                <span class="inline-block bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-ink)] text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Tersedia</span>
             @endif
         </div>
 
@@ -255,11 +255,11 @@
                 </svg>
                 <span class="truncate">{{ $produk->penjual->nama_toko ?? '-' }}</span>
                 @if(($produk->penjual->status_toko ?? 'buka') === 'tutup')
-                    <span class="shrink-0 text-[9px] font-black text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-full uppercase tracking-wider">Tutup</span>
+                    <span class="shrink-0 text-[11px] font-black text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full uppercase tracking-wider">Tutup</span>
                 @endif
             </div>
             @if($produk->kategori)
-                <p class="mb-2 truncate text-[10px] font-bold text-[var(--sm-text-muted)]">{{ $produk->kategori->nama }}</p>
+                <p class="mb-2 truncate text-xs font-bold text-[var(--sm-text-muted)]">{{ $produk->kategori->nama }}</p>
             @endif
         </div>
 

@@ -150,14 +150,14 @@ class SecurityHardeningTest extends TestCase
 
         // 1. Submit ulasan pada Web dengan username terlarang
         $webResponse = $this->post(
-            route('public.ulasan.store', $this->produk->slug),
+            route('public.ulasan.store', [$this->penjual->slug, $this->produk->slug]),
             [
                 'guest_username' => 'user_kataterlarangsec_test',
                 'rating' => 5,
                 'komentar' => 'Produk sangat bagus dan mantap!',
             ]
         );
-        $webResponse->assertRedirect(route('public.produk.show', $this->produk->slug) . '#ulasan');
+        $webResponse->assertRedirect(route('public.produk.show', [$this->penjual->slug, $this->produk->slug]) . '#ulasan');
         $webResponse->assertSessionHas('review_warning');
 
         // Pastikan ulasan tidak tersimpan di database
@@ -182,7 +182,7 @@ class SecurityHardeningTest extends TestCase
     public function test_guest_can_submit_a_review_for_an_active_product(): void
     {
         $response = $this->post(
-            route('public.ulasan.store', $this->produk->slug),
+            route('public.ulasan.store', [$this->penjual->slug, $this->produk->slug]),
             [
                 'guest_username' => 'Pengunjung Test',
                 'rating' => 5,
@@ -190,7 +190,7 @@ class SecurityHardeningTest extends TestCase
             ]
         );
 
-        $response->assertRedirect(route('public.produk.show', $this->produk->slug) . '#ulasan');
+        $response->assertRedirect(route('public.produk.show', [$this->penjual->slug, $this->produk->slug]) . '#ulasan');
         $response->assertSessionHas('success', 'Ulasanmu berhasil dikirim.');
         $this->assertDatabaseHas('ulasan', [
             'produk_id' => $this->produk->id,
@@ -211,7 +211,7 @@ class SecurityHardeningTest extends TestCase
 
         // 1. Web review submission
         $webResponse = $this->post(
-            route('public.ulasan.store', $this->produk->slug),
+            route('public.ulasan.store', [$this->penjual->slug, $this->produk->slug]),
             [
                 'guest_username' => 'GuestBuyer',
                 'rating' => 5,
