@@ -32,6 +32,7 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\Public\SitemapController::clas
 // ─── Admin Area ───────────────────────────────────────────────────────────────
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/notifikasi', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifikasi/baca-semua', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllRead'])->name('notifications.read_all');
     Route::get('/notifikasi/poll', [\App\Http\Controllers\Admin\NotificationController::class, 'poll'])->name('notifications.poll');
     Route::post('/notifikasi/{notification}/baca', [\App\Http\Controllers\Admin\NotificationController::class, 'markRead'])->name('notifications.read');

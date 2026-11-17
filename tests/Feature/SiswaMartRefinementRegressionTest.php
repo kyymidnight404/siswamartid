@@ -527,4 +527,103 @@ class SiswaMartRefinementRegressionTest extends TestCase
         $reservedSlug = Penjual::generateUniqueSlug('admin');
         $this->assertNotSame('admin', $reservedSlug);
     }
+
+    public function test_admin_notifications_dropdown_and_page_support_category_filtering_without_setting_tab(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin Notif Test',
+            'email' => 'admin_notif_'.uniqid().'@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $admin->notify(new \App\Notifications\AdminActivityNotification([
+            'title' => 'Ulasan baru masuk',
+            'description' => 'midnight mengirim ulasan untuk produk "Croissant".',
+            'activity' => 'ulasan.ditambahkan',
+            'entity_type' => 'ulasan',
+            'url' => route('admin.komentar.index'),
+        ]));
+
+        $admin->notify(new \App\Notifications\AdminActivityNotification([
+            'title' => 'Permintaan perubahan produk',
+            'description' => 'Penjual meminta perubahan pada produk "Roti Tawar".',
+            'activity' => 'produk.edit_diminta',
+            'entity_type' => 'produk',
+            'url' => route('admin.produk.index'),
+        ]));
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Update terbaru di SiswaMart')
+            ->assertSee('Lihat Semua Notifikasi')
+            ->assertSee('data-notif-tab="semua"', false)
+            ->assertSee('data-notif-tab="produk"', false)
+            ->assertSee('data-notif-tab="ulasan"', false)
+            ->assertDontSee('data-notif-tab="sistem"', false);
+
+        $this->actingAs($admin)
+            ->getJson(route('admin.notifications.poll'))
+            ->assertOk()
+            ->assertJsonPath('unread_count', 2)
+            ->assertJsonPath('counts.semua', 2)
+            ->assertJsonPath('counts.produk', 1)
+            ->assertJsonPath('counts.ulasan', 1);
+
+        $this->actingAs($admin)
+            ->get(route('admin.notifications.index', ['kategori' => 'produk']))
+            ->assertOk()
+            ->assertViewHas('notifications', function ($paginator) {
+                $titles = collect($paginator->items())->pluck('data.title')->all();
+
+                return $titles === ['Permintaan perubahan produk'];
+            });
+
+        $this->actingAs($admin)
+            ->get(route('admin.notifications.index', ['kategori' => 'ulasan']))
+            ->assertOk()
+            ->assertViewHas('notifications', function ($paginator) {
+                $titles = collect($paginator->items())->pluck('data.title')->all();
+
+                return $titles === ['Ulasan baru masuk'];
+            });
+
+        // Notifikasi lama yang masih menyimpan host production/lain harus tetap redirect ke host lokal aktif
+        $legacyNotif = $admin->notifications()->create([
+            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'type' => \App\Notifications\AdminActivityNotification::class,
+            'data' => [
+                'title' => 'Produk baru ditambahkan',
+                'description' => 'Produk baru dikirim penjual.',
+                'activity' => 'produk.ditambahkan',
+                'entity_type' => 'produk',
+                'url' => 'https://siswamartid.my.id/admin/produk/14?ref=notif',
+            ],
+        ]);
+
+        $redirectTarget = $this->actingAs($admin)
+            ->post(route('admin.notifications.read', $legacyNotif->id))
+            ->assertRedirect()
+            ->headers->get('Location');
+
+        $this->assertStringNotContainsString('siswamartid.my.id', (string) $redirectTarget);
+        $this->assertStringEndsWith('/admin/produk/14?ref=notif', (string) $redirectTarget);
+
+        // Notifikasi baru dari service menormalisasi URL menjadi path relatif
+        app(\App\Services\AdminNotificationService::class)->notifyAdmins([
+            'title' => 'Produk baru ditambahkan test',
+            'description' => 'Produk baru.',
+            'activity' => 'produk.ditambahkan',
+            'entity_type' => 'produk',
+            'url' => 'https://siswamartid.my.id/admin/produk/99',
+        ]);
+
+        $savedNotif = $admin->notifications()
+            ->get()
+            ->first(fn ($n) => ($n->data['title'] ?? null) === 'Produk baru ditambahkan test');
+        $this->assertNotNull($savedNotif);
+        $this->assertSame('/admin/produk/99', $savedNotif->data['url'] ?? null);
+    }
 }

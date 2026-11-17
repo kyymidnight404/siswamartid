@@ -1328,11 +1328,11 @@ body:is(.seller-dashboard, .admin-dashboard) .app-sidebar > div:first-child a sp
 
 body:is(.seller-dashboard, .admin-dashboard) .app-sidebar > div:first-child a {
     min-height: 44px;
-    padding: 4px 14px;
-    background: var(--sm-surface);
-    border: 2px solid var(--sm-ink);
-    border-radius: var(--r-pill);
-    box-shadow: 3px 3px 0 var(--sm-ink);
+    padding: 4px 8px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 body:is(.seller-dashboard, .admin-dashboard) .app-sidebar .sidebar-link {
@@ -2235,13 +2235,13 @@ body.seller-dashboard :is(.seller-dashboard-page a, .seller-dashboard-page butto
 
 /* ── Admin Notification Dropdown Refinement ── */
 .admin-notification-dropdown {
-    width: min(380px, calc(100vw - 24px)) !important;
-    max-width: 380px !important;
+    width: min(424px, calc(100vw - 24px)) !important;
+    max-width: 424px !important;
     background: var(--sm-surface) !important;
-    border: 1.5px solid color-mix(in srgb, var(--sm-ink) 20%, transparent) !important;
-    border-radius: 16px !important;
-    box-shadow: 0 12px 30px -4px color-mix(in srgb, var(--sm-ink) 16%, transparent), 0 4px 12px -2px color-mix(in srgb, var(--sm-ink) 8%, transparent) !important;
-    max-height: 420px !important;
+    border: 1.5px solid color-mix(in srgb, var(--sm-ink) 16%, transparent) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 16px 36px -6px color-mix(in srgb, var(--sm-ink) 18%, transparent), 0 4px 14px -2px color-mix(in srgb, var(--sm-ink) 8%, transparent) !important;
+    max-height: 540px !important;
     flex-direction: column !important;
     overflow: hidden !important;
     z-index: 50 !important;
@@ -2253,7 +2253,7 @@ body.seller-dashboard :is(.seller-dashboard-page a, .seller-dashboard-page butto
 
 @media (min-width: 640px) {
     .admin-notification-dropdown {
-        width: 380px !important;
+        width: 424px !important;
     }
 }
 
@@ -2261,28 +2261,43 @@ body.seller-dashboard :is(.seller-dashboard-page a, .seller-dashboard-page butto
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 12px 16px !important;
-    background: var(--sm-surface) !important;
-    border-bottom: 1px solid color-mix(in srgb, var(--sm-ink) 10%, transparent) !important;
+    gap: 12px !important;
+    padding: 14px 16px 12px !important;
+    background: linear-gradient(135deg, var(--sm-surface) 0%, #f3f7fd 100%) !important;
     flex-shrink: 0 !important;
+}
+
+.admin-notif-bell-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--sm-ink) 12%, transparent);
+    background: var(--sm-surface);
+    color: var(--sm-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--sm-ink) 6%, transparent);
 }
 
 .notification-header-action {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    padding: 0 !important;
+    padding: 4px 0 !important;
     margin: 0 !important;
     min-height: auto !important;
     height: auto !important;
     border-radius: 0 !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     font-weight: 700 !important;
     color: var(--sm-primary) !important;
     cursor: pointer !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
     transform: none !important;
     transition: color 0.15s ease !important;
 }
@@ -2295,15 +2310,82 @@ body.seller-dashboard :is(.seller-dashboard-page a, .seller-dashboard-page butto
     text-decoration: underline !important;
 }
 
+.admin-notification-tabs {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 2px 16px 12px !important;
+    background: linear-gradient(180deg, #f7faff 0%, var(--sm-surface) 100%) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--sm-ink) 10%, transparent) !important;
+    flex-shrink: 0 !important;
+    overflow-x: auto !important;
+}
+
+.admin-notification-tab {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    min-height: 32px !important;
+    height: auto !important;
+    padding: 5px 12px !important;
+    border-radius: 999px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--sm-text-muted) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    transform: none !important;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
+}
+
+.admin-notification-tab:hover {
+    background: var(--sm-bg) !important;
+    color: var(--sm-ink) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.admin-notification-tab.is-active {
+    background: var(--sm-primary) !important;
+    border-color: var(--sm-primary) !important;
+    color: var(--sm-on-primary) !important;
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--sm-primary) 26%, transparent) !important;
+}
+
+.admin-notification-tab__count {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 19px !important;
+    height: 19px !important;
+    padding: 0 5px !important;
+    border-radius: 999px !important;
+    background: #e6eef8 !important;
+    color: var(--sm-ink) !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+}
+
+.admin-notification-tab.is-active .admin-notification-tab__count {
+    background: var(--sm-surface) !important;
+    color: var(--sm-primary) !important;
+}
+
 .admin-notification-list {
     flex: 1 1 auto !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    max-height: 350px !important;
-    padding: 10px 12px !important;
+    max-height: 316px !important;
+    padding: 10px 14px !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
+    background: var(--sm-surface) !important;
 }
 
 /* Slim scrollbar for notification list */
@@ -2330,40 +2412,94 @@ body.seller-dashboard :is(.seller-dashboard-page a, .seller-dashboard-page butto
     width: 100% !important;
     text-align: left !important;
     text-decoration: none !important;
-    border-radius: 12px !important;
+    border-radius: 14px !important;
     padding: 12px 14px !important;
     min-height: auto !important;
     height: auto !important;
     margin: 0 !important;
     cursor: pointer !important;
-    box-shadow: 0 1px 3px color-mix(in srgb, var(--sm-ink) 5%, transparent) !important;
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--sm-ink) 4%, transparent) !important;
     transform: none !important;
     transition: all 0.15s ease-in-out !important;
     color: var(--sm-ink) !important;
 }
 
 .notification-item-card.is-unread {
-    background-color: var(--sm-bg) !important;
-    border: 1px solid color-mix(in srgb, var(--sm-primary) 30%, transparent) !important;
-    border-left: 3.5px solid var(--sm-primary) !important;
+    background-color: #f4f8fe !important;
+    border: 1px solid color-mix(in srgb, var(--sm-primary) 22%, transparent) !important;
 }
 
 .notification-item-card.is-read {
     background-color: var(--sm-surface) !important;
     border: 1px solid color-mix(in srgb, var(--sm-ink) 10%, transparent) !important;
-    border-left: 3.5px solid color-mix(in srgb, var(--sm-ink) 15%, transparent) !important;
 }
 
 .notification-item-card:hover {
     background-color: var(--sm-primary-soft) !important;
-    border-color: color-mix(in srgb, var(--sm-primary) 45%, transparent) !important;
-    box-shadow: 0 4px 10px color-mix(in srgb, var(--sm-ink) 8%, transparent) !important;
+    border-color: color-mix(in srgb, var(--sm-primary) 40%, transparent) !important;
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--sm-ink) 7%, transparent) !important;
     transform: translateY(-1px) !important;
 }
 
 .notification-item-card:active {
     transform: translateY(0) !important;
     box-shadow: 0 1px 2px color-mix(in srgb, var(--sm-ink) 5%, transparent) !important;
+}
+
+.admin-notif-item-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: #eaf1fd;
+    color: var(--sm-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.admin-notif-item-icon.is-warning {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.admin-notif-unread-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #1d63dc;
+    flex-shrink: 0;
+    margin-top: 5px;
+}
+
+.admin-notification-footer {
+    padding: 10px 14px 12px !important;
+    border-top: 1px solid color-mix(in srgb, var(--sm-ink) 8%, transparent) !important;
+    background: var(--sm-surface) !important;
+    flex-shrink: 0 !important;
+}
+
+.admin-notification-footer-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 8px 14px !important;
+    border-radius: 12px !important;
+    border: 1px solid color-mix(in srgb, var(--sm-ink) 14%, transparent) !important;
+    background: var(--sm-bg) !important;
+    color: var(--sm-ink) !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease !important;
+}
+
+.admin-notification-footer-btn:hover {
+    background: var(--sm-primary-soft) !important;
+    border-color: color-mix(in srgb, var(--sm-primary) 35%, transparent) !important;
 }
 
 /* Bell button reset to perfect circle */
@@ -2861,18 +2997,21 @@ body:is(.seller-dashboard, .admin-dashboard) .dashboard-sidebar-brand {
     min-height: 72px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+    gap: 10px;
     padding: 0 20px;
     border-bottom: 3px solid var(--sm-ink);
     background: var(--sm-surface);
 }
 body:is(.seller-dashboard, .admin-dashboard) .dashboard-sidebar-brand .sm-brand-logo {
     min-height: 44px;
-    padding: 4px 12px;
-    border: 2px solid var(--sm-ink);
-    border-radius: var(--r-pill);
-    background: var(--sm-surface);
-    box-shadow: 3px 3px 0 var(--sm-ink);
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 1.375rem;
+    line-height: 1.1;
 }
 body:is(.seller-dashboard, .admin-dashboard) .dashboard-role-badge {
     display: inline-flex;

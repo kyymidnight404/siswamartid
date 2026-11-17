@@ -290,120 +290,6 @@
         .badge-aktif { background: var(--sm-primary-soft); color: var(--sm-primary); }
         .badge-pending { background: var(--sm-primary-soft); color: var(--sm-ink); }
         .badge-ditolak { background: var(--sm-primary-soft); color: var(--sm-ink); }
-
-        /* Notification Dropdown Custom Refinements */
-        .admin-notification-dropdown {
-            width: min(380px, calc(100vw - 24px)) !important;
-            max-width: 380px !important;
-            background: var(--sm-surface) !important;
-            border: 1.5px solid color-mix(in srgb, var(--sm-ink) 20%, transparent) !important;
-            border-radius: 16px !important;
-            box-shadow: 0 12px 30px -4px color-mix(in srgb, var(--sm-ink) 16%, transparent), 0 4px 12px -2px color-mix(in srgb, var(--sm-ink) 8%, transparent) !important;
-            max-height: 420px !important;
-            flex-direction: column !important;
-            overflow: hidden !important;
-            z-index: 50 !important;
-        }
-        .admin-notification-dropdown[style*="display: none"] {
-            display: none !important;
-        }
-        @media (min-width: 640px) {
-            .admin-notification-dropdown { width: 380px !important; }
-        }
-        .admin-notification-header {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            padding: 12px 16px !important;
-            background: var(--sm-surface) !important;
-            border-bottom: 1px solid color-mix(in srgb, var(--sm-ink) 10%, transparent) !important;
-            flex-shrink: 0 !important;
-        }
-        .notification-header-action {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            min-height: auto !important;
-            height: auto !important;
-            border-radius: 0 !important;
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            color: var(--sm-primary) !important;
-            cursor: pointer !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            gap: 4px !important;
-            transform: none !important;
-            transition: color 0.15s ease !important;
-        }
-        .notification-header-action:hover {
-            background: transparent !important;
-            box-shadow: none !important;
-            transform: none !important;
-            color: var(--sm-primary-hover) !important;
-            text-decoration: underline !important;
-        }
-        .admin-notification-list {
-            flex: 1 1 auto !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            max-height: 350px !important;
-            padding: 10px 12px !important;
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 8px !important;
-        }
-        .admin-notification-list::-webkit-scrollbar { width: 5px !important; }
-        .admin-notification-list::-webkit-scrollbar-track { background: transparent !important; }
-        .admin-notification-list::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--sm-ink) 18%, transparent) !important; border-radius: 999px !important; }
-        .admin-notification-list::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--sm-ink) 35%, transparent) !important; }
-        .notification-item-card {
-            display: block !important;
-            width: 100% !important;
-            text-align: left !important;
-            text-decoration: none !important;
-            border-radius: 12px !important;
-            padding: 12px 14px !important;
-            min-height: auto !important;
-            height: auto !important;
-            margin: 0 !important;
-            cursor: pointer !important;
-            box-shadow: 0 1px 3px color-mix(in srgb, var(--sm-ink) 5%, transparent) !important;
-            transform: none !important;
-            transition: all 0.15s ease-in-out !important;
-            color: var(--sm-ink) !important;
-        }
-        .notification-item-card.is-unread {
-            background-color: var(--sm-bg) !important;
-            border: 1px solid color-mix(in srgb, var(--sm-primary) 30%, transparent) !important;
-            border-left: 3.5px solid var(--sm-primary) !important;
-        }
-        .notification-item-card.is-read {
-            background-color: var(--sm-surface) !important;
-            border: 1px solid color-mix(in srgb, var(--sm-ink) 10%, transparent) !important;
-            border-left: 3.5px solid color-mix(in srgb, var(--sm-ink) 15%, transparent) !important;
-        }
-        .notification-item-card:hover {
-            background-color: var(--sm-primary-soft) !important;
-            border-color: color-mix(in srgb, var(--sm-primary) 45%, transparent) !important;
-            box-shadow: 0 4px 10px color-mix(in srgb, var(--sm-ink) 8%, transparent) !important;
-            transform: translateY(-1px) !important;
-        }
-        .notification-item-card:active {
-            transform: translateY(0) !important;
-            box-shadow: 0 1px 2px color-mix(in srgb, var(--sm-ink) 5%, transparent) !important;
-        }
-        .notification-icon-btn {
-            width: 40px !important;
-            height: 40px !important;
-            min-height: 40px !important;
-            max-height: 40px !important;
-            border-radius: 50% !important;
-            padding: 0 !important;
-            flex-shrink: 0 !important;
-        }
     </style>
 </head>
 <body class="admin-dashboard dashboard-shell flex min-h-screen">
@@ -411,7 +297,7 @@
     {{-- ── Sidebar ── --}}
     <div class="dashboard-sidebar-backdrop" data-sidebar-close aria-hidden="true"></div>
     <aside class="app-sidebar" id="dashboardSidebar">
-        @include('layouts.partials.dashboard-sidebar-brand', ['role' => 'Admin'])
+        @include('layouts.partials.dashboard-sidebar-brand')
 
         <nav class="dashboard-sidebar-menu py-4">
             <div class="sidebar-section-title">Menu utama</div>
@@ -459,42 +345,10 @@
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
                     @php
-                        $adminNotifications = Auth::user()->notifications()->latest()->limit(8)->get();
-                        $unreadNotificationCount = Auth::user()->unreadNotifications()->count();
-
-                        $resolveNotificationIcon = function ($activity, $title) {
-                            $act = strtolower($activity ?? '');
-                            $tit = strtolower($title ?? '');
-
-                            if (str_contains($act, 'ulasan') || str_contains($tit, 'ulasan')) {
-                                return [
-                                    'bg' => 'bg-[var(--sm-primary-soft)]/60 text-[var(--sm-primary)] border border-[var(--sm-primary-soft)]',
-                                    'icon' => '<svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>'
-                                ];
-                            }
-                            if (str_contains($act, 'edit') || str_contains($tit, 'perubahan')) {
-                                return [
-                                    'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-primary-hover)] border border-[var(--sm-primary-soft)]',
-                                    'icon' => '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>'
-                                ];
-                            }
-                            if (str_contains($act, 'hapus') || str_contains($tit, 'hapus')) {
-                                return [
-                                    'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
-                                    'icon' => '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
-                                ];
-                            }
-                            if (str_contains($act, 'status') || str_contains($tit, 'diperbarui')) {
-                                return [
-                                    'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
-                                    'icon' => '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>'
-                                ];
-                            }
-                            return [
-                                'bg' => 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
-                                'icon' => '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>'
-                            ];
-                        };
+                        $notifSummary = app(\App\Services\AdminNotificationService::class)->summaryForAdmin(Auth::user());
+                        $adminNotifications = $notifSummary['notifications'];
+                        $unreadNotificationCount = $notifSummary['unread_count'];
+                        $notifCounts = $notifSummary['counts'];
                     @endphp
                     <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
                         <button type="button" @click.stop="open = !open" class="notification-icon-btn relative w-10 h-10 rounded-full bg-[var(--sm-surface)] text-[var(--sm-ink)] border-2 border-[var(--sm-border)] flex items-center justify-center shadow-[2px_2px_0px_0px_var(--sm-border)] hover:-translate-y-0.5 transition-all" aria-label="Notifikasi" :aria-expanded="open.toString()">
@@ -504,7 +358,8 @@
                             <span id="adminNotificationCount" class="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-[var(--sm-accent)] text-[var(--sm-on-accent)] text-[10px] font-black flex items-center justify-center border-2 border-[var(--sm-surface)] {{ $unreadNotificationCount > 0 ? '' : 'hidden' }}">{{ $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount }}</span>
                         </button>
 
-                        <div x-show="open"
+                        <div id="adminNotificationDropdown"
+                             x-show="open"
                              @click.outside="open = false"
                              x-cloak
                              x-transition:enter="transition ease-out duration-200"
@@ -516,57 +371,55 @@
                              class="admin-notification-dropdown fixed sm:absolute top-[64px] sm:top-[calc(100%+8px)] left-3 right-3 sm:left-auto sm:right-0 z-50 flex flex-col">
 
                             <div class="admin-notification-header">
-                                <div class="flex items-center gap-2">
-                                    <h2 class="text-sm font-extrabold text-[var(--sm-ink)]">Notifikasi</h2>
-                                    <span id="adminNotificationBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--sm-primary)]/15 text-[var(--sm-primary-hover)] {{ $unreadNotificationCount > 0 ? '' : 'hidden' }}">
-                                        <span id="adminNotificationBadgeText">{{ $unreadNotificationCount }} baru</span>
-                                    </span>
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="admin-notif-bell-badge" aria-hidden="true">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.9">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h2 class="text-[15px] font-extrabold text-[var(--sm-ink)] leading-tight">Notifikasi</h2>
+                                        <p class="text-[12px] text-[var(--sm-text-muted)] leading-snug mt-0.5 truncate">Update terbaru di SiswaMart</p>
+                                    </div>
                                 </div>
-                                <div id="adminNotificationMarkAllWrapper" class="{{ $unreadNotificationCount > 0 ? '' : 'hidden' }}">
+                                <div id="adminNotificationMarkAllWrapper" class="flex-shrink-0 {{ $unreadNotificationCount > 0 ? '' : 'hidden' }}">
                                     <form method="POST" action="{{ route('admin.notifications.read_all') }}" class="m-0 p-0">
                                         @csrf
                                         <button type="submit" class="notification-header-action" title="Tandai semua notifikasi sudah dibaca">
-                                            Tandai semua dibaca
+                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.3">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            <span>Tandai semua dibaca</span>
                                         </button>
                                     </form>
                                 </div>
                             </div>
 
+                            <div class="admin-notification-tabs" role="tablist" aria-label="Filter kategori notifikasi">
+                                <button type="button" class="admin-notification-tab is-active" data-notif-tab="semua" role="tab" aria-selected="true">
+                                    <span>Semua</span>
+                                    <span id="adminNotifTabCountSemua" class="admin-notification-tab__count">{{ $notifCounts['semua'] ?? 0 }}</span>
+                                </button>
+                                <button type="button" class="admin-notification-tab" data-notif-tab="produk" role="tab" aria-selected="false">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.9" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>
+                                    </svg>
+                                    <span>Produk</span>
+                                    <span id="adminNotifTabCountProduk" class="admin-notification-tab__count {{ ($notifCounts['produk'] ?? 0) > 0 ? '' : 'hidden' }}">{{ $notifCounts['produk'] ?? 0 }}</span>
+                                </button>
+                                <button type="button" class="admin-notification-tab" data-notif-tab="ulasan" role="tab" aria-selected="false">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.9" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h6m-5 8l-4 2V6a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H8z"/>
+                                    </svg>
+                                    <span>Ulasan</span>
+                                    <span id="adminNotifTabCountUlasan" class="admin-notification-tab__count {{ ($notifCounts['ulasan'] ?? 0) > 0 ? '' : 'hidden' }}">{{ $notifCounts['ulasan'] ?? 0 }}</span>
+                                </button>
+                            </div>
+
                             <div id="adminNotificationList" class="admin-notification-list">
-                                @forelse($adminNotifications as $notification)
-                                    @php
-                                        $notificationData = $notification->data;
-                                        $iconMeta = $resolveNotificationIcon($notificationData['activity'] ?? '', $notificationData['title'] ?? '');
-                                    @endphp
-                                    <form method="POST" action="{{ route('admin.notifications.read', $notification->id) }}" class="block w-full m-0 p-0">
-                                        @csrf
-                                        <button type="submit" class="notification-item-btn notification-item-card {{ $notification->read_at ? 'is-read' : 'is-unread' }}">
-                                            <div class="flex items-start gap-3">
-                                                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 {{ $iconMeta['bg'] }}">
-                                                    {!! $iconMeta['icon'] !!}
-                                                </div>
-                                                <div class="min-w-0 flex-1">
-                                                    <div class="flex items-center justify-between gap-2">
-                                                        <h3 class="text-xs font-bold text-[var(--sm-ink)] truncate leading-tight">
-                                                            {{ $notificationData['title'] ?? 'Aktivitas baru' }}
-                                                        </h3>
-                                                        @unless($notification->read_at)
-                                                            <span class="w-2 h-2 rounded-full bg-[var(--sm-primary)] flex-shrink-0" title="Belum dibaca"></span>
-                                                        @endunless
-                                                    </div>
-                                                    <p class="text-[12px] text-[var(--sm-ink)] mt-1 leading-snug line-clamp-2 break-words">
-                                                        {{ $notificationData['description'] ?? '' }}
-                                                    </p>
-                                                    <div class="flex items-center gap-1 mt-1.5 text-[10px] font-medium text-[var(--sm-ink)]">
-                                                        <svg class="w-3 h-3 opacity-60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                        </svg>
-                                                        <span>{{ $notification->created_at?->diffForHumans() }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </button>
-                                    </form>
+                                @forelse($adminNotifications as $item)
+                                    @include('admin.notifikasi.partials.item', ['item' => $item])
                                 @empty
                                     <div class="px-4 py-8 text-center flex flex-col items-center justify-center">
                                         <div class="w-10 h-10 rounded-full bg-[var(--sm-primary-soft)] text-[var(--sm-primary)] flex items-center justify-center mb-2">
@@ -575,9 +428,23 @@
                                             </svg>
                                         </div>
                                         <p class="text-xs font-bold text-[var(--sm-ink)]">Belum ada notifikasi</p>
-                                        <p class="text-[11px] text-[var(--sm-ink)] mt-0.5">Semua notifikasi baru akan tampil di sini</p>
+                                        <p class="text-[11px] text-[var(--sm-text-muted)] mt-0.5">Semua notifikasi baru akan tampil di sini</p>
                                     </div>
                                 @endforelse
+                            </div>
+
+                            <div class="admin-notification-footer">
+                                <a href="{{ route('admin.notifications.index') }}" class="admin-notification-footer-btn">
+                                    <span class="inline-flex items-center gap-2">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.9" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                        </svg>
+                                        <span>Lihat Semua Notifikasi</span>
+                                    </span>
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -619,70 +486,68 @@
 
         const notificationList = document.getElementById('adminNotificationList');
         const notificationCount = document.getElementById('adminNotificationCount');
-        const notificationBadge = document.getElementById('adminNotificationBadge');
-        const notificationBadgeText = document.getElementById('adminNotificationBadgeText');
         const notificationMarkAllWrapper = document.getElementById('adminNotificationMarkAllWrapper');
+        const notificationTabs = document.querySelectorAll('[data-notif-tab]');
+        const tabCountSemua = document.getElementById('adminNotifTabCountSemua');
+        const tabCountProduk = document.getElementById('adminNotifTabCountProduk');
+        const tabCountUlasan = document.getElementById('adminNotifTabCountUlasan');
         const notificationUrl = @json(route('admin.notifications.poll'));
         const notificationReadUrl = @json(route('admin.notifications.read', ['notification' => '__ID__']));
         const notificationCsrfToken = @json(csrf_token());
+        let activeNotifTab = 'semua';
+        let notificationState = @json($notifSummary);
         const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
 
-        const getNotificationIconJs = (activity, title) => {
+        const getNotificationIconJs = (activity, title, category) => {
             const act = (activity || '').toLowerCase();
             const tit = (title || '').toLowerCase();
-            if (act.includes('ulasan') || tit.includes('ulasan')) {
-                return {
-                    bg: 'bg-[var(--sm-primary-soft)]/60 text-[var(--sm-primary)] border border-[var(--sm-primary-soft)]',
-                    svg: '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>'
-                };
-            }
             if (act.includes('edit') || tit.includes('perubahan')) {
                 return {
-                    bg: 'bg-[var(--sm-primary-soft)] text-[var(--sm-primary-hover)] border border-[var(--sm-primary-soft)]',
-                    svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>'
+                    cls: '',
+                    svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'
                 };
             }
             if (act.includes('hapus') || tit.includes('hapus')) {
                 return {
-                    bg: 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
-                    svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
+                    cls: 'is-warning',
+                    svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
                 };
             }
-            if (act.includes('status') || tit.includes('diperbarui')) {
+            if (category === 'ulasan' || act.includes('ulasan') || tit.includes('ulasan')) {
                 return {
-                    bg: 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
-                    svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>'
+                    cls: '',
+                    svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h6m-5 8l-4 2V6a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H8z"/></svg>'
                 };
             }
             return {
-                bg: 'bg-[var(--sm-primary-soft)] text-[var(--sm-ink)] border border-[var(--sm-primary-soft)]',
-                svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>'
+                cls: '',
+                svg: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path stroke-linecap="round" stroke-linejoin="round" d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>'
             };
         };
 
         const renderNotificationItemJs = (item) => {
             const data = item.data || {};
-            const icon = getNotificationIconJs(data.activity, data.title);
+            const icon = getNotificationIconJs(data.activity, data.title, item.category);
             const isUnread = !item.read_at;
             const actionUrl = notificationReadUrl.replace('__ID__', encodeURIComponent(item.id));
-            const unreadDot = isUnread ? '<span class="w-2 h-2 rounded-full bg-[var(--sm-primary)] flex-shrink-0" title="Belum dibaca"></span>' : '';
+            const unreadDot = isUnread ? '<span class="admin-notif-unread-dot" title="Belum dibaca"></span>' : '';
 
             return `
                 <form method="POST" action="${actionUrl}" class="block w-full m-0 p-0">
                     <input type="hidden" name="_token" value="${escapeHtml(notificationCsrfToken)}">
                     <button type="submit" class="notification-item-btn notification-item-card ${isUnread ? 'is-unread' : 'is-read'}">
                         <div class="flex items-start gap-3">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${icon.bg}">
+                            <div class="admin-notif-item-icon ${icon.cls}">
                                 ${icon.svg}
                             </div>
                             <div class="min-w-0 flex-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <h3 class="text-xs font-bold text-[var(--sm-ink)] truncate leading-tight">${escapeHtml(data.title || 'Aktivitas baru')}</h3>
+                                <div class="flex items-start justify-between gap-2">
+                                    <h3 class="text-[13px] font-bold text-[var(--sm-ink)] leading-snug">${escapeHtml(data.title || 'Aktivitas baru')}</h3>
                                     ${unreadDot}
                                 </div>
-                                <p class="text-[12px] text-[var(--sm-ink)] mt-1 leading-snug line-clamp-2 break-words">${escapeHtml(data.description || '')}</p>
-                                <div class="flex items-center gap-1 mt-1.5 text-[10px] font-medium text-[var(--sm-ink)]">
-                                    <svg class="w-3 h-3 opacity-60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <p class="text-[12px] text-[var(--sm-text-muted)] mt-0.5 leading-snug line-clamp-2 break-words">${escapeHtml(data.description || '')}</p>
+                                <div class="flex items-center gap-1 mt-1.5 text-[11px] font-medium text-[var(--sm-text-muted)]">
+                                    <svg class="w-3.5 h-3.5 opacity-75 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <span>${escapeHtml(item.created_at || '')}</span>
@@ -694,41 +559,84 @@
             `;
         };
 
+        const renderNotificationEmptyJs = (tab) => {
+            const labelMap = {
+                produk: 'Belum ada notifikasi produk',
+                ulasan: 'Belum ada notifikasi ulasan',
+                semua: 'Belum ada notifikasi',
+            };
+            return `
+                <div class="px-4 py-8 text-center flex flex-col items-center justify-center">
+                    <div class="w-10 h-10 rounded-full bg-[var(--sm-primary-soft)] text-[var(--sm-primary)] flex items-center justify-center mb-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                    </div>
+                    <p class="text-xs font-bold text-[var(--sm-ink)]">${labelMap[tab] || labelMap.semua}</p>
+                    <p class="text-[11px] text-[var(--sm-text-muted)] mt-0.5">Notifikasi terbaru akan tampil di sini</p>
+                </div>
+            `;
+        };
+
+        const renderAdminNotifications = () => {
+            const data = notificationState || {};
+            const unreadCount = Number(data.unread_count || 0);
+            const counts = data.counts || {};
+            const allItems = Array.isArray(data.notifications) ? data.notifications : [];
+            const visibleItems = activeNotifTab === 'semua'
+                ? allItems
+                : allItems.filter((item) => item.category === activeNotifTab);
+
+            if (notificationCount) {
+                notificationCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                notificationCount.classList.toggle('hidden', unreadCount < 1);
+            }
+
+            if (notificationMarkAllWrapper) {
+                notificationMarkAllWrapper.classList.toggle('hidden', unreadCount < 1);
+            }
+
+            if (tabCountSemua) {
+                tabCountSemua.textContent = Number(counts.semua ?? allItems.length);
+            }
+            if (tabCountProduk) {
+                const countProduk = Number(counts.produk ?? 0);
+                tabCountProduk.textContent = countProduk;
+                tabCountProduk.classList.toggle('hidden', countProduk < 1);
+            }
+            if (tabCountUlasan) {
+                const countUlasan = Number(counts.ulasan ?? 0);
+                tabCountUlasan.textContent = countUlasan;
+                tabCountUlasan.classList.toggle('hidden', countUlasan < 1);
+            }
+
+            notificationTabs.forEach((btn) => {
+                const isActive = btn.dataset.notifTab === activeNotifTab;
+                btn.classList.toggle('is-active', isActive);
+                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            if (notificationList) {
+                notificationList.innerHTML = visibleItems.length
+                    ? visibleItems.map(renderNotificationItemJs).join('')
+                    : renderNotificationEmptyJs(activeNotifTab);
+            }
+        };
+
+        notificationTabs.forEach((btn) => {
+            btn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                activeNotifTab = btn.dataset.notifTab || 'semua';
+                renderAdminNotifications();
+            });
+        });
+
         const refreshAdminNotifications = async () => {
             try {
                 const response = await fetch(notificationUrl, { headers: { 'Accept': 'application/json' } });
                 if (!response.ok) return;
-                const data = await response.json();
-
-                if (notificationCount) {
-                    notificationCount.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
-                    notificationCount.classList.toggle('hidden', data.unread_count < 1);
-                }
-
-                if (notificationBadge && notificationBadgeText) {
-                    notificationBadgeText.textContent = data.unread_count + ' baru';
-                    notificationBadge.classList.toggle('hidden', data.unread_count < 1);
-                }
-
-                if (notificationMarkAllWrapper) {
-                    notificationMarkAllWrapper.classList.toggle('hidden', data.unread_count < 1);
-                }
-
-                if (notificationList) {
-                    notificationList.innerHTML = data.notifications && data.notifications.length
-                        ? data.notifications.map(renderNotificationItemJs).join('')
-                        : `
-                            <div class="px-4 py-8 text-center flex flex-col items-center justify-center">
-                                <div class="w-10 h-10 rounded-full bg-[var(--sm-primary-soft)] text-[var(--sm-primary)] flex items-center justify-center mb-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                                    </svg>
-                                </div>
-                                <p class="text-xs font-bold text-[var(--sm-ink)]">Belum ada notifikasi</p>
-                                <p class="text-[11px] text-[var(--sm-ink)] mt-0.5">Semua notifikasi baru akan tampil di sini</p>
-                            </div>
-                        `;
-                }
+                notificationState = await response.json();
+                renderAdminNotifications();
             } catch (error) {
                 // Polling is best-effort; the persisted notification menu remains usable.
             }
