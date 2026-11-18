@@ -19,6 +19,12 @@
             'minuman' => 'images/category/minuman.png',
             'snack' => 'images/category/snack.png',
         ];
+        $iconToHomeIcon = [
+            'images/category/dessert.png' => 'cake',
+            'images/category/makanan_berat.png' => 'burger',
+            'images/category/minuman.png' => 'glass-full',
+            'images/category/snack.png' => 'cookie',
+        ];
     @endphp
 
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -26,7 +32,7 @@
             <h2 class="text-xl font-bold text-[var(--sm-ink)]">Kelola Kategori</h2>
             <p class="text-sm text-[var(--sm-text-muted)] mt-1">Kelola kategori produk SiswaMart.</p>
         </div>
-        <button onclick="openModal('createModal')" class="btn-primary">
+        <button type="button" onclick="openModal('createModal')" class="btn-primary">
             <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah Kategori
         </button>
@@ -91,10 +97,11 @@
                     @forelse($kategoris as $index => $kategori)
                     <tr class="hover:bg-[var(--sm-primary-soft)] transition-colors">
                         <td class="px-5 py-4 text-center font-medium">{{ $kategoris->firstItem() + $index }}</td>
-                        @php($categoryIcon = array_key_exists($kategori->icon, $iconOptions) ? $kategori->icon : ($fallbackCategoryImages[$kategori->slug] ?? 'images/category/snack.png'))
+                        @php($categoryIcon = array_key_exists($kategori->icon ?? '', $iconOptions) ? $kategori->icon : ($fallbackCategoryImages[$kategori->slug] ?? 'images/category/snack.png'))
+                        @php($resolvedHomeIcon = $categoryIcons[$kategori->slug] ?? ($iconToHomeIcon[$kategori->icon ?? ''] ?? 'package'))
                         <td class="px-5 py-4 text-center">
                             <span class="mx-auto flex h-11 w-11 items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-primary-soft)] p-1.5 flex-shrink-0">
-                                <x-public.home-icon :name="$categoryIcons[$kategori->slug] ?? 'package'" :size="24" class="text-[var(--sm-ink)]" aria-hidden="true" />
+                                <x-public.home-icon :name="$resolvedHomeIcon" :size="24" class="text-[var(--sm-ink)]" aria-hidden="true" />
                             </span>
                         </td>
                         <td class="px-5 py-4">
@@ -142,15 +149,19 @@
     </div>
 
     {{-- Modal Create --}}
-    <div id="createModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="create-modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-[var(--sm-primary-soft)] bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal('createModal')"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-[var(--sm-surface)] border-2 border-[var(--sm-border)] rounded-2xl text-left overflow-hidden shadow-[8px_8px_0px_0px_var(--sm-border)] transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+    <div id="createModal" class="fixed inset-0 z-[70] hidden overflow-y-auto" aria-labelledby="create-modal-title" role="dialog" aria-modal="true">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/60 transition-opacity" aria-hidden="true" onclick="closeModal('createModal')"></div>
+            <div class="relative z-10 w-full max-w-lg bg-[var(--sm-surface)] border-2 border-[var(--sm-border)] rounded-2xl text-left overflow-hidden shadow-[8px_8px_0px_0px_var(--sm-border)] transition-all">
                 <form action="{{ route('admin.categories.store') }}" method="POST">
                     @csrf
                     <div class="bg-[var(--sm-surface)] px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg leading-6 font-bold text-[var(--sm-ink)] mb-4" id="create-modal-title">Tambah Kategori Baru</h3>
+                        <div class="flex items-center justify-between gap-3 mb-4">
+                            <h3 class="text-lg leading-6 font-bold text-[var(--sm-ink)]" id="create-modal-title">Tambah Kategori Baru</h3>
+                            <button type="button" onclick="closeModal('createModal')" aria-label="Tutup modal" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-surface)] text-[var(--sm-ink)] hover:bg-[var(--sm-primary-soft)]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
                         <div class="mb-4">
                             <label for="nama" class="block text-sm font-bold text-[var(--sm-ink)] mb-1">Nama Kategori <span class="text-[var(--sm-primary)]">*</span></label>
                             <input type="text" name="nama" id="nama" class="form-input" placeholder="Contoh: Makanan & Minuman" required>
@@ -171,12 +182,12 @@
                             <p class="mt-1 text-xs text-[var(--sm-text-muted)]">Pilih ikon yang tersedia di katalog SiswaMart.</p>
                         </div>
                     </div>
-                    <div class="bg-[var(--sm-primary-soft)] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t-2 border-[var(--sm-border)]">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-full border-2 border-[var(--sm-border)] shadow-[2px_2px_0px_0px_var(--sm-border)] px-4 py-2 bg-[var(--sm-primary)] text-base font-bold text-[var(--sm-border)] hover:bg-[var(--sm-primary-hover)] sm:ml-3 sm:w-auto sm:text-sm">
-                            Simpan Kategori
-                        </button>
-                        <button type="button" onclick="closeModal('createModal')" class="mt-3 w-full inline-flex justify-center rounded-full border-2 border-[var(--sm-border)] shadow-[2px_2px_0px_0px_var(--sm-border)] px-4 py-2 bg-[var(--sm-surface)] text-base font-bold text-[var(--sm-ink)] hover:bg-[var(--sm-primary-soft)] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    <div class="bg-[var(--sm-primary-soft)] px-4 py-3 sm:px-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 border-t-2 border-[var(--sm-border)]">
+                        <button type="button" onclick="closeModal('createModal')" class="btn-outline w-full justify-center sm:w-auto">
                             Batal
+                        </button>
+                        <button type="submit" class="btn-primary w-full justify-center sm:w-auto">
+                            Simpan Kategori
                         </button>
                     </div>
                 </form>
@@ -185,16 +196,20 @@
     </div>
 
     {{-- Modal Edit --}}
-    <div id="editModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="edit-modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-[var(--sm-primary-soft)] bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal('editModal')"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-[var(--sm-surface)] border-2 border-[var(--sm-border)] rounded-2xl text-left overflow-hidden shadow-[8px_8px_0px_0px_var(--sm-border)] transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+    <div id="editModal" class="fixed inset-0 z-[70] hidden overflow-y-auto" aria-labelledby="edit-modal-title" role="dialog" aria-modal="true">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/60 transition-opacity" aria-hidden="true" onclick="closeModal('editModal')"></div>
+            <div class="relative z-10 w-full max-w-lg bg-[var(--sm-surface)] border-2 border-[var(--sm-border)] rounded-2xl text-left overflow-hidden shadow-[8px_8px_0px_0px_var(--sm-border)] transition-all">
                 <form id="editForm" method="POST">
                     @csrf
                     @method('PUT')
                     <div class="bg-[var(--sm-surface)] px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg leading-6 font-bold text-[var(--sm-ink)] mb-4" id="edit-modal-title">Edit Kategori</h3>
+                        <div class="flex items-center justify-between gap-3 mb-4">
+                            <h3 class="text-lg leading-6 font-bold text-[var(--sm-ink)]" id="edit-modal-title">Edit Kategori</h3>
+                            <button type="button" onclick="closeModal('editModal')" aria-label="Tutup modal" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-[var(--sm-border)] bg-[var(--sm-surface)] text-[var(--sm-ink)] hover:bg-[var(--sm-primary-soft)]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
                         <div class="mb-4">
                             <label for="edit_nama" class="block text-sm font-bold text-[var(--sm-ink)] mb-1">Nama Kategori <span class="text-[var(--sm-primary)]">*</span></label>
                             <input type="text" name="nama" id="edit_nama" class="form-input" required>
@@ -213,12 +228,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="bg-[var(--sm-primary-soft)] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t-2 border-[var(--sm-border)]">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-full border-2 border-[var(--sm-border)] shadow-[2px_2px_0px_0px_var(--sm-border)] px-4 py-2 bg-[var(--sm-primary)] text-base font-bold text-[var(--sm-border)] hover:bg-[var(--sm-primary-hover)] sm:ml-3 sm:w-auto sm:text-sm">
-                            Perbarui Kategori
-                        </button>
-                        <button type="button" onclick="closeModal('editModal')" class="mt-3 w-full inline-flex justify-center rounded-full border-2 border-[var(--sm-border)] shadow-[2px_2px_0px_0px_var(--sm-border)] px-4 py-2 bg-[var(--sm-surface)] text-base font-bold text-[var(--sm-ink)] hover:bg-[var(--sm-primary-soft)] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    <div class="bg-[var(--sm-primary-soft)] px-4 py-3 sm:px-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 border-t-2 border-[var(--sm-border)]">
+                        <button type="button" onclick="closeModal('editModal')" class="btn-outline w-full justify-center sm:w-auto">
                             Batal
+                        </button>
+                        <button type="submit" class="btn-primary w-full justify-center sm:w-auto">
+                            Perbarui Kategori
                         </button>
                     </div>
                 </form>
@@ -227,17 +242,39 @@
     </div>
 
     <script>
+        const categoryAssetBase = @json(rtrim(asset(''), '/'));
+        const categoryUpdateUrlTemplate = @json(route('admin.categories.update', ['category' => '__ID__']));
+
+        function syncModalScrollLock() {
+            const hasOpenModal = ['createModal', 'editModal'].some((id) => {
+                const el = document.getElementById(id);
+                return el && !el.classList.contains('hidden');
+            });
+            document.body.classList.toggle('overflow-hidden', hasOpenModal);
+        }
+
         function openModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            syncModalScrollLock();
+
+            const focusTarget = modal.querySelector('input[type="text"]');
+            if (focusTarget) {
+                requestAnimationFrame(() => focusTarget.focus());
+            }
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            modal.classList.add('hidden');
+            syncModalScrollLock();
         }
 
         function openEditModal(id, nama, icon) {
             const form = document.getElementById('editForm');
-            form.action = `/admin/categories/${id}`;
+            form.action = categoryUpdateUrlTemplate.replace('__ID__', encodeURIComponent(id));
             document.getElementById('edit_nama').value = nama;
             const iconSelect = document.getElementById('edit_icon');
             iconSelect.value = icon;
@@ -250,7 +287,9 @@
         }
 
         function previewCategoryIcon(select, previewId) {
-            document.getElementById(previewId).src = `/${select.value}`;
+            const preview = document.getElementById(previewId);
+            if (!preview || !select || !select.value) return;
+            preview.src = `${categoryAssetBase}/${select.value.replace(/^\/+/, '')}`;
         }
 
         document.addEventListener('keydown', function (event) {

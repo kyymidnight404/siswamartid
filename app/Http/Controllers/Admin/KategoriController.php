@@ -42,15 +42,17 @@ class KategoriController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nama' => 'required|string|max:100|unique:kategori,nama',
+        $validated = $request->validate([
+            'nama' => ['required', 'string', 'max:100', Rule::unique('kategori', 'nama')],
             'icon' => ['required', 'string', Rule::in(array_keys(self::ICON_OPTIONS))],
         ]);
 
+        $nama = trim($validated['nama']);
+
         Kategori::create([
-            'nama' => $request->nama,
-            'slug' => Str::slug($request->nama),
-            'icon' => $request->icon,
+            'nama' => $nama,
+            'slug' => $this->generateUniqueSlug($nama),
+            'icon' => $validated['icon'],
         ]);
 
         return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil ditambahkan.');
@@ -58,18 +60,38 @@ class KategoriController extends Controller
 
     public function update(Request $request, Kategori $category)
     {
-        $request->validate([
-            'nama' => 'required|string|max:100|unique:kategori,nama,' . $category->id,
+        $validated = $request->validate([
+            'nama' => ['required', 'string', 'max:100', Rule::unique('kategori', 'nama')->ignore($category->id)],
             'icon' => ['required', 'string', Rule::in(array_keys(self::ICON_OPTIONS))],
         ]);
 
+        $nama = trim($validated['nama']);
+
         $category->update([
-            'nama' => $request->nama,
-            'slug' => Str::slug($request->nama),
-            'icon' => $request->icon,
+            'nama' => $nama,
+            'slug' => $this->generateUniqueSlug($nama, $category->id),
+            'icon' => $validated['icon'],
         ]);
 
         return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil diperbarui.');
+    }
+
+    private function generateUniqueSlug(string $nama, ?int $ignoreId = null): string
+    {
+        $base = Str::limit(Str::slug($nama) ?: 'kategori', 90, '');
+        $slug = $base;
+        $suffix = 1;
+
+        while (
+            Kategori::where('slug', $slug)
+                ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+                ->exists()
+        ) {
+            $slug = $base.'-'.$suffix;
+            $suffix++;
+        }
+
+        return $slug;
     }
 
     public function destroy(Kategori $category)
