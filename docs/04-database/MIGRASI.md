@@ -14,7 +14,7 @@
 ## Daftar Isi
 
 1. [Ringkasan Eksekusi Migrasi](#1-ringkasan-eksekusi-migrasi)
-2. [Tabel Daftar Lengkap 27 Migrasi](#2-tabel-daftar-lengkap-27-migrasi)
+2. [Tabel Daftar Lengkap 32 Migrasi](#2-tabel-daftar-lengkap-32-migrasi)
 3. [Detail Migrasi Penyelarasan Skema (Batch 9 / `2026_10_15_*`)](#3-detail-migrasi-penyelarasan-skema-batch-9--2026_10_15_)
 4. [Pemeriksaan Pra-Eksekusi (Pre-Flight Validation) pada Migrasi Batch 9](#4-pemeriksaan-pra-eksekusi-pre-flight-validation-pada-migrasi-batch-9)
 5. [Urutan Aman Menjalankan Migrasi pada Lingkungan Baru / Produksi](#5-urutan-aman-menjalankan-migrasi-pada-lingkungan-baru--produksi)
@@ -31,7 +31,7 @@ Berdasarkan pemeriksaan langsung perintah `php artisan migrate:status` pada data
 
 ---
 
-## 2. Tabel Daftar Lengkap 27 Migrasi
+## 2. Tabel Daftar Lengkap 32 Migrasi
 
 | No | Nama Migrasi (`database/migrations/*.php`) | Batch Lokal | Status Lokal | Tabel yang Dibuat / Diubah | Tujuan Perubahan Skema |
 | :---: | :--- | :---: | :---: | :--- | :--- |
@@ -107,9 +107,9 @@ Pada instalasi lokal baru atau server baru:
 php artisan migrate
 php artisan db:seed
 ```
-Seluruh 27 migrasi akan dieksekusi secara berurutan dari nomor 1 hingga 27 dalam satu batch.
+Seluruh **32 berkas migrasi** (Batch 1–14, termasuk penambahan kolom, indeks komposit, serta 4 objek SQL View, Stored Function, Stored Procedure, dan Trigger) akan dieksekusi secara berurutan dari nomor 1 hingga 32.
 
-### 5.2 Pembaruan Server Produksi (Upgrade dari Batch 8 ke Batch 9)
+### 5.2 Pembaruan Server Produksi (Upgrade Berkala)
 1. **Cadangkan Database (*Backup*):**
    ```bash
    mysqldump -u <user> -p <nama_db> > backup_pre_batch9.sql

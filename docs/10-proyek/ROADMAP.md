@@ -84,8 +84,8 @@ flowchart LR
 | ID Roadmap | Inisiatif Fitur | Status Saat Ini di Kode | Pekerjaan yang Dibutuhkan (`[Planned]`) | Prioritas |
 | :--- | :--- | :--- | :--- | :---: |
 | **RD-05** | **Galeri Multi-Foto Produk & Konversi WebP Otomatis** | `[Planned]` — Saat ini menggunakan 1 kolom `foto_utama` pada tabel `produk`. | Membuat tabel `produk_fotos` untuk mendukung hingga 5 foto per produk dan kompresi gambar sisi server saat unggah. | **Sedang** |
-| **RD-06** | **Deduplikasi Penghitung `views` Berbasis Sesi (`Session Window`)** | `[Partial]` — Saat ini dilindungi `throttle:60,1` pada `GET /produk/{slug}`. | Menyimpan daftar ID produk yang baru dilihat di dalam session selama 30 menit agar `F5` berulang tidak menambah `views` dan `produk_views_logs`. | **Sedang** |
-| **RD-07** | **Halaman Etalase Toko Publik Mandiri (`/toko/{penjual}`)** | `[Partial]` — Endpoint API `GET /api/sellers/{penjual}` sudah tersedia (`API-012`), tetapi rute web khusus profil toko publik belum dipisahkan. | Menambahkan rute web `GET /toko/{penjual}` yang menampilkan profil toko siswa beserta seluruh produk aktifnya. | **Sedang** |
+| **RD-06** | **Deduplikasi Penghitung `views` Berbasis Sesi (`Session Window`)** | `[Implemented]` — Sudah diterapkan di `Public\ProdukController::show` via session key `viewed_produk_{id}`. | Pertahankan atau tingkatkan ke dedup lintas session / IP window bila diperlukan. | **Selesai** |
+| **RD-07** | **Halaman Etalase Toko Publik Mandiri (`/toko/{penjual}`)** | `[Partial]` — Produk publik sudah memakai rute terlingkup toko `/{penjual:slug}/{produk:slug}` dan API `GET /api/sellers/{seller}` tersedia, tetapi halaman profil toko publik tersendiri belum dibuat. | Menambahkan rute web profil toko publik untuk menampilkan semua produk dari satu toko siswa. | **Sedang** |
 
 ---
 

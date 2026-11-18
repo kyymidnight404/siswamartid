@@ -27,9 +27,9 @@
 
 Sebagai pengunjung (siswa, guru, staf sekolah, maupun masyarakat umum), Anda **tidak perlu membuat akun atau login** untuk:
 - Menjelajahi seluruh produk wirausaha siswa di Beranda (`/`) dan Katalog Kategori (`/kategori`).
-- Melihat detail produk, harga, lokasi kelas penjual, dan ulasan pembeli lain (`/produk/{slug}`).
-- Memesan produk secara langsung ke WhatsApp penjual (`/produk/{slug}/whatsapp`).
-- Memberikan rating bintang (1–5) dan komentar ulasan (`/produk/{slug}/ulasan`).
+- Melihat detail produk, harga, lokasi kelas penjual, dan ulasan pembeli lain (`/{toko}/{produk}`, misalnya `/edmunds-hearth/croissant`).
+- Memesan produk secara langsung ke WhatsApp penjual (`/{toko}/{produk}/whatsapp`).
+- Memberikan rating bintang (1–5) dan komentar ulasan (`/{toko}/{produk}/ulasan`).
 
 Informasi tambahan mengenai tata cara berbelanja dan profil platform juga tersedia melalui menu **Cara Pemesanan** (`/cara-pemesanan`) dan **Tentang Kami** (`/tentang-kami`).
 
@@ -60,7 +60,7 @@ Pada halaman Katalog (`/kategori`), gunakan panel filter untuk menemukan produk 
 
 ## 4. Membaca Halaman Detail Produk, Status Stok, dan Status Toko
 
-Klik kartu produk mana pun untuk membuka halaman detail (`GET /produk/{slug}`). Perhatikan arti indikator status berikut sebelum memesan:
+Klik kartu produk mana pun untuk membuka halaman detail (`GET /{toko}/{produk}`; tautan lama `/produk/{slug}` otomatis diarahkan `301` ke URL toko/produk). Perhatikan arti indikator status berikut sebelum memesan:
 
 ### 4.1 Arti Indikator Status Stok (`produk.stok`)
 | Lencana Stok | Kode Sistem | Arti & Ketersediaan Pemesanan |
@@ -80,7 +80,7 @@ Klik kartu produk mana pun untuk membuka halaman detail (`GET /produk/{slug}`). 
 ## 5. Cara Memesan Produk Melalui WhatsApp
 
 1. Pastikan produk yang Anda pilih berstatus **Stok Tersedia** atau **Pre-Order (PO)**.
-2. Klik tombol **"Pesan via WhatsApp"** pada halaman detail produk (`GET /produk/{slug}/whatsapp`).
+2. Klik tombol **"Pesan via WhatsApp"** pada halaman detail produk (`GET /{toko}/{produk}/whatsapp`).
 3. Sistem akan mencatat klik pemesanan dan secara otomatis mengarahkan Anda ke aplikasi **WhatsApp** (`wa.me/62...`) dengan teks pesan yang sudah terisi otomatis:
    - **Saat Toko Buka:**
      > *"Halo Kak, saya tertarik dengan produk *{Nama Produk}* (Rp {Harga}) di SiswaMart. Apakah stoknya masih tersedia?"*
@@ -93,7 +93,7 @@ Klik kartu produk mana pun untuk membuka halaman detail (`GET /produk/{slug}`). 
 ## 6. Cara Memberikan Ulasan dan Rating Bintang
 
 1. Gulir ke bagian **Ulasan Pembeli** di bagian bawah halaman detail produk.
-2. Isi formulir ulasan (`POST /produk/{slug}/ulasan`):
+2. Isi formulir ulasan (`POST /{toko}/{produk}/ulasan`):
    - **Nama Anda (`guest_username`):** Wajib diisi, maksimal 100 karakter.
    - **Rating (`rating`):** Pilih 1 hingga 5 bintang.
    - **Komentar (`komentar`):** Wajib diisi, maksimal 1.000 karakter.

@@ -3,11 +3,11 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | Entity-Relationship Diagram (ERD) Skema Aktual SiswaMart |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
 | **Status** | Final (Source-Code & Live DB Verified) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
-| **Sumber Data** | `database/migrations/` (27 berkas), `app/Models/` (9 model), dan skema aktual MySQL `siswamartid` (19 tabel) |
+| **Sumber Data** | `database/migrations/` (32 berkas), `app/Models/` (9 model), dan skema aktual MySQL/MariaDB (19 tabel + 1 View + 2 Routines + 1 Trigger) |
 
 ---
 
@@ -24,7 +24,7 @@
 
 ## 1. Ringkasan Skema Database Aktual
 
-Database MySQL `siswamartid` memiliki total **19 tabel aktif** yang dibentuk dari **27 berkas migrasi** (seluruh 27 migrasi berstatus **`Ran`** pada Batch 1 s.d. Batch 9):
+Database MySQL `siswamartid` (dan MariaDB produksi `siswamartidmy_siswamart`) memiliki total **19 tabel dasar aktif** yang dibentuk dari **32 berkas migrasi** (seluruh 32 migrasi berstatus **`Ran`** pada Batch 1 s.d. Batch 14), ditambah **4 objek SQL** (1 View, 1 Stored Function, 1 Stored Procedure, 1 Trigger):
 
 - **11 Tabel Domain Bisnis, Moderasi, Notifikasi, & API:**
   1. `users` — Akun pengguna (`admin` & `penjual`) beserta kredensial Google OAuth.
@@ -81,6 +81,7 @@ erDiagram
         text alamat "Nullable, Batch 9 (2026_10_15_000001)"
         bigint_unsigned user_id FK,UK "ON DELETE CASCADE, UK Batch 9"
         varchar_255 nama_toko
+        varchar_255 slug UK "Slug URL toko (2026_11_17_000001)"
         text deskripsi_toko "Nullable"
         varchar_255 nomor_whatsapp
         varchar_255 lokasi_kelas "Nullable"
@@ -107,13 +108,14 @@ erDiagram
         bigint_unsigned penjual_id FK "ON DELETE CASCADE"
         bigint_unsigned kategori_id FK "ON DELETE RESTRICT"
         varchar_255 nama
-        varchar_255 slug UK
+        varchar_255 slug "Unik per penjual: UK(penjual_id, slug) (2026_11_17_000001)"
         text deskripsi "Nullable"
         decimal_12_2 harga
         enum stok "tersedia, po, habis (default: tersedia, Batch 9)"
         varchar_255 label_promosi "Nullable"
         varchar_255 foto_utama "Nullable"
         enum status "draft, pending, aktif, ditolak (default: pending, Batch 9)"
+        timestamp approved_at "Nullable (2026_11_05_000001, diisi otomatis trigger saat aktif)"
         bigint views "default: 0"
         varchar_500 alasan_ditolak "Nullable"
         varchar_20 pending_action "Nullable (create/update/delete), Batch 9"
@@ -267,9 +269,22 @@ Seluruh constraint kunci asing (*foreign key*) di bawah ini telah diverifikasi l
 
 ---
 
-## 6. Rujukan Kode
+## 6. Objek SQL Tambahan (Migrasi Batch 14 — `2026_11_18_000001`)
 
-- `database/migrations/0001_01_01_000000_create_users_table.php` s.d. `database/migrations/2026_10_15_000005_add_google_id_to_users_table.php`
+Selain 19 tabel dasar, database MySQL/MariaDB SiswaMart memiliki 4 objek SQL terprogram yang dikelola melalui `database/migrations/2026_11_18_000001_add_database_views_routines_and_triggers.php`:
+
+| Jenis Objek | Nama Objek | Target / Parameter | Tujuan Fungsional |
+| :--- | :--- | :--- | :--- |
+| **SQL View** | `v_katalog_produk_aktif` | `produk`, `penjual`, `users`, `kategori`, `ulasan` (`SQL SECURITY INVOKER`) | Menyajikan katalog produk berstatus `'aktif'` dari penjual aktif (`users.is_active = 1`) lengkap dengan nama/slug toko, kategori, `jumlah_ulasan`, dan `rata_rata_rating` ulasan publik. |
+| **Stored Function** | `fn_hitung_rating_produk` | `(p_produk_id BIGINT UNSIGNED)` $\rightarrow$ `DECIMAL(3,2)` | Mengembalikan rata-rata rating ulasan publik yang disetujui untuk satu produk (`0.00` jika belum ada ulasan). |
+| **Stored Procedure** | `sp_rekap_toko` | `(IN p_penjual_id BIGINT UNSIGNED)` | Menghasilkan ringkasan performa penjual (`total_produk`, `total_produk_aktif`, `total_views`, dan `rata_rata_rating`). |
+| **Trigger** | `trg_produk_set_approved_at` | `BEFORE UPDATE ON produk FOR EACH ROW` | Mengisi `NEW.approved_at = CURRENT_TIMESTAMP` secara otomatis bila produk berstatus `'aktif'` dengan `approved_at` masih `NULL`. |
+
+---
+
+## 7. Rujukan Kode
+
+- `database/migrations/0001_01_01_000000_create_users_table.php` s.d. `database/migrations/2026_11_18_000001_add_database_views_routines_and_triggers.php`
 - `app/Models/User.php#L1-L75`
 - `app/Models/Penjual.php#L1-L82`
 - `app/Models/Kategori.php#L1-L32`

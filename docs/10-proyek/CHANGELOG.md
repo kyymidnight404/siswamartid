@@ -3,9 +3,9 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | Riwayat Perubahan (Changelog) Proyek SiswaMart |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
-| **Status** | Final (Git History & Working Tree Verified) |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
+| **Status** | Final (Git History Verified) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
 | **Sumber Data** | Output aktual `git log --stat` dan `git status` pada repositori `c:\laragon\www\siswamartid` |
 
@@ -14,13 +14,14 @@
 ## Daftar Isi
 
 1. [Format Pencatatan](#1-format-pencatatan)
-2. [[Unreleased / Working Tree] — 27 Oktober 2026](#2-unreleased--working-tree--27-oktober-2026)
-3. [[1.0.5] — 26 Oktober 2026 (Commit `108c775`)](#3-105--26-oktober-2026-commit-108c775)
-4. [[1.0.4] — 25 Oktober 2026 (Commit `927f7cb` & `f0c0b5a`)](#4-104--25-oktober-2026-commit-927f7cb--f0c0b5a)
-5. [[1.0.3] — 21 Oktober 2026 (Commit `da22ca1`)](#5-103--21-oktober-2026-commit-da22ca1)
-6. [[1.0.2] — 15 Oktober 2026 (Commit `f379320`)](#6-102--15-oktober-2026-commit-f379320)
-7. [[1.0.0] — 2 Oktober 2026 (Commit `1c6bac4`)](#7-100--2-oktober-2026-commit-1c6bac4)
-8. [Rujukan Kode & Commit Git](#8-rujukan-kode--commit-git)
+2. [[1.2.0] — 17–18 November 2026 (Commit `b38d67e`, `d98ecdd`, `b070e50`, `b3a9d41`)](#2-120--1718-november-2026-commit-b38d67e-d98ecdd-b070e50-b3a9d41)
+3. [[1.1.0] — 13 November 2026 (Commit `8358f95`)](#3-110--13-november-2026-commit-8358f95)
+4. [[1.0.5] — 26 Oktober 2026 (Commit `108c775`)](#4-105--26-oktober-2026-commit-108c775)
+5. [[1.0.4] — 25 Oktober 2026 (Commit `927f7cb` & `f0c0b5a`)](#5-104--25-oktober-2026-commit-927f7cb--f0c0b5a)
+6. [[1.0.3] — 21 Oktober 2026 (Commit `da22ca1`)](#6-103--21-oktober-2026-commit-da22ca1)
+7. [[1.0.2] — 15 Oktober 2026 (Commit `f379320`)](#7-102--15-oktober-2026-commit-f379320)
+8. [[1.0.0] — 2 Oktober 2026 (Commit `1c6bac4`)](#8-100--2-oktober-2026-commit-1c6bac4)
+9. [Rujukan Kode & Commit Git](#9-rujukan-kode--commit-git)
 
 ---
 
@@ -30,19 +31,32 @@ Dokumen ini disusun mengikuti standar **[Keep a Changelog](https://keepachangelo
 
 ---
 
-## 2. [Unreleased / Working Tree] — 27 Oktober 2026
+## 2. [1.2.0] — 17–18 November 2026 (Commit `b38d67e`, `d98ecdd`, `b070e50`, `b3a9d41`)
 
 ### Added (Ditambahkan)
-- Paket dokumentasi rekayasa perangkat lunak lengkap (24 dokumen dalam 10 folder `docs/01-prd` s.d. `docs/10-proyek` serta `README.md` utama) yang ditelusuri langsung ke kode sumber (*source-code backed*).
-- Spesifikasi OpenAPI 3.0.3 (`docs/06-api/openapi.yaml`) untuk seluruh 26 rute `/api/*`.
+- **Objek SQL Database (`b3a9d41`):** Migrasi `2026_11_18_000001_add_database_views_routines_and_triggers.php` menambahkan SQL View `v_katalog_produk_aktif`, Stored Function `fn_hitung_rating_produk`, Stored Procedure `sp_rekap_toko`, dan Trigger `trg_produk_set_approved_at` (`SQL SECURITY INVOKER`).
+- **Rute Produk Terlingkup Toko (`b38d67e`):** Migrasi `2026_11_17_000001_add_slug_to_penjual_and_scope_produk_slug.php` menambahkan `penjual.slug` dan indeks komposit unik `(penjual_id, slug)`, rute publik `/{penjual:slug}/{produk:slug}` (`show`, `whatsapp`, `ulasan`), serta redirect `301` legacy `/produk/{slug}`.
+- **Halaman Penuh & Filter Notifikasi Admin (`d98ecdd`):** Menambahkan rute `GET /admin/notifikasi` (`admin.notifications.index`), tab filter `Semua`, `Produk`, dan `Ulasan` tanpa tab setting, serta normalisasi redirect relatif host di `AdminNotificationService`.
 
 ### Changed (Diubah)
-- Menjalankan 5 migrasi penyelarasan skema (`2026_10_15_000001` s.d. `2026_10_15_000005`) pada database lokal `siswamartid` (Batch 9 `Ran`).
-- Memperbarui `docs/01-prd/PRD.md`, `docs/01-prd/GAP_ANALYSIS.md`, dan `docs/04-database/ERD.md` ke versi `1.1.0` agar mencerminkan implementasi aktual.
+- **Domain Canonical & Redirect `301` (`b070e50`):** Menambahkan rewrite `301` di `public/.htaccess` dari `siswamartid.my.id` dan `www` menuju `https://siswamart.app` (melindungi `/.well-known/acme-challenge/`), serta memperbarui `robots.txt`, fallback logo email reset password, `.env.hosting.example`, dan `PANDUAN_HOSTING.txt`.
+- **UI Publik & Dashboard (`b38d67e`, `d98ecdd`):** Menyeragamkan tombol navbar `Dashboard` berwarna kuning, memadatkan kartu detail produk agar muat di atas lipatan layar desktop/laptop, mengubah tombol WhatsApp mengambang di HP menjadi popup pill kanan bawah, menghapus tag `Admin` di kiri atas sidebar, dan memusatkan wordmark `SiswaMart` tanpa kotak.
+- **Pengujian Otomatis:** Total suite naik menjadi **14 berkas / 129 test (776 assertions)** dengan kelulusan **100% (129/129 Lulus)**.
 
 ---
 
-## 3. [1.0.5] — 26 Oktober 2026 (Commit `108c775`)
+## 3. [1.1.0] — 13 November 2026 (Commit `8358f95`)
+
+**Commit:** `8358f95` — *"feat: refine SiswaMart reporting, security, UI, docs, and hosting setup"*
+
+### Added (Ditambahkan)
+- `SecurityHeadersMiddleware`, `SitemapController` (`/sitemap.xml`), `WhatsappUrlService`, dan `PdfFilenameService`.
+- Font web lokal (`public/fonts/`), pembaruan desain laporan PDF & Excel Admin/Penjual, skrip packing DirectAdmin (`scripts/deploy/create-siswamart-root-zip.ps1` & `deploy-helper.php`), serta paket dokumentasi `docs/`.
+- Migrasi `2026_11_05_000001_add_approved_at_to_produk_table`, `2026_11_09_000001_add_performance_composite_indexes`, dan `2026_11_11_000001_ensure_cache_table_value_is_medium_text`.
+
+---
+
+## 4. [1.0.5] — 26 Oktober 2026 (Commit `108c775`)
 
 **Commit:** `108c775` — *"feat: add Google authentication and comprehensive documentation"*
 
@@ -115,8 +129,13 @@ Dokumen ini disusun mengikuti standar **[Keep a Changelog](https://keepachangelo
 
 ---
 
-## 8. Rujukan Kode & Commit Git
+## 9. Rujukan Kode & Commit Git
 
+- Commit `b3a9d41` (2026-11-18)
+- Commit `b070e50` (2026-11-18)
+- Commit `d98ecdd` (2026-11-17)
+- Commit `b38d67e` (2026-11-17)
+- Commit `8358f95` (2026-11-13)
 - Commit `108c775` (2026-10-26)
 - Commit `927f7cb` (2026-10-25)
 - Commit `f0c0b5a` (2026-10-25)

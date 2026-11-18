@@ -3,8 +3,8 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | Katalog Aturan Bisnis (Business Rules) SiswaMart |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
 | **Status** | Final (Source-Code Backed) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
 | **Sumber Data** | `app/Models/`, `app/Http/Controllers/`, `app/Http/Middleware/`, `app/Http/Requests/`, `app/Services/`, `app/Exports/` |
@@ -71,8 +71,7 @@ Penomoran di bawah ini selaras sepenuhnya dengan `docs/01-prd/PRD.md` dan `docs/
   - `label_promosi`: opsional, string, maks 50 karakter.
   - `foto_utama`: wajib saat buat baru di Web (`image|mimes:jpeg,png,jpg,webp|max:2048` / 2 MB).
 - **Rujukan Kode:**
-  - `app/Http/Controllers/Penjual/ProdukController.php#L61-L103`
-  - `app/Http/Controllers/Api/SellerProductController.php#L56-L95`
+  - `app/Http/Controllers/Penjual/ProdukController.php`
 
 ### BR-PROD-03 (`BR-03`): Preservasi Produk Aktif Saat Diedit (`pending_action = 'update'`)
 - **Deskripsi:** Apabila Penjual mengedit produk yang saat itu berstatus `aktif`:
@@ -81,16 +80,15 @@ Penomoran di bawah ini selaras sepenuhnya dengan `docs/01-prd/PRD.md` dan `docs/
   3. Selama menunggu keputusan Admin, pengunjung publik tetap melihat data produk versi terakhir yang telah disetujui, sedangkan Admin melihat tabel komparasi *diff* nilai lama vs nilai baru.
 - **Catatan Produk Non-Aktif:** Jika produk yang diedit berstatus `pending`, `ditolak`, atau `draft`, perubahan langsung menimpa kolom utama dan status diatur ke `status = 'pending'`, `pending_action = 'create'`.
 - **Rujukan Kode:**
-  - `app/Http/Controllers/Penjual/ProdukController.php#L140-L181`
-  - `app/Http/Controllers/Api/SellerProductController.php#L118-L157`
-  - `app/Models/Produk.php#L67-L85` (`getPendingChange`)
+  - `app/Http/Controllers/Penjual/ProdukController.php`
+  - `app/Models/Produk.php` (`getPendingChange`, `hasPendingModerationRequest`)
 
 ### BR-PROD-04 (`BR-04`): Persetujuan Admin untuk Penghapusan Produk (`pending_action = 'delete'`)
 - **Deskripsi:** Penjual tidak dapat menghapus baris produk secara langsung dari database. Saat Penjual menekan tombol hapus, sistem menyetel `pending_action = 'delete'` dan mengirim notifikasi ke Admin. Produk baru benar-benar dihapus dari database dan *storage* setelah Admin menekan **Setujui (`Approve`)** pada ajuan hapus tersebut.
 - **Pembatasan:** Jika produk sedang memiliki ajuan moderasi yang belum selesai (`hasPendingModerationRequest() == true`), pengajuan hapus baru ditolak sampai ajuan sebelumnya diputuskan Admin.
 - **Rujukan Kode:**
-  - `app/Http/Controllers/Penjual/ProdukController.php#L191-L219`
-  - `app/Http/Controllers/Admin/ProdukController.php#L76-L86`
+  - `app/Http/Controllers/Penjual/ProdukController.php`
+  - `app/Http/Controllers/Admin/ProdukController.php`
 
 ### BR-PROD-05 (`BR-05`): Kewajiban Alasan Penolakan & Efek *Rollback* Saat Ajuan Ditolak
 - **Deskripsi:**
@@ -98,8 +96,7 @@ Penomoran di bawah ini selaras sepenuhnya dengan `docs/01-prd/PRD.md` dan `docs/
   2. Jika ajuan yang ditolak adalah revisi (`pending_action = 'update'`) atau penghapusan (`pending_action = 'delete'`) atas produk yang sudah `aktif`, maka foto sementara di `pending_changes` dihapus, `pending_action` dan `pending_changes` dikosongkan (`null`), `alasan_ditolak` disimpan untuk dibaca penjual, namun **`produk.status` tetap dipertahankan `'aktif'`** agar produk lama tidak hilang dari etalase.
   3. Jika ajuan yang ditolak adalah produk baru (`pending_action = 'create'`), maka `produk.status` diubah menjadi `'ditolak'`.
 - **Rujukan Kode:**
-  - `app/Http/Controllers/Admin/ProdukController.php#L61-L163`
-  - `app/Http/Controllers/Api/AdminModerationController.php#L47-L166`
+  - `app/Http/Controllers/Admin/ProdukController.php`
 
 ---
 
@@ -119,7 +116,7 @@ Penomoran di bawah ini selaras sepenuhnya dengan `docs/01-prd/PRD.md` dan `docs/
 
 ### BR-STORE-01 (`BR-08`): Perilaku Tombol Pemesanan WhatsApp Berdasarkan Stok & Status Toko
 - **Deskripsi:**
-  1. Jika `produk.stok === 'habis'`, tombol WhatsApp dinonaktifkan di antarmuka dan akses langsung ke `/produk/{slug}/whatsapp` diblokir dengan pesan error.
+  1. Jika `produk.stok === 'habis'`, tombol WhatsApp dinonaktifkan di antarmuka dan akses langsung ke `/{penjual:slug}/{produk:slug}/whatsapp` (maupun fallback `/produk/{slug}/whatsapp`) diblokir dengan pesan error.
   2. Nomor WhatsApp penjual dinormalisasi dari awalan lokal `08...` menjadi format internasional `628...` (`Public\ProdukController@trackWhatsapp#L88-L93`).
   3. Jika `penjual.status_toko === 'buka'`, pesan otomatis WhatsApp berbunyi: `"Halo Kak, saya tertarik dengan produk *{nama}* ({harga}) di SiswaMart. Apakah stoknya masih tersedia?"`.
   4. Jika `penjual.status_toko === 'tutup'`, pemesanan tetap diizinkan sebagai konfirmasi *pre-order*/tanya stok dengan pesan khusus: `"Halo Kak, saya melihat produk *{nama}* ({harga}) di SiswaMart. Saya lihat status toko sedang tutup, apakah saya masih bisa memesan atau kapan toko buka kembali?"`.
@@ -144,7 +141,7 @@ Penomoran di bawah ini selaras sepenuhnya dengan `docs/01-prd/PRD.md` dan `docs/
 - **Rujukan Kode:** `app/Services/CommentModerationService.php#L186-L198`.
 
 ### BR-REV-03 (`BR-11`): Pembatasan Laju (*Rate Limiting*) Pengiriman Ulasan Tamu
-- **Deskripsi:** Pengiriman ulasan tamu dibatasi maksimal **3 kali per menit per IP** pada rute Web (`POST /produk/{produk:slug}/ulasan`, `throttle:3,1`) dan **10 kali per menit per IP** pada rute API (`POST /api/products/{produk:slug}/reviews`, `throttle:10,1`).
+- **Deskripsi:** Pengiriman ulasan tamu dibatasi maksimal **3 kali per menit per IP** pada rute Web (`POST /{penjual:slug}/{produk:slug}/ulasan`, `throttle:3,1`) dan rute API (`POST /api/products/{product}/reviews`, `throttle:3,1`).
 - **Rujukan Kode:** `routes/web.php#L21-L23`, `routes/api.php#L31-L32`.
 
 ---

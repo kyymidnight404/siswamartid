@@ -85,7 +85,8 @@ Pastikan perangkat pengembangan lokal Anda memenuhi spesifikasi berikut (`compos
 
 ## 4. Migrasi Database, Seeder, dan Symlink Storage
 
-1. **Jalankan Seluruh 27 Migrasi Database:**
+1. **Jalankan Seluruh 32 Migrasi Database:**
+   *(Sudah mencakup pembentukan 19 tabel aktif beserta SQL View, Stored Function/Procedure, dan Trigger di MySQL/MariaDB.)*
    ```bash
    php artisan migrate
    ```

@@ -59,8 +59,8 @@ Setiap klaim kontrol keamanan pada tabel berikut telah diverifikasi langsung pad
 
 Sistem memisahkan hak akses secara ketat antara `admin` dan `penjual`:
 - **Pemeriksaan Kepemilikan Sumber Daya (*Object-Level Authorization*):**
-  - Pada `Penjual\ProdukController` (`#L110`, `#L130`, `#L193`) dan `Api\SellerProductController` (`#L101`, `#L167`), sistem memeriksa `$produk->penjual_id !== $penjual->id` dan segera melempar `abort(403)` jika penjual mencoba memodifikasi produk milik toko lain.
-  - Pada `Api\ReviewController@destroy` (`#L100-L106`), penghapusan ulasan hanya diizinkan bagi `admin` atau `penjual` pemilik produk yang diulas.
+  - Pada `Penjual\ProdukController`, sistem memeriksa `$produk->penjual_id !== $penjualId` dan segera melempar `abort_unless(..., 403)` jika penjual mencoba memodifikasi produk milik toko lain.
+  - Pada `Admin\NotificationController` dan `Api\NotificationController`, notifikasi yang diakses/ditandai dibaca dipastikan milik pengguna terautentikasi (`notifiable_id`).
 - **Pencabutan Akses Seketika (*Immediate Access Revocation*):**
   - Apabila Admin menonaktifkan akun (`is_active = false`), baik sesi Web (`EnsureAdmin`, `EnsurePenjual`) maupun seluruh token Bearer Sanctum (`EnsureUserIsActive`) langsung dihancurkan pada permintaan berikutnya.
 
@@ -84,10 +84,10 @@ Daftar seluruh pembatasan laju (*rate limiter*) yang aktif di kode sumber:
 | `POST /login` (Web) | `RateLimiter::tooManyAttempts` (maks **5x gagal** per `login\|IP`) | `app/Http/Requests/Auth/LoginRequest.php#L82-L101` | Mencegah serangan *brute-force* kata sandi. |
 | `POST /api/login` & `/api/register` | `throttle:5,1` (**5 req/menit**) + `RateLimiter` 5x gagal | `routes/api.php#L19-L20`, `Api\AuthController.php#L47` | Mencegah *credential stuffing* pada endpoint API. |
 | `POST /forgot-password` & `/reset-password` | `throttle:5,1` (**5 req/menit**) | `routes/auth.php#L31`, `#L39` | Mencegah banjir pengiriman email reset password. |
-| `POST /produk/{produk:slug}/ulasan` (Web) | `throttle:3,1` (**3 req/menit** per IP) | `routes/web.php#L21-L23` | Mencegah spam ulasan tamu di halaman produk. |
-| `POST /api/products/{produk:slug}/reviews` | `throttle:10,1` (**10 req/menit** per IP) | `routes/api.php#L31-L32` | Mencegah spam ulasan melalui API. |
-| `GET /produk/{produk:slug}/whatsapp` | `throttle:30,1` (**30 req/menit** per IP) | `routes/web.php#L18-L20` | Mencegah manipulasi/bot penghitung klik WhatsApp. |
-| `GET /produk/{produk:slug}` | `throttle:60,1` (**60 req/menit** per IP) | `routes/web.php#L15-L17` | Mencegah inflasi palsu penghitung `views` produk. |
+| `POST /api/products/{product}/reviews` | `throttle:3,1` (**3 req/menit** per IP) | `routes/api.php#L39-L40` | Mencegah spam ulasan melalui API. |
+| `POST /{penjual:slug}/{produk:slug}/ulasan` (Web) | `throttle:3,1` (**3 req/menit** per IP) | `routes/web.php` | Mencegah spam ulasan tamu di halaman produk. |
+| `GET /{penjual:slug}/{produk:slug}/whatsapp` | `throttle:30,1` (**30 req/menit** per IP) | `routes/web.php` | Mencegah manipulasi/bot penghitung klik WhatsApp. |
+| `GET /{penjual:slug}/{produk:slug}` | `throttle:60,1` (**60 req/menit** per IP) | `routes/web.php` | Mencegah inflasi palsu penghitung `views` produk. |
 
 ---
 
@@ -96,7 +96,8 @@ Daftar seluruh pembatasan laju (*rate limiter*) yang aktif di kode sumber:
 1. **SQL Injection (SQLi):** Seluruh kueri menggunakan Eloquent ORM dan *parameter binding* PDO (`where`, `whereHas`). Tidak ada interpolasi input mentah pengguna ke dalam SQL.
 2. **Cross-Site Scripting (XSS):** Seluruh template Blade di `resources/views/` merender variabel menggunakan sintaks ter-escape `{{ ... }}`.
 3. **Cross-Site Request Forgery (CSRF):** Seluruh rute mutasi Web (`POST`, `PUT`, `PATCH`, `DELETE`) berada di dalam grup middleware `web` yang memverifikasi `@csrf` token secara otomatis.
-4. **CSV / Excel Formula Injection:** Metode `StylesSheet::sanitizeText()` (`app/Exports/Concerns/StylesSheet.php#L230-L245`) menghapus karakter kontrol (`\x00-\x08`, dll.) dan menyisipkan tanda kutip tunggal (`'`) di depan teks yang diawali `=`, `+`, `-`, atau `@` sebelum ditulis ke file `.xlsx`.
+4. **Open Redirect Prevention pada Notifikasi:** `AdminNotificationService::normalizeInternalUrl()` mengekstrak path relatif internal (menghapus scheme/host asing dan menolak prefix `//`), sehingga pengalihan dari notifikasi lama maupun baru selalu tetap di host aktif.
+5. **CSV / Excel Formula Injection:** Metode `StylesSheet::sanitizeText()` (`app/Exports/Concerns/StylesSheet.php#L230-L245`) menghapus karakter kontrol (`\x00-\x08`, dll.) dan menyisipkan tanda kutip tunggal (`'`) di depan teks yang diawali `=`, `+`, `-`, atau `@` sebelum ditulis ke file `.xlsx`.
 
 ---
 
@@ -116,7 +117,7 @@ Selaras dengan bagian Risiko pada `docs/01-prd/PRD.md`:
 
 | ID Risiko | Deskripsi Risiko | Tingkat Risiko | Mitigasi Aktual & Tindakan yang Wajib Dilakukan |
 | :--- | :--- | :---: | :--- |
-| **RSK-01** | **Keberadaan `public/deploy-helper.php` di repositori:** Berkas ini mengizinkan eksekusi `migrate`, `storage:link`, dan `optimize:clear` melalui HTTP dengan kunci statis di dalam kode. | **Tinggi** *(jika ikut ter-deploy)* | **Wajib dihapus** dari folder `public/` / `public_html/` pada server produksi segera setelah instalasi selesai (lihat `DEPLOYMENT.md` Bagian 4). |
+| **RSK-01** | **Keberadaan skrip `deploy-helper.php` saat deployment:** Berkas `scripts/deploy/deploy-helper.php` (ikut terpaket ke `public_html/` oleh script ZIP) mengizinkan eksekusi `migrate`, `storage:link`, dan cache clear melalui HTTP dengan kunci statis. | **Tinggi** *(jika tertinggal di publik)* | **Wajib dihapus** dari `public_html/` server produksi segera setelah migrasi selesai (`DEPLOYMENT.md` Bagian 4). |
 | **RSK-02** | **Penghitung `views` bertambah setiap muat ulang halaman (`F5`):** Meskipun sudah dibatasi `throttle:60,1`, satu pengunjung masih dapat menambah `views` hingga 60 kali per menit. | **Rendah** | Mitigasi saat ini: `throttle:60,1`. Rekomendasi fase berikutnya: lakukan *deduplication* berbasis sesi atau hash IP per produk per jam. |
 | **RSK-03** | **Penggunaan `VerifyCsrfToken::except(['*'])` di satu berkas test:** Pada `AdminAndPenjualFilteringAndPaginationTest.php#L26`, CSRF dinonaktifkan dalam `setUp()` untuk kemudahan pengujian rute form. | **Rendah** *(hanya di test)* | Hanya berlaku saat PHPUnit berjalan; di aplikasi nyata middleware CSRF tetap aktif penuh. |
 | **RSK-04** | **Penyalahgunaan Ulasan Tamu Tanpa Login:** Pengunjung tidak perlu login untuk mengirim ulasan. | **Sedang** | Telah dimitigasi oleh `CommentModerationService` (filter 350+ kata kasar & leetspeak), `throttle:3,1`, dan fitur hapus ulasan di panel Admin. |
@@ -136,4 +137,5 @@ Selaras dengan bagian Risiko pada `docs/01-prd/PRD.md`:
 - `app/Http/Controllers/Auth/PasswordResetLinkController.php#L24-L45`
 - `app/Services/CommentModerationService.php#L18-L280`
 - `app/Exports/Concerns/StylesSheet.php#L230-L245`
-- `public/deploy-helper.php#L1-L163`
+- `app/Services/AdminNotificationService.php`
+- `scripts/deploy/deploy-helper.php`

@@ -6,8 +6,8 @@
 |---|---|
 | **Judul Dokumen** | Product Requirements Document (PRD) — SiswaMart |
 | **Nama Produk** | SiswaMart (Platform Promosi & Katalog Produk Kantin Sekolah dan Siswa Wirausaha) |
-| **Versi Dokumen** | 1.1.0 (Pembaruan Audit Kode Sumber & Skema Aktual) |
-| **Tanggal Pembaruan** | 27 Oktober 2026 |
+| **Versi Dokumen** | 1.2.0 (Pembaruan Domain, Rute Katalog, Objek SQL & Regresi) |
+| **Tanggal Pembaruan** | 18 November 2026 |
 | **Status Dokumen** | Disetujui (*Source-Code Backed*) |
 | **Penulis / Auditor** | Senior Product Manager, Business Analyst & Software Architect |
 | **Lokasi Repositori** | `C:\laragon\www\siswamartid` |
@@ -45,7 +45,7 @@
 ## A. Batasan Audit & Kondisi Aktual
 
 1. **Verifikasi Read-Only:** Audit dilakukan secara *read-only* terhadap basis data lokal `siswamartid` dan kode aplikasi tanpa mengubah logika bisnis yang berjalan.
-2. **Kondisi Skema Lokal Terkini (27 Oktober 2026):** Seluruh **27 berkas migrasi** (termasuk 5 migrasi penyelarasan bertanggal 15 Oktober 2026 pada Batch 9: `2026_10_15_000001` hingga `2026_10_15_000005`) kini telah berstatus **`Ran`** pada basis data lokal `siswamartid` (total **19 tabel**). Meski demikian, kode PHP tetap mempertahankan pengecekan defensif `Schema::hasColumn()` (`app/Models/User.php#L26`, `app/Http/Controllers/Penjual/ProdukController.php#L156`) agar aman dijalankan pada server yang belum mengeksekusi Batch 9.
+2. **Kondisi Skema Lokal Terkini (18 November 2026):** Seluruh **32 berkas migrasi** (Batch 1–14, termasuk penambahan `penjual.slug`, `produk.approved_at`, indeks unik komposit `(penjual_id, slug)`, serta objek SQL View `v_katalog_produk_aktif`, Stored Function `fn_hitung_rating_produk`, Stored Procedure `sp_rekap_toko`, dan Trigger `trg_produk_set_approved_at`) kini telah berstatus **`Ran`** pada basis data lokal `siswamartid` (total **19 tabel dasar + 4 objek SQL**). Meski demikian, kode PHP tetap mempertahankan pengecekan defensif `Schema::hasColumn()` (`app/Models/User.php`, `app/Http/Controllers/Penjual/ProdukController.php`) agar tetap aman pada skema lama.
 3. **Kerahasiaan Kredensial:** Seluruh nilai rahasia pada `.env`, kunci API, token OAuth, dan hash kata sandi tidak disertakan di dalam dokumen ini.
 
 ---
@@ -214,7 +214,7 @@ flowchart TD
 ### US-01: Menghubungi Penjual via WhatsApp Langsung dari Katalog
 - **Sebagai** siswa pembeli, **saya ingin** menekan tombol WhatsApp pada halaman produk yang otomatis membuka chat penjual dengan pesan terformat, **agar** saya dapat langsung memesan tanpa menyimpan nomor atau mengetik ulang nama produk.
 - **Acceptance Criteria:**
-  1. Mengakses `GET /produk/{produk:slug}/whatsapp` pada produk aktif mencatat 1 baris di `produk_views_logs` dengan `type = 'whatsapp'` (`Public\ProdukController.php#L105-L108`).
+  1. Mengakses `GET /{penjual:slug}/{produk:slug}/whatsapp` (atau tautan lama `GET /produk/{produk:slug}/whatsapp` yang redirect `301`) pada produk aktif mencatat 1 baris di `produk_views_logs` dengan `type = 'whatsapp'` (`Public\ProdukController.php`).
   2. Nomor WhatsApp penjual berawalan `0` dikonversi ke kode negara `62` (`L95-L102`). Jika nomor kosong, pengguna dikembalikan dengan flash error *"Nomor kontak WhatsApp penjual belum tersedia."* (`L97-L99`).
   3. Jika `penjual.status_toko === 'tutup'`, pesan diawali `[Pemberitahuan: Toko sedang tutup, balasan mungkin tertunda]\n\n` (`L113-L115`).
   4. Pengguna dialihkan (HTTP 302) ke `https://wa.me/{waNumber}?text=...` (`L118-L120`).
@@ -230,7 +230,7 @@ flowchart TD
 ### US-03: Moderasi Ulasan Pengunjung Menggunakan Penyaring Kata Kasar
 - **Sebagai** pengelola sekolah, **saya ingin** ulasan tamu dipindai secara otomatis dari kata kasar dan variasi *leetspeak*, **agar** ruang ulasan produk sekolah bebas dari perundungan dan kata tidak pantas.
 - **Acceptance Criteria:**
-  1. Saat pengunjung mengirim `POST /produk/{produk:slug}/ulasan`, `CommentModerationService::moderate()` memeriksa `guest_username` dan `komentar` (`Public\UlasanController.php#L31-L32`).
+  1. Saat pengunjung mengirim `POST /{penjual:slug}/{produk:slug}/ulasan`, `CommentModerationService::moderate()` memeriksa `guest_username` dan `komentar` (`Public\UlasanController.php`).
   2. Jika terdeteksi kata terlarang, penyimpanan dibatalkan (`Ulasan::create` tidak dipanggil) dan pengguna diarahkan kembali ke `#ulasan` dengan flash `review_warning` (`L34-L42`).
   3. Jika lolos validasi dan moderasi, ulasan disimpan dengan `moderation_status = 'approved'` (`L44-L55`) dan Admin menerima notifikasi database (`L57-L65`).
 
@@ -274,10 +274,10 @@ stateDiagram-v2
   - `GET /` — Beranda (`Public\HomeController@index`)
   - `GET /kategori` — Eksplorasi katalog & filter semua kategori (`Public\KategoriController@index`)
   - `GET /kategori/{kategori:slug}` — Katalog per kategori (`Public\KategoriController@show`)
-  - `GET /produk` — Redirect 301 ke `/kategori` (`routes/web.php#L14`)
-  - `GET /produk/{produk:slug}` — Detail produk (`Public\ProdukController@show`)
-  - `GET /produk/{produk:slug}/whatsapp` — Redirect konversi WhatsApp (`Public\ProdukController@trackWhatsapp`)
-  - `POST /produk/{produk:slug}/ulasan` — Kirim ulasan tamu (`Public\UlasanController@store`)
+  - `GET /produk` — Redirect `301` ke `/kategori`
+  - `GET /{penjual:slug}/{produk:slug}` — Detail produk kanonik (`Public\ProdukController@show`, dengan rute legacy `GET /produk/{produk:slug}` redirect `301`)
+  - `GET /{penjual:slug}/{produk:slug}/whatsapp` — Redirect konversi WhatsApp (`Public\ProdukController@trackWhatsapp`, dengan rute legacy `GET /produk/{produk:slug}/whatsapp` redirect `301`)
+  - `POST /{penjual:slug}/{produk:slug}/ulasan` — Kirim ulasan tamu (`Public\UlasanController@store`)
   - `GET /cara-pemesanan` & `GET /tentang-kami` — Halaman informasi statis
 - **Area Autentikasi & Profil:**
   - `GET|POST /login`, `POST /logout`, `GET /auth/google`, `GET /auth/google/callback`
@@ -289,7 +289,7 @@ stateDiagram-v2
   - `GET /penjual/laporan`, `GET /penjual/laporan/pdf`, `GET /penjual/laporan/sheet`
 - **Area Dasbor Administrator (`/admin/*`, Middleware `auth`, `admin`):**
   - `GET /admin/dashboard`
-  - `GET /admin/notifikasi/poll`, `POST /admin/notifikasi/baca-semua`, `POST /admin/notifikasi/{notification}/baca`
+  - `GET /admin/notifikasi`, `GET /admin/notifikasi/poll`, `POST /admin/notifikasi/baca-semua`, `POST /admin/notifikasi/{notification}/baca`
   - `GET /admin/penjual/export`, `Resource /admin/penjual`, `PATCH /admin/penjual/{penjual}/toggle-status`
   - `Resource /admin/categories` (`index`, `store`, `update`, `destroy`)
   - `GET /admin/produk`, `GET /admin/produk/{produk}`, `PATCH /admin/produk/{produk}/update-status`, `DELETE /admin/produk/{produk}`
@@ -308,11 +308,11 @@ Sesuai implementasi aktual pada `public/css/siswamart-theme.css#L2-L47`, SiswaMa
 
 ## K. Model Data Ringkas
 
-Basis data aktif `siswamartid` memiliki **19 tabel** yang dibentuk dari **27 berkas migrasi** (`Ran` seluruhnya). Entitas domain utama meliputi:
+Basis data aktif `siswamartid` memiliki **19 tabel dasar** serta **4 objek logika SQL** (1 View, 1 Stored Function, 1 Stored Procedure, 1 Trigger) yang dibentuk dari **32 berkas migrasi** (`Ran` seluruhnya pada Batch 1–14). Entitas domain utama meliputi:
 1. `users` — Akun pengguna (`admin`, `penjual`) dengan dukungan `username`, `google_id`, `is_active`, `must_change_password`.
-2. `penjual` — Profil toko penjual (`user_id` UK, `nisn` 10 digit UK, `nama_toko`, `nomor_whatsapp`, `lokasi_kelas`, `status_toko` enum `buka|tutup`, `alamat`, `foto_toko`, pelacakan aktivitas).
+2. `penjual` — Profil toko penjual (`user_id` UK, `nisn` 10 digit UK, `nama_toko`, `slug` UK, `nomor_whatsapp`, `lokasi_kelas`, `status_toko` enum `buka|tutup`, `alamat`, `foto_toko`, pelacakan aktivitas).
 3. `kategori` — Taksonomi kategori produk (`nama` UK, `slug` UK, `icon`).
-4. `produk` — Katalog produk (`penjual_id` FK, `kategori_id` FK, `slug` UK, `harga`, `stok` enum `tersedia|po|habis`, `status` enum `draft|pending|aktif|ditolak`, `alasan_ditolak`, `pending_action`, `pending_changes` JSON, `views`).
+4. `produk` — Katalog produk (`penjual_id` FK, `kategori_id` FK, `slug` dengan indeks unik komposit `(penjual_id, slug)`, `harga`, `stok` enum `tersedia|po|habis`, `status` enum `draft|pending|aktif|ditolak`, `approved_at`, `alasan_ditolak`, `pending_action`, `pending_changes` JSON, `views`).
 5. `ulasan` — Ulasan pengunjung (`produk_id` FK, `guest_username`, `rating` 1–5, `komentar`, `moderation_status`, `moderated_by` FK).
 6. `produk_views_logs` — Log analitik kunjungan (`view`) dan klik pesan (`whatsapp`).
 7. `bad_words`, `whitelists`, `comment_moderation_logs` — Infrastruktur moderasi kata kasar.
@@ -338,7 +338,7 @@ Ringkasan aturan bisnis utama (spesifikasi rinci beserta potongan kode ada di [0
 | **BR-STORE-01** | BR-08 | Status Operasional Toko (`buka`/`tutup`) & Penyesuaian Pesan WhatsApp | `app/Http/Controllers/Public/ProdukController.php#L95-L120`, `Penjual/DashboardController.php#L52-L61` |
 | **BR-REV-01** | BR-09 | Penyaringan Kata Kasar Leetspeak Sebelum Simpan (`guest_username` & `komentar`) | `app/Http/Controllers/Public/UlasanController.php#L30-L42`, `app/Services/CommentModerationService.php#L28-L256` |
 | **BR-REV-02** | BR-10 | Filter Visibilitas Ulasan Publik (`scopePublicVisible`) | `app/Models/Ulasan.php#L71-L84` |
-| **BR-REV-03** | BR-11 | Pembatasan Frekuensi Ulasan (`throttle:3,1` Web, `throttle:10,1` API) | `routes/web.php#L28`, `routes/api.php#L43` |
+| **BR-REV-03** | BR-11 | Pembatasan Frekuensi Ulasan (`throttle:3,1` Web & API) | `routes/web.php`, `routes/api.php` |
 | **BR-AUTH-01** | BR-12 | Google OAuth Khusus Akun Terdaftar & Anti-Takeover `google_id` | `app/Http/Controllers/Auth/GoogleAuthController.php#L78-L120` |
 | **BR-AUTH-02** | BR-13 | Pembatasan Brute-Force Login (5x/menit) & Pencabutan Sesi/Token Akun Nonaktif | `app/Http/Requests/Auth/LoginRequest.php#L41-L97`, `app/Http/Middleware/EnsureUserIsActive.php#L17-L44` |
 | **BR-AUTH-03** | BR-14 | Anti-Enumerasi pada Permintaan Reset Password | `app/Http/Controllers/Auth/PasswordResetLinkController.php#L37-L47` |
@@ -384,21 +384,25 @@ Ringkasan aturan bisnis utama (spesifikasi rinci beserta potongan kode ada di [0
 ## O. Pengujian dan Jaminan Kualitas (Testing & Quality Assurance)
 
 ### 1. Inventaris Suite Pengujian Otomatis (`tests/Feature/`)
-Terdapat **10 berkas pengujian otomatis** dengan total **75 skenario uji (test methods)** dan **427 assertions** yang seluruhnya aman dijalankan karena menggunakan trait `DatabaseTransactions` (atau tanpa mutasi DB):
+Terdapat **14 berkas pengujian otomatis** dengan total **129 skenario uji (test methods)** dan **776 assertions** yang seluruhnya aman dijalankan karena menggunakan trait `DatabaseTransactions` (atau tanpa mutasi DB):
 
 | No | Berkas Uji (`tests/Feature/...`) | Jumlah Test | Hasil Eksekusi Aktual | Keterangan |
 |---:|---|---:|---|---|
-| 1 | `Auth/GoogleLoginTest.php` | 15 | **15 PASSED** | Menguji alur OAuth Google, validasi email terdaftar, akun nonaktif, anti-takeover `google_id`, dan fallback stateless. |
-| 2 | `Auth/PasswordResetTest.php` | 15 | **15 PASSED** | Menguji lupa password, email reset kustom, anti-enumerasi, masa berlaku token, single-use token, dan validasi password. |
-| 3 | `LaporanPdfTest.php` | 18 | **18 PASSED** | Menguji laporan penjual & admin (PDF dan Sheet `.xlsx`), filter periode 7 hari, `week_offset`, dan otorisasi unduhan. |
-| 4 | `LaporanRekapitulasiUnifiedExportTest.php` | 7 | **7 PASSED** | Menguji kesamaan metrik Web/PDF/Excel, karakter spesial, proteksi *formula injection*, dan isolasi data antar-penjual. |
-| 5 | `AdminAndPenjualFilteringAndPaginationTest.php` | 6 | **5 PASSED, 1 FAILED** | 5 test pencarian/filter/paginasi lulus; 1 test (`test_every_existing_registered_seller_has_at_least_10_products`) gagal karena memeriksa data riil DB lokal (`Edmund's Hearth` memiliki 1 produk). |
-| 6 | `AdminRekapPenjualTest.php` | 5 | **5 PASSED** | Menguji kartu statistik dasbor admin, tabel rekap penjual, dan proteksi akses non-admin. |
-| 7 | `SecurityHardeningTest.php` | 5 | **5 PASSED** | Menguji pencabutan token Sanctum saat akun dinonaktifkan, blokir akses admin nonaktif, dan filter kata kasar pada `guest_username`. |
-| 8 | `XlsxWriterTest.php` | 2 | **2 PASSED** | Menguji struktur biner OpenXML `.xlsx` dan sheet kosong. |
-| 9 | `PublicCatalogRedirectTest.php` | 1 | **1 PASSED** | Menguji redirect `301` dari `GET /produk` ke `/kategori`. |
-| 10 | `SellerExportAuthorizationTest.php` | 1 | **1 PASSED** | Menguji otorisasi unduhan master ekspor penjual (`GET /admin/penjual/export`). |
-| **Total** | **10 Berkas Test** | **75 Test** | **74 PASSED, 1 FAILED** | **Tingkat kelulusan fungsional kode: 98,67% (0 error skema/logika).** |
+| 1 | `AdminAndPenjualFilteringAndPaginationTest.php` | 6 | **6 PASSED** | Menguji pencarian, filter, paginasi Admin/Penjual, serta konsistensi katalog penjual. |
+| 2 | `AdminRekapPenjualTest.php` | 5 | **5 PASSED** | Menguji kartu statistik dasbor admin, tabel rekap penjual, dan proteksi akses non-admin. |
+| 3 | `AdminSellerReportTest.php` | 19 | **19 PASSED** | Menguji laporan penjual sisi admin, filter periode, dan konsistensi metrik. |
+| 4 | `ApiMobileSiswaMartTest.php` | 8 | **8 PASSED** | Menguji kontrak REST API mobile (`/api/*` & `/api/v1/*`), Sanctum auth, ulasan, dan notifikasi. |
+| 5 | `Auth/GoogleLoginTest.php` | 15 | **15 PASSED** | Menguji alur OAuth Google, validasi email terdaftar, akun nonaktif, anti-takeover `google_id`, dan fallback stateless. |
+| 6 | `Auth/PasswordResetTest.php` | 15 | **15 PASSED** | Menguji lupa password, email reset kustom, anti-enumerasi, masa berlaku token, single-use token, dan validasi password. |
+| 7 | `LaporanPdfTest.php` | 19 | **19 PASSED** | Menguji laporan penjual & admin (PDF dan Sheet `.xlsx`), filter periode 7 hari, `week_offset`, dan otorisasi unduhan. |
+| 8 | `LaporanRekapitulasiUnifiedExportTest.php` | 7 | **7 PASSED** | Menguji kesamaan metrik Web/PDF/Excel, karakter spesial, proteksi *formula injection*, dan isolasi data antar-penjual. |
+| 9 | `PdfFilenameStandardizationTest.php` | 10 | **10 PASSED** | Menguji standardisasi penamaan berkas PDF unduhan Admin dan Penjual. |
+| 10 | `PublicCatalogRedirectTest.php` | 1 | **1 PASSED** | Menguji redirect `301` dari `GET /produk` ke `/kategori`. |
+| 11 | `SecurityHardeningTest.php` | 5 | **5 PASSED** | Menguji pencabutan token Sanctum saat akun dinonaktifkan, blokir akses admin nonaktif, dan filter kata kasar pada `guest_username`. |
+| 12 | `SellerExportAuthorizationTest.php` | 1 | **1 PASSED** | Menguji otorisasi unduhan master ekspor penjual (`GET /admin/penjual/export`). |
+| 13 | `SiswaMartRefinementRegressionTest.php` | 16 | **16 PASSED** | Menguji regresi rute `/{penjual:slug}/{produk:slug}`, redirect legacy `/produk/{slug}`, `/admin/notifikasi`, domain kanonik, serta SQL View/Function/Procedure/Trigger. |
+| 14 | `XlsxWriterTest.php` | 2 | **2 PASSED** | Menguji struktur biner OpenXML `.xlsx` dan sheet kosong. |
+| **Total** | **14 Berkas Test** | **129 Test** | **129 PASSED, 0 FAILED** | **776 assertions (`23.23s`), tingkat kelulusan 100%.** |
 
 ### 2. Pengujian Fungsional Black-Box
 Terdapat **38 skenario uji Black-Box** (`TC-001` s.d. `TC-038`) yang berasal dari matriks `Pengujian_Black_Box_SiswaMart.xlsx` dan didokumentasikan secara lengkap beserta pemetaan ke test otomatis di [08-pengujian/TEST_CASE.md](../08-pengujian/TEST_CASE.md) dan [08-pengujian/HASIL_PENGUJIAN.md](../08-pengujian/HASIL_PENGUJIAN.md).
@@ -409,12 +413,12 @@ Terdapat **38 skenario uji Black-Box** (`TC-001` s.d. `TC-038`) yang berasal dar
 
 | ID Risiko | Kategori | Deskripsi Temuan & Risiko | Keparahan | Status Saat Ini & Rekomendasi Mitigasi |
 |---|---|---|---|---|
-| **RSK-01** | Database / Skema | Ketergantungan kode pada 5 migrasi Batch 9 (`2026_10_15_000001` s.d. `000005` untuk `username`, `google_id`, `pending_action`, `pending_changes`). | **Sedang** *(Sebelumnya Tinggi)* | **Terselesaikan di DB Lokal (`Ran`).** Saat deploy ke server baru, pastikan menjalankan `php artisan migrate --force` setelah backup DB. |
+| **RSK-01** | Database / Skema | Ketergantungan kode pada 32 berkas migrasi (Batch 1–14, termasuk `penjual.slug`, `produk.approved_at`, serta 4 objek SQL View/Routine/Trigger). | **Rendah** *(Sebelumnya Tinggi)* | **Terselesaikan di Lokal & Produksi (`Ran`).** Saat deploy ke server baru, pastikan menjalankan `php artisan migrate --force` setelah backup DB. |
 | **RSK-02** | Otorisasi Akses | Validasi kepemilikan produk penjual (`$produk->penjual_id === $penjualId`) dilakukan manual dengan `abort_unless` di `Penjual\ProdukController` daripada menggunakan *Laravel Policy*. | **Sedang** | Kontrol manual saat ini berfungsi dan teruji (`TC-019`, `LaporanRekapitulasiUnifiedExportTest`), namun disarankan membuat `App\Policies\ProdukPolicy` pada pengembangan berikutnya. |
-| **RSK-03** | Infrastruktur & Deployment | Berkas `public/deploy-helper.php` memiliki kunci statis `$secretKey = 'siswamart2026'` (`L6`) untuk membantu migrasi/symlink di shared hosting tanpa SSH. Jika tidak dihapus pasca-deploy, pihak luar yang mengetahui kunci dapat memicu `migrate` atau `cache:clear`. | **Tinggi** | **Wajib menghapus `public/deploy-helper.php` segera setelah deployment selesai** (sesuai peringatan pada `deploy-helper.php#L126-L128`) atau memindahkan kunci ke variabel `.env`. |
-| **RSK-04** | Ketergantungan Eksternal | Transaksi bergantung pada keaktifan nomor WhatsApp penjual. Jika nomor salah ketik atau tidak terdaftar di WA, pembeli gagal menghubungi penjual. | **Sedang** | Sistem telah menormalisasi awalan `0` ke `62` (`Public\ProdukController.php#L95-L102`). Disarankan menambah tombol uji tautan WA di form Admin Penjual. |
-| **RSK-05** | Keamanan File Symlink | Gambar produk dan foto toko disimpan di `storage/app/public/` dan diakses melalui symlink `public/storage`. Jika symlink rusak di hosting cPanel, gambar gagal dimuat. | **Rendah** | Komponen UI memiliki fallback ilustrasi kategori otomatis (`product-card.blade.php`), dan pembuatan symlink didokumentasikan di [09-operasional/DEPLOYMENT.md](../09-operasional/DEPLOYMENT.md). |
-| **RSK-06** | Integritas Moderasi | Tabel `whitelists` dan model `Whitelist` tersedia di DB, namun `CommentModerationService::moderate` (`L42`) saat ini tidak mengecualikan frasa *whitelist* dan belum ada CRUD kamus `bad_words`/`whitelists` di UI Admin. | **Rendah** | Kamus dikelola melalui `BadWordSeeder` dan `resources/dictionaries/badwords-list.json`. Antarmuka CRUD kamus dimasukkan ke Roadmap. |
+| **RSK-03** | Infrastruktur & Deployment | Berkas `scripts/deploy/deploy-helper.php` memiliki kunci statis `$secretKey = 'siswamart2026'` untuk membantu migrasi/symlink saat disalin ke `public_html/deploy-helper.php` di shared hosting tanpa SSH. Jika tidak dihapus pasca-deploy, pihak luar yang mengetahui kunci dapat memicu `migrate` atau `cache:clear`. | **Tinggi** | **Wajib menghapus `public_html/deploy-helper.php` segera setelah deployment selesai** atau memindahkan kunci ke variabel `.env`. |
+| **RSK-04** | Ketergantungan Eksternal | Transaksi bergantung pada keaktifan nomor WhatsApp penjual. Jika nomor salah ketik atau tidak terdaftar di WA, pembeli gagal menghubungi penjual. | **Sedang** | Sistem telah menormalisasi awalan `0` ke `62` (`Public\ProdukController.php`). Disarankan menambah tombol uji tautan WA di form Admin Penjual. |
+| **RSK-05** | Keamanan File Symlink | Gambar produk dan foto toko disimpan di `storage/app/public/` dan diakses melalui symlink `public/storage`. Jika symlink rusak di hosting DirectAdmin/cPanel, gambar gagal dimuat. | **Rendah** | Komponen UI memiliki fallback ilustrasi kategori otomatis (`product-card.blade.php`), dan pembuatan symlink didokumentasikan di [09-operasional/DEPLOYMENT.md](../09-operasional/DEPLOYMENT.md). |
+| **RSK-06** | Integritas Moderasi | Tabel `whitelists` dan model `Whitelist` tersedia di DB, namun `CommentModerationService::moderate` saat ini tidak mengecualikan frasa *whitelist* dan belum ada CRUD kamus `bad_words`/`whitelists` di UI Admin. | **Rendah** | Kamus dikelola melalui `BadWordSeeder` dan `resources/dictionaries/badwords-list.json`. Antarmuka CRUD kamus dimasukkan ke Roadmap. |
 
 ---
 
@@ -422,9 +426,9 @@ Terdapat **38 skenario uji Black-Box** (`TC-001` s.d. `TC-038`) yang berasal dar
 
 Analisis kesenjangan lengkap tersedia di [01-prd/GAP_ANALYSIS.md](GAP_ANALYSIS.md). Berikut ringkasan status terkininya:
 
-| ID Gap | Area / Fitur | Status pada PRD v1.0.0 | Status Aktual pada PRD v1.1.0 (27 Okt 2026) |
+| ID Gap | Area / Fitur | Status pada Audit Awal (v1.0.0) | Status Aktual pada PRD v1.2.0 (18 Nov 2026) |
 |---|---|---|---|
-| **GAP-DB-01** | 5 Migrasi Pending (`2026_10_15_*`) | Open (Pending di DB lokal, 8 error di `GoogleLoginTest`) | **Resolved (`[Implemented]`)** — Seluruh 27 migrasi telah `Ran`; `GoogleLoginTest` lulus 15/15. |
+| **GAP-DB-01** | Sinkronisasi Migrasi & Objek SQL Database | Open (Migrasi Batch 9 belum dijalankan di DB lokal) | **Resolved (`[Implemented]`)** — Seluruh **32 migrasi (Batch 1–14)** termasuk 4 objek SQL telah `Ran`; seluruh **14 suite (129/129 test)** lulus 100%. |
 | **GAP-REP-01** | Ekspor Laporan Excel (`.xlsx`) | Masih berupa rencana di Roadmap Fase 3 | **Resolved (`[Implemented]`)** — Telah diimplementasikan via `XlsxWriter` untuk Penjual & Admin. |
 | **GAP-SEC-01** | Otorisasi berbasis Laravel Policy | Pengecekan manual `abort_unless` di controller | **Open (`[Planned]`)** — Fungsi aman namun belum direfaktor ke class `ProdukPolicy`. |
 | **GAP-AUTH-01** | Penegakan `must_change_password` & Edit Profil Toko Mandiri oleh Penjual | Kolom ada di DB, belum ada middleware redirect paksa / form edit profil toko di area penjual | **Open (`[Partial]`)** — Kolom `must_change_password` di-reset saat reset password, namun belum memaksa redirect saat login; profil toko diubah melalui Admin. |
@@ -439,7 +443,7 @@ Detail peta jalan pengembangan berikutnya didokumentasikan di [10-proyek/ROADMAP
 
 ```mermaid
 flowchart LR
-    F1["Fase 1 (Selesai - Okt 2026)<br/>- Eksekusi 27 migrasi DB<br/>- Ekspor Excel (.xlsx) & Grafik<br/>- Email Reset Password Kustom<br/>- Hardening Keamanan & 75 Test"] --> F2["Fase 2 (Jangka Pendek)<br/>- Middleware must_change_password<br/>- Form Edit Profil Toko Mandiri Penjual<br/>- Quick-Toggle Stok di Tabel Penjual<br/>- Refactor ke ProdukPolicy"]
+    F1["Fase 1 (Selesai - Nov 2026)<br/>- Eksekusi 32 migrasi DB & 4 objek SQL<br/>- Domain kanonik siswamart.app & rute toko/produk<br/>- Ekspor Excel (.xlsx), Email Reset, /admin/notifikasi<br/>- 14 Suite / 129 Test (100% Lulus)"] --> F2["Fase 2 (Jangka Pendek)<br/>- Middleware must_change_password<br/>- Form Edit Profil Toko Mandiri Penjual<br/>- Quick-Toggle Stok di Tabel Penjual<br/>- Refactor ke ProdukPolicy"]
     F2 --> F3["Fase 3 (Jangka Menengah)<br/>- CRUD Bad Words & Whitelist di Admin<br/>- Integrasi Whitelist di CommentModerationService<br/>- Notifikasi Database/Email ke Penjual"]
     F3 --> F4["Fase 4 (Jangka Panjang)<br/>- Endpoint API CRUD Produk Penjual<br/>- QR Code Cetak per Stan Toko<br/>- Formulir Pre-Order Terstruktur ke WA"]
 ```
@@ -449,10 +453,10 @@ flowchart LR
 ## S. Pertanyaan Terbuka dan Asumsi (Open Questions & Assumptions)
 
 ### 1. Hal yang Perlu Konfirmasi (*Open Questions*)
-1. **Penegakan `must_change_password` (`Perlu konfirmasi`):** Kolom `users.must_change_password` sudah ada di database (`default: 0`) dan di-reset menjadi `false` saat pengguna mereset password (`NewPasswordController.php#L63`), tetapi `Admin\PenjualController@store` belum menyetel nilai awal `true` dan belum ada middleware yang memaksa pengguna mengganti password pada login pertama. Apakah fitur ini akan diaktifkan penuh pada rilis berikutnya?
+1. **Penegakan `must_change_password` (`Perlu konfirmasi`):** Kolom `users.must_change_password` sudah ada di database (`default: 0`) dan di-reset menjadi `false` saat pengguna mereset password (`NewPasswordController.php`), tetapi `Admin\PenjualController@store` belum menyetel nilai awal `true` dan belum ada middleware yang memaksa pengguna mengganti password pada login pertama. Apakah fitur ini akan diaktifkan penuh pada rilis berikutnya?
 2. **Pembaruan Profil Toko oleh Penjual (`Perlu konfirmasi`):** Saat ini perubahan data toko (`nama_toko`, `nomor_whatsapp`, `lokasi_kelas`, `foto_toko`) dilakukan oleh Admin melalui `/admin/penjual/{penjual}/edit`, sedangkan penjual hanya dapat mengubah status `buka`/`tutup` (`PATCH /penjual/status-toko`) dan nama/email akun (`/profile`). Apakah penjual akan diberikan halaman khusus untuk mengedit profil tokonya sendiri?
-3. **Pemanfaatan Tabel `whitelists` (`Perlu konfirmasi`):** Tabel `whitelists` dan `WhitelistSeeder` sudah ada, namun `CommentModerationService.php#L42` mencantumkan komentar *"Daftar kata terlarang tidak dapat dilewati oleh whitelist"*. Apakah pengecualian *whitelist* sengaja dinonaktifkan permanen atau akan diaktifkan kembali?
-4. **Rute Legacy `Public\ProdukController@index` (`Perlu konfirmasi`):** Method `Public\ProdukController@index` dan view `resources/views/public/produk/index.blade.php` masih ada di kode, tetapi rute `GET /produk` di `routes/web.php#L14` telah dialihkan (`301`) ke `/kategori`. Apakah `Public\ProdukController@index` tetap dipertahankan sebagai cadangan atau akan dihapus?
+3. **Pemanfaatan Tabel `whitelists` (`Perlu konfirmasi`):** Tabel `whitelists` dan `WhitelistSeeder` sudah ada, namun `CommentModerationService.php` mencantumkan komentar *"Daftar kata terlarang tidak dapat dilewati oleh whitelist"*. Apakah pengecualian *whitelist* sengaja dinonaktifkan permanen atau akan diaktifkan kembali?
+4. **Rute Legacy `Public\ProdukController@index` (`Perlu konfirmasi`):** Method `Public\ProdukController@index` dan view `resources/views/public/produk/index.blade.php` masih ada di kode, tetapi rute `GET /produk` di `routes/web.php` telah dialihkan (`301`) ke `/kategori`. Apakah `Public\ProdukController@index` tetap dipertahankan sebagai cadangan atau akan dihapus?
 
 ### 2. Asumsi Teknis
 - Setiap pembeli dan penjual memiliki perangkat dengan aplikasi WhatsApp aktif.
@@ -466,6 +470,7 @@ flowchart LR
 |---|---|---|---|
 | **1.0.0** | 25 Oktober 2026 | Tim Arsitek & Analis | Baseline PRD awal hasil audit kode sumber. |
 | **1.1.0** | 27 Oktober 2026 | Tim Dokumentasi Teknis | - Memperbarui versi Laravel menjadi `^13.38` (`v13.38.0`) dan PHP `^8.3` sesuai `composer.json` & `composer.lock`.<br>- Memperbarui status 5 migrasi `2026_10_15_*` dari *Pending* menjadi *Ran* (total 27 migrasi `Ran`, 19 tabel aktif).<br>- Memindahkan fitur **Ekspor Laporan Excel (`.xlsx`)** Penjual & Admin dari Roadmap ke status **`[Implemented]`** (`FR-SELLER-008`, `FR-ADMIN-009`, `BR-REP-01`, `NFR-011`).<br>- Menambahkan dokumentasi fitur Reset Password kustom (`ResetPasswordNotification`, anti-enumerasi) dan redirect `301` pada `GET /produk` -> `/kategori`.<br>- Mengoreksi rujukan rute, nama controller, status `POST /api/register` (`403 Forbidden`), perilaku `CommentModerationService`, serta memperbarui token warna Design System sesuai `public/css/siswamart-theme.css`.<br>- Memperbarui hasil eksekusi pengujian otomatis menjadi **10 berkas / 75 test (74 Passed, 1 Failed)**. |
+| **1.2.0** | 18 November 2026 | Tim Dokumentasi Teknis | - Memperbarui domain utama produksi menjadi **`https://siswamart.app`** dengan redirect permanen (`301`) dari `siswamartid.my.id`.<br>- Memperbarui rute detail, WhatsApp, dan ulasan produk ke URL kanonik **`/{penjual:slug}/{produk:slug}`** (dengan fallback redirect `301` dari `/produk/{slug}`), kolom `penjual.slug`, serta indeks unik komposit `(penjual_id, slug)`.<br>- Mendokumentasikan halaman **`GET /admin/notifikasi`**, popover notifikasi Admin terbaru, dan normalisasi URL internal.<br>- Memperbarui total migrasi menjadi **32 migrasi `Ran`** (Batch 1–14) termasuk 4 objek SQL (`v_katalog_produk_aktif`, `fn_hitung_rating_produk`, `sp_rekap_toko`, `trg_produk_set_approved_at`).<br>- Memperbarui inventaris suite pengujian menjadi **14 berkas / 129 test / 776 assertions (`129 PASSED, 0 FAILED`)** dan mengoreksi rujukan `scripts/deploy/deploy-helper.php`. |
 
 ---
 
@@ -479,4 +484,4 @@ flowchart LR
 - [`app/Http/Controllers/Admin/DashboardController.php`](../../app/Http/Controllers/Admin/DashboardController.php), [`PenjualController.php`](../../app/Http/Controllers/Admin/PenjualController.php), [`ProdukController.php`](../../app/Http/Controllers/Admin/ProdukController.php), [`KategoriController.php`](../../app/Http/Controllers/Admin/KategoriController.php), [`KomentarController.php`](../../app/Http/Controllers/Admin/KomentarController.php), [`LaporanController.php`](../../app/Http/Controllers/Admin/LaporanController.php), [`NotificationController.php`](../../app/Http/Controllers/Admin/NotificationController.php)
 - [`app/Services/CommentModerationService.php`](../../app/Services/CommentModerationService.php), [`AdminNotificationService.php`](../../app/Services/AdminNotificationService.php), [`LaporanAdminService.php`](../../app/Services/LaporanAdminService.php), [`LaporanPenjualService.php`](../../app/Services/LaporanPenjualService.php)
 - [`app/Support/XlsxWriter.php`](../../app/Support/XlsxWriter.php), [`app/Exports/Concerns/StylesSheet.php`](../../app/Exports/Concerns/StylesSheet.php)
-- [`public/css/siswamart-theme.css`](../../public/css/siswamart-theme.css), [`public/deploy-helper.php`](../../public/deploy-helper.php)
+- [`public/css/siswamart-theme.css`](../../public/css/siswamart-theme.css), [`scripts/deploy/deploy-helper.php`](../../scripts/deploy/deploy-helper.php)

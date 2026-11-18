@@ -3,11 +3,11 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | Panduan Penggunaan Panel Penjual (Siswa Wirausaha) |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
 | **Status** | Final (Source-Code Backed) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
-| **Sumber Data** | `routes/web.php#L72-L82`, `app/Http/Controllers/Penjual/`, `resources/views/penjual/` |
+| **Sumber Data** | `routes/web.php`, `app/Http/Controllers/Penjual/`, `resources/views/penjual/` |
 
 ---
 
@@ -15,7 +15,7 @@
 
 1. [Login, Lupa Kata Sandi, dan Keamanan Akun Penjual](#1-login-lupa-kata-sandi-dan-keamanan-akun-penjual)
 2. [Memahami Dasbor Penjual](#2-memahami-dasbor-penjual)
-3. [Mengelola Profil Toko dan Sakelar Buka/Tutup Toko](#3-mengelola-profil-toko-dan-sakelar-bukatutup-toko)
+3. [Mengelola Sakelar Buka/Tutup Toko & Profil Akun](#3-mengelola-sakelar-bukatutup-toko--profil-akun)
 4. [Mengelola Produk: Tambah, Edit, dan Hapus](#4-mengelola-produk-tambah-edit-dan-hapus)
 5. [Tabel Arti Status Produk, Status Moderasi (`pending_action`), dan Status Stok](#5-tabel-arti-status-produk-status-moderasi-pending_action-dan-status-stok)
 6. [Mengunduh Laporan Toko (PDF & Excel `.xlsx`)](#6-mengunduh-laporan-toko-pdf--excel-xlsx)
@@ -35,7 +35,7 @@ Akun penjual SiswaMart didaftarkan secara resmi oleh Admin Sekolah menggunakan *
 3. Setelah berhasil masuk, Anda akan diarahkan ke **Dasbor Penjual** (`/penjual/dashboard`).
 
 ### 1.2 Mengganti Kata Sandi Awal & Lupa Kata Sandi
-- Apabila akun Anda baru dibuat oleh Admin, segera perbarui kata sandi melalui menu **Profil Toko** (`/penjual/profil`) atau **Profil Akun** (`/profile`).
+- Apabila akun Anda baru dibuat oleh Admin, segera perbarui nama/email atau kata sandi melalui menu **Profil Akun** (`/profile`).
 - Jika lupa kata sandi, klik **Lupa Kata Sandi?** (`/forgot-password`), masukkan email terdaftar, dan ikuti tautan pengaturan ulang yang dikirim ke kotak masuk email Anda.
 
 ---
@@ -50,18 +50,14 @@ Halaman **Dasbor Penjual** (`GET /penjual/dashboard` — `Penjual\DashboardContr
 
 ---
 
-## 3. Mengelola Profil Toko dan Sakelar Buka/Tutup Toko
+## 3. Mengelola Sakelar Buka/Tutup Toko & Profil Akun
 
-Buka menu **Profil Toko** (`GET /penjual/profil` — `Penjual\ProfilController@edit`) untuk memperbarui identitas toko:
-
-1. **Data Toko yang Dapat Diubah:**
-   - **Nama Toko (`nama_toko`)** dan **Deskripsi Toko (`deskripsi_toko`)**.
-   - **Nomor WhatsApp (`nomor_whatsapp`):** Pastikan nomor aktif (contoh: `081234567890`). Sistem otomatis mengubah awalan `08` menjadi `628` saat pembeli mengklik tombol pesan.
-   - **Lokasi Kelas (`lokasi_kelas`):** Contoh `XII RPL 1` untuk memudahkan COD di sekolah.
-   - **Foto Profil Toko (`foto_toko`):** Format `JPG`/`PNG`/`WEBP`, ukuran maksimal **2 MB**.
-2. **Sakelar Cepat Buka / Tutup Toko (`PATCH /penjual/profil/status-toko`):**
-   - Gunakan tombol **Buka Toko** / **Tutup Toko** di Dasbor atau halaman Profil Toko.
-   - Saat diatur ke **`tutup`**, produk Anda tetap tampil di katalog dengan lencana **"Toko Tutup"** dan pesan WhatsApp dari pembeli akan otomatis disesuaikan menjadi pesan konfirmasi ketersediaan.
+1. **Sakelar Cepat Buka / Tutup Toko (`PATCH /penjual/status-toko`):**
+   - Gunakan tombol **Buka Toko** / **Tutup Toko** di **Dasbor Penjual** (`Penjual\DashboardController@toggleStatusToko`) atau melalui API `PATCH /api/seller/store-status`.
+   - Saat diatur ke **`tutup`**, produk Anda tetap tampil di katalog dengan lencana **"Toko Tutup"** dan pesan WhatsApp dari pembeli akan otomatis disesuaikan menjadi pesan pemberitahuan bahwa toko sedang tutup.
+2. **Pembaruan Profil Akun & Identitas Toko:**
+   - Pembaruan nama, email, dan kata sandi akun dilakukan melalui `/profile` (`ProfileController`).
+   - Pembaruan identitas toko (`nama_toko`, `nomor_whatsapp`, `lokasi_kelas`, `alamat`, `foto_toko`) dikelola melalui Admin Sekolah (`/admin/penjual/{penjual}/edit`).
 
 ---
 
@@ -119,19 +115,18 @@ Perilaku sistem saat Anda mengedit produk bergantung pada status produk saat itu
 ## 6. Mengunduh Laporan Toko (PDF & Excel `.xlsx`)
 
 1. Buka menu **Laporan** (`GET /penjual/laporan` — `Penjual\LaporanController@index`).
-2. Gunakan filter **Status Produk**, **Kategori**, **Status Stok**, atau **Kata Kunci** bila diperlukan.
+2. Gunakan filter `week_offset` (`<= 0`, rentang mingguan 7 hari) bila diperlukan.
 3. Klik tombol menu **Download Laporan** (`<x-ui.download-menu>`):
-   - **Download PDF (`GET /penjual/laporan/export`):** Menghasilkan dokumen PDF ukuran A4 Landscape siap cetak untuk lampiran laporan kewirausahaan/PKK.
-   - **Download Excel (`GET /penjual/laporan/export-excel`):** Menghasilkan berkas `.xlsx` yang terdiri dari 2 lembar kerja (*Sheet 1: Ringkasan Toko* dan *Sheet 2: Daftar Produk*).
+   - **Download PDF (`GET /penjual/laporan/pdf`):** Menghasilkan dokumen PDF (`rekap-penjual-{slug}-{Ymd}.pdf`) ukuran A4 Portrait siap cetak untuk lampiran laporan kewirausahaan/PKK.
+   - **Download Excel (`GET /penjual/laporan/sheet`):** Menghasilkan berkas `.xlsx` (`rekap-penjual-{slug}-{Ymd}.xlsx`) via `XlsxWriter` yang terdiri dari 5 lembar kerja (*Ringkasan*, *Top 5 Produk*, *Views Harian* + grafik batang, *Produk Diunggah*, dan *Ulasan*).
 
 ---
 
 ## 7. Rujukan Kode
 
-- `routes/web.php#L72-L82`
-- `app/Http/Controllers/Penjual/DashboardController.php#L13-L61`
-- `app/Http/Controllers/Penjual/ProdukController.php#L18-L246`
-- `app/Http/Controllers/Penjual/ProfilController.php#L18-L106`
-- `app/Http/Controllers/Penjual/LaporanController.php#L14-L53`
-- `app/Services/LaporanPenjualService.php#L14-L162`
-- `app/Exports/LaporanPenjualExport.php#L15-L163`
+- `routes/web.php`
+- `app/Http/Controllers/Penjual/DashboardController.php`
+- `app/Http/Controllers/Penjual/ProdukController.php`
+- `app/Http/Controllers/Penjual/LaporanController.php`
+- `app/Services/LaporanPenjualService.php`
+- `app/Support/XlsxWriter.php`

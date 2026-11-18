@@ -3,11 +3,11 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | Kamus Data (Data Dictionary) Database SiswaMart |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
 | **Status** | Final (Source-Code & Live DB Verified) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
-| **Sumber Data** | `SHOW FULL COLUMNS` & `SHOW INDEX` pada MySQL `siswamartid`, `database/migrations/`, `app/Models/` |
+| **Sumber Data** | `SHOW FULL COLUMNS`, `SHOW INDEX`, `information_schema` pada MySQL `siswamartid` / MariaDB hosting, `database/migrations/`, `app/Models/` |
 
 ---
 
@@ -37,9 +37,9 @@
 | No | Nama Tabel | Model Eloquent | Kategori | Jumlah Kolom | Keterangan Singkat |
 | :---: | :--- | :--- | :--- | :---: | :--- |
 | 1 | `users` | `App\Models\User` | Domain Inti | 13 | Akun autentikasi Admin dan Penjual. |
-| 2 | `penjual` | `App\Models\Penjual` | Domain Inti | 15 | Profil toko siswa, NISN, kontak WhatsApp, dan status toko. |
+| 2 | `penjual` | `App\Models\Penjual` | Domain Inti | 16 | Profil toko siswa, slug toko unik, NISN, kontak WhatsApp, dan status toko. |
 | 3 | `kategori` | `App\Models\Kategori` | Domain Inti | 6 | Master kategori katalog produk. |
-| 4 | `produk` | `App\Models\Produk` | Domain Inti | 17 | Data produk, harga, stok, status moderasi, dan `pending_changes`. |
+| 4 | `produk` | `App\Models\Produk` | Domain Inti | 18 | Data produk, harga, stok, `approved_at`, status moderasi, dan `pending_changes`. |
 | 5 | `ulasan` | `App\Models\Ulasan` | Domain Inti | 16 | Ulasan tamu, rating 1–5, dan metadata hasil moderasi kata kasar. |
 | 6 | `produk_views_logs` | `App\Models\ProdukViewLog` | Analitik | 5 | Log waktu kunjungan halaman (`view`) dan klik tombol (`whatsapp`). |
 | 7 | `bad_words` | `App\Models\BadWord` | Moderasi | 9 | Kamus kata terlarang tambahan di database. |
@@ -93,6 +93,7 @@
 | `alamat` | `text` | Ya | `NULL` | — | — | Alamat domisili/keterangan lokasi siswa (`2026_10_15_000001`). |
 | `user_id` | `bigint unsigned` | Tidak | — | `UNI` (`penjual_user_id_unique`) | FK $\rightarrow$ `users.id` (`ON DELETE CASCADE`) | Relasi `1:1` ke akun pemilik toko. |
 | `nama_toko` | `varchar(255)` | Tidak | — | — | — | Nama etalase toko siswa. |
+| `slug` | `varchar(255)` | Tidak | — | `UNI` (`penjual_slug_unique`) | Unik (`2026_11_17_000001`) | Slug URL toko untuk rute `/{penjual:slug}/{produk:slug}`. |
 | `deskripsi_toko` | `text` | Ya | `NULL` | — | — | Deskripsi singkat mengenai toko. |
 | `nomor_whatsapp` | `varchar(255)` | Tidak | — | — | — | Nomor WhatsApp tujuan pemesanan produk. |
 | `lokasi_kelas` | `varchar(255)` | Ya | `NULL` | — | — | Informasi kelas/jurusan siswa (misal `XII RPL 1`). |
@@ -131,13 +132,14 @@
 | `penjual_id` | `bigint unsigned` | Tidak | — | `MUL` (`produk_penjual_id_index`) | FK $\rightarrow$ `penjual.id` (`ON DELETE CASCADE`) | Pemilik produk. |
 | `kategori_id` | `bigint unsigned` | Tidak | — | `MUL` (`produk_kategori_id_index`) | FK $\rightarrow$ `kategori.id` (`ON DELETE NO ACTION`) | Kategori produk (tidak dapat dihapus jika masih dipakai). |
 | `nama` | `varchar(255)` | Tidak | — | — | — | Nama produk yang tampil di katalog. |
-| `slug` | `varchar(255)` | Tidak | — | `UNI` (`produk_slug_unique`) | Unik | Slug URL unik (`routeKeyName = 'slug'` di rute publik). |
+| `slug` | `varchar(255)` | Tidak | — | `MUL` (`produk_penjual_slug_unique`) | Komposit Unik `(penjual_id, slug)` (`2026_11_17_000001`) | Slug URL produk unik dalam lingkup satu toko (`/{penjual:slug}/{produk:slug}`). |
 | `deskripsi` | `text` | Ya | `NULL` | — | — | Deskripsi detail spesifikasi produk. |
 | `harga` | `decimal(12,2)` | Tidak | — | — | Cast: `decimal:2` | Harga satuan produk dalam Rupiah. |
 | `stok` | `enum('tersedia','po','habis')` | Tidak | `'tersedia'` | — | Normalisasi `2026_10_15_000002` | Status ketersediaan: `tersedia` (Stok Tersedia), `po` (Pre-Order), `habis` (Stok Habis). |
 | `label_promosi` | `varchar(255)` | Ya | `NULL` | — | — | Label pita promosi opsional (maks. 50 karakter di validasi). |
 | `foto_utama` | `varchar(255)` | Ya | `NULL` | — | — | Path relatif gambar produk pada disk `public` (`produk/...`). |
 | `status` | `enum('draft','pending','aktif','ditolak')` | Tidak | `'pending'` | — | Normalisasi `2026_10_15_000002` | Status publikasi produk. Hanya `aktif` yang tampil di publik. |
+| `approved_at` | `timestamp` | Ya | `NULL` | — | `2026_11_05_000001` + Trigger `trg_produk_set_approved_at` | Waktu produk pertama kali disetujui Admin (`status = 'aktif'`). |
 | `created_at` | `datetime` | Ya | `NULL` | — | — | Waktu pembuatan produk. |
 | `updated_at` | `datetime` | Ya | `NULL` | — | — | Waktu pembaruan produk. |
 | `views` | `bigint` | Tidak | `0` | — | — | Akumulasi total tayangan halaman detail produk. |
@@ -272,11 +274,22 @@
 | `jobs` | `id` (`bigint unsigned` PK AI), `queue` (`varchar(255)` IX), `payload` (`longtext`), `attempts` (`tinyint unsigned`), `reserved_at` (`int unsigned nullable`), `available_at` (`int unsigned`), `created_at` (`int unsigned`) | Antrean pekerjaan asinkron jika `QUEUE_CONNECTION=database`. |
 | `job_batches` | `id` (`varchar(255)` PK), `name`, `total_jobs`, `pending_jobs`, `failed_jobs`, `failed_job_ids`, `options`, `cancelled_at`, `created_at`, `finished_at` | Pencatatan eksekusi job secara berkelompok (*batch*). |
 | `failed_jobs` | `id` (`bigint unsigned` PK AI), `uuid` (`varchar(255)` UK), `connection`, `queue`, `payload`, `exception`, `failed_at` (`timestamp`) | Menyimpan detail job yang gagal dieksekusi. |
-| `migrations` | `id` (`int unsigned` PK AI), `migration` (`varchar(255)`), `batch` (`int`) | Mencatat seluruh 27 berkas migrasi yang telah dijalankan (Batch 1–9). |
+| `migrations` | `id` (`int unsigned` PK AI), `migration` (`varchar(255)`), `batch` (`int`) | Mencatat seluruh 32 berkas migrasi yang telah dijalankan (Batch 1–14). |
 
 ---
 
-## 5. Rujukan Kode
+## 5. Objek SQL Terprogram (View, Stored Function/Procedure, & Trigger)
 
-- `database/migrations/0001_01_01_000000_create_users_table.php` s.d. `database/migrations/2026_10_15_000005_add_google_id_to_users_table.php`
+| Nama Objek | Tipe | Definisi / Parameter | Keterangan |
+| :--- | :--- | :--- | :--- |
+| `v_katalog_produk_aktif` | `VIEW` (`SQL SECURITY INVOKER`) | Join `produk`, `penjual`, `users`, `kategori`, dan agregat `ulasan` publik | Katalog produk `'aktif'` dari penjual aktif beserta `jumlah_ulasan` dan `rata_rata_rating`. |
+| `fn_hitung_rating_produk` | `FUNCTION` (`READS SQL DATA`) | `p_produk_id BIGINT UNSIGNED` $\rightarrow$ `DECIMAL(3,2)` | Mengembalikan rata-rata rating ulasan publik terverifikasi untuk produk tertentu. |
+| `sp_rekap_toko` | `PROCEDURE` (`READS SQL DATA`) | `IN p_penjual_id BIGINT UNSIGNED` | Menghasilkan rekap jumlah produk, produk aktif, total views, dan rata-rata rating toko. |
+| `trg_produk_set_approved_at` | `TRIGGER` (`BEFORE UPDATE ON produk`) | Isi `NEW.approved_at = CURRENT_TIMESTAMP` | Otomatis mengisi timestamp persetujuan saat produk berubah menjadi `'aktif'` bila `approved_at` masih `NULL`. |
+
+---
+
+## 6. Rujukan Kode
+
+- `database/migrations/0001_01_01_000000_create_users_table.php` s.d. `database/migrations/2026_11_18_000001_add_database_views_routines_and_triggers.php`
 - `app/Models/User.php`, `app/Models/Penjual.php`, `app/Models/Kategori.php`, `app/Models/Produk.php`, `app/Models/Ulasan.php`, `app/Models/ProdukViewLog.php`, `app/Models/BadWord.php`, `app/Models/Whitelist.php`, `app/Models/CommentModerationLog.php`

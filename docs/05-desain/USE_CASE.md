@@ -3,8 +3,8 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | Diagram dan Spesifikasi Use Case SiswaMart |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
 | **Status** | Final (Source-Code Backed) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
 | **Sumber Data** | `routes/web.php`, `routes/auth.php`, `routes/api.php`, `app/Http/Controllers/` |
@@ -130,7 +130,7 @@ flowchart LR
 | :--- | :--- |
 | **Aktor** | Pengunjung Publik |
 | **Prasyarat** | Produk berstatus `aktif` dan akun penjual aktif (`publicVisible`). |
-| **Alur Utama** | 1. Pengunjung mengklik kartu produk menuju `GET /produk/{produk:slug}`.<br>2. Sistem memverifikasi visibilitas publik produk.<br>3. Sistem menambah kolom `produk.views` sebesar `+1` dan menyisipkan baris baru pada `produk_views_logs` (`type = 'view'`).<br>4. Sistem menampilkan informasi produk, profil toko, status toko (`buka`/`tutup`), daftar ulasan terpaginasi, dan maksimal 4 produk terkait dari kategori yang sama. |
+| **Alur Utama** | 1. Pengunjung mengklik kartu produk menuju `GET /{penjual:slug}/{produk:slug}` (tautan lama `/produk/{produk:slug}` otomatis redirect `301`).<br>2. Sistem memverifikasi visibilitas publik produk.<br>3. Sistem menambah kolom `produk.views` sebesar `+1` dan menyisipkan baris baru pada `produk_views_logs` (`type = 'view'`).<br>4. Sistem menampilkan informasi produk, profil toko, status toko (`buka`/`tutup`), daftar ulasan terpaginasi, dan maksimal 4 produk terkait dari kategori yang sama. |
 | **Alur Alternatif** | - **A1 (Produk `pending`/`ditolak` atau penjual nonaktif):** Sistem mengembalikan respons HTTP `404 Not Found` (`Public\ProdukController@show#L17`).<br>- **A2 (Batas permintaan terlampaui):** Jika melebihi 60 permintaan/menit per IP, middleware `throttle:60,1` mengembalikan HTTP `429`. |
 | **Pascakondisi** | Penghitung `views` bertambah 1 dan log kunjungan tercatat di `produk_views_logs`. |
 | **Rujukan Kode** | `app/Http/Controllers/Public/ProdukController.php#L15-L71` |
@@ -140,7 +140,7 @@ flowchart LR
 | :--- | :--- |
 | **Aktor** | Pengunjung Publik |
 | **Prasyarat** | Pengunjung berada di halaman detail produk yang berstatus `publicVisible`. |
-| **Alur Utama** | 1. Pengunjung menekan tombol **"Pesan via WhatsApp"** (`GET /produk/{produk:slug}/whatsapp`).<br>2. Sistem memeriksa ketersediaan stok (`produk.stok != 'habis'`) dan keberadaan nomor WhatsApp penjual.<br>3. Sistem menormalisasi awalan nomor telepon (`0...` menjadi `62...`).<br>4. Sistem mencatat log klik pada `produk_views_logs` dengan `type = 'whatsapp'`.<br>5. Sistem menyusun pesan otomatis sesuai `penjual.status_toko` (`buka` atau `tutup`) dan mengarahkan pengguna (`HTTP 302`) ke `https://wa.me/{nomor}?text={pesan}`. |
+| **Alur Utama** | 1. Pengunjung menekan tombol **"Pesan via WhatsApp"** (`GET /{penjual:slug}/{produk:slug}/whatsapp`, tautan lama `/produk/{produk:slug}/whatsapp` otomatis redirect `301`).<br>2. Sistem memeriksa ketersediaan stok (`produk.stok != 'habis'`) dan keberadaan nomor WhatsApp penjual.<br>3. Sistem menormalisasi awalan nomor telepon (`0...` menjadi `62...`).<br>4. Sistem mencatat log klik pada `produk_views_logs` dengan `type = 'whatsapp'`.<br>5. Sistem menyusun pesan otomatis sesuai `penjual.status_toko` (`buka` atau `tutup`) dan mengarahkan pengguna (`HTTP 302`) ke `https://wa.me/{nomor}?text={pesan}`. |
 | **Alur Alternatif** | - **A1 (Stok produk `habis`):** Sistem membatalkan pengalihan dan mengembalikan pengguna ke halaman produk dengan pesan error `"Maaf, produk ini sedang habis sehingga tidak dapat dipesan saat ini."` (`Public\ProdukController@trackWhatsapp#L79-L83`).<br>- **A2 (Nomor WhatsApp kosong/tidak valid):** Sistem mengembalikan pengguna ke halaman produk dengan pesan error bahwa nomor WhatsApp belum tersedia (`#L86-L97`). |
 | **Pascakondisi** | Log `type = 'whatsapp'` tercatat di `produk_views_logs` dan aplikasi WhatsApp terbuka di perangkat pengunjung. |
 | **Rujukan Kode** | `app/Http/Controllers/Public/ProdukController.php#L73-L120` |
@@ -150,7 +150,7 @@ flowchart LR
 | :--- | :--- |
 | **Aktor** | Pengunjung Publik |
 | **Prasyarat** | Produk tampil di halaman detail publik (`publicVisible`). |
-| **Alur Utama** | 1. Pengunjung mengisi `guest_username` (maks 100 karakter), memilih `rating` (1–5 bintang), dan menulis `komentar` (maks 1000 karakter), lalu mengirim ke `POST /produk/{produk:slug}/ulasan`.<br>2. Sistem memanggil `CommentModerationService::moderateComment()` untuk memeriksa kata kasar di `guest_username` dan `komentar`.<br>3. Jika tidak ada kata kasar terdeteksi, sistem menyimpan ulasan ke tabel `ulasan` (`status = 'aktif'`, `moderation_status = 'approved'`) dan mengirim notifikasi ke Admin via `AdminNotificationService::reviewSubmitted()`. |
+| **Alur Utama** | 1. Pengunjung mengisi `guest_username` (maks 100 karakter), memilih `rating` (1–5 bintang), dan menulis `komentar` (maks 1000 karakter), lalu mengirim ke `POST /{penjual:slug}/{produk:slug}/ulasan`.<br>2. Sistem memanggil `CommentModerationService::moderateComment()` untuk memeriksa kata kasar di `guest_username` dan `komentar`.<br>3. Jika tidak ada kata kasar terdeteksi, sistem menyimpan ulasan ke tabel `ulasan` (`status = 'aktif'`, `moderation_status = 'approved'`) dan mengirim notifikasi ke Admin via `AdminNotificationService::reviewSubmitted()`. |
 | **Alur Alternatif** | - **A1 (Terdeteksi kata kasar / leetspeak):** Sistem menolak penyimpanan dan mengembalikan error validasi pada field terkait (`"Nama mengandung kata yang tidak pantas..."` atau `"Ulasan mengandung kata yang tidak pantas..."`, `Public\UlasanController@store#L30-L43`).<br>- **A2 (Spam > 3 kali/menit):** Middleware `throttle:3,1` memblokir permintaan dengan HTTP `429`. |
 | **Pascakondisi** | Ulasan baru tersimpan di database, tampil di halaman produk, dan tercatat di lonceng notifikasi Admin. |
 | **Rujukan Kode** | `app/Http/Controllers/Public/UlasanController.php#L18-L62`, `app/Services/CommentModerationService.php#L43-L112` |
@@ -202,23 +202,23 @@ flowchart LR
 | **Pascakondisi** | Statistik performa toko tampil di layar penjual. |
 | **Rujukan Kode** | `app/Http/Controllers/Penjual/DashboardController.php#L13-L61` |
 
-### UC-009: Mengelola Profil Toko & Status Buka/Tutup
+### UC-009: Mengubah Status Operasional Toko (`buka` / `tutup`)
 | Atribut | Spesifikasi |
 | :--- | :--- |
 | **Aktor** | Penjual |
 | **Prasyarat** | Login sebagai `penjual` aktif. |
-| **Alur Utama** | 1. Penjual membuka `GET /penjual/profil` dan mengirim perubahan ke `PUT /penjual/profil` (`nama_toko`, `deskripsi_toko`, `nomor_whatsapp`, `lokasi_kelas`, `status_toko`, `foto_toko`, atau perubahan password opsional).<br>2. Atau penjual menekan tombol sakelar cepat `PATCH /penjual/profil/status-toko` untuk mengubah `status_toko` antara `'buka'` dan `'tutup'`.<br>3. Sistem menyimpan perubahan dan mencatat `recordActivity('profile_updated')`. |
-| **Pascakondisi** | Profil dan status operasional toko diperbarui serta berdampak langsung pada pesan WhatsApp di etalase publik. |
-| **Rujukan Kode** | `app/Http/Controllers/Penjual/ProfilController.php#L18-L106` |
+| **Alur Utama** | 1. Penjual menekan tombol sakelar cepat `PATCH /penjual/status-toko` (atau melalui API `PATCH /api/seller/store-status`) untuk membalik `penjual.status_toko` antara `'buka'` dan `'tutup'`.<br>2. Pembaruan profil akun (`name`, `email`, kata sandi) dapat dilakukan melalui `/profile`. |
+| **Pascakondisi** | Status operasional toko diperbarui serta berdampak langsung pada lencana etalase dan pesan WhatsApp publik. |
+| **Rujukan Kode** | `app/Http/Controllers/Penjual/DashboardController.php`, `app/Http/Controllers/Api/SellerController.php` |
 
 ### UC-010: Mengajukan Produk Baru (`Create`)
 | Atribut | Spesifikasi |
 | :--- | :--- |
 | **Aktor** | Penjual |
 | **Prasyarat** | Login sebagai `penjual` aktif. |
-| **Alur Utama** | 1. Penjual mengisi formulir tambah produk (`POST /penjual/produk` atau `POST /api/seller/products`): `nama`, `kategori_id`, `deskripsi`, `harga`, `stok` (`tersedia`/`po`/`habis`), `label_promosi`, dan berkas `foto_utama` (maks 2 MB).<br>2. Sistem membuat `slug` unik, menyimpan berkas ke `storage/app/public/produk/`, dan menyimpan baris produk dengan `status = 'pending'`, `pending_action = 'create'`, `pending_changes = null`.<br>3. Sistem mengirim notifikasi ke Admin melalui `AdminNotificationService::productSubmitted($produk, 'create')`. |
+| **Alur Utama** | 1. Penjual mengisi formulir tambah produk (`POST /penjual/produk`): `nama`, `kategori_id`, `deskripsi`, `harga`, `stok` (`tersedia`/`po`/`habis`), `label_promosi`, dan berkas `foto_utama` (maks 2 MB).<br>2. Sistem membuat `slug` komposit unik per toko (`(penjual_id, slug)`), menyimpan berkas ke `storage/app/public/produk/`, dan menyimpan baris produk dengan `status = 'pending'`, `pending_action = 'create'`, `pending_changes = null`.<br>3. Sistem mengirim notifikasi ke Admin melalui `AdminNotificationService::productSubmitted($produk, 'create')`. |
 | **Pascakondisi** | Produk baru masuk ke antrean moderasi Admin (`pending`). |
-| **Rujukan Kode** | `app/Http/Controllers/Penjual/ProdukController.php#L61-L103`, `app/Http/Controllers/Api/SellerProductController.php#L56-L95` |
+| **Rujukan Kode** | `app/Http/Controllers/Penjual/ProdukController.php` |
 
 ### UC-011: Mengajukan Perubahan Produk (`Update`)
 | Atribut | Spesifikasi |
@@ -226,9 +226,9 @@ flowchart LR
 | **Aktor** | Penjual |
 | **Prasyarat** | Login sebagai `penjual` aktif dan merupakan pemilik produk (`produk.penjual_id == penjual.id`). |
 | **Alur Utama** | 1. Penjual mengirim pembaruan produk melalui `PUT /penjual/produk/{produk}`.<br>2. **Jika produk sedang berstatus `aktif`**: kolom utama produk **tidak diubah** dan `status` tetap `'aktif'`. Sistem menyimpan seluruh perubahan (termasuk foto baru jika ada) ke kolom JSON `pending_changes` dan menyetel `pending_action = 'update'`.<br>3. **Jika produk belum `aktif` (`pending`/`ditolak`/`draft`)**: sistem memperbarui kolom utama secara langsung, menyetel `status = 'pending'`, `pending_action = 'create'`, `pending_changes = null`, dan `alasan_ditolak = null`.<br>4. Sistem mengirim notifikasi ke Admin (`productSubmitted`). |
-| **Alur Alternatif** | - **A1 (Produk milik penjual lain):** Sistem mengembalikan HTTP `403 Forbidden`.<br>- **A2 (Produk sedang dalam antrean hapus `pending_action == 'delete'`):** Pada API `PUT /api/seller/products/{produk}`, sistem menolak edit dengan HTTP `422` (`Api\SellerProductController@update#L106-L108`). |
+| **Alur Alternatif** | - **A1 (Produk milik penjual lain):** Sistem mengembalikan HTTP `403 Forbidden`.<br>- **A2 (Produk masih memiliki ajuan moderasi menggantung):** Pengajuan edit baru ditolak sampai ajuan sebelumnya diputuskan Admin (`hasPendingModerationRequest()`). |
 | **Pascakondisi** | Ajuan perubahan tercatat di antrean moderasi tanpa menghilangkan produk aktif dari etalase publik. |
-| **Rujukan Kode** | `app/Http/Controllers/Penjual/ProdukController.php#L126-L189`, `app/Http/Controllers/Api/SellerProductController.php#L97-L162` |
+| **Rujukan Kode** | `app/Http/Controllers/Penjual/ProdukController.php` |
 
 ### UC-012: Mengajukan Penghapusan Produk (`Delete`)
 | Atribut | Spesifikasi |
@@ -245,9 +245,9 @@ flowchart LR
 | :--- | :--- |
 | **Aktor** | Penjual |
 | **Prasyarat** | Login sebagai `penjual` aktif. |
-| **Alur Utama** | 1. Penjual memilih filter (`status`, `kategori_id`, `stok`, `search`) pada `/penjual/laporan`.<br>2. Penjual memilih unduh PDF (`GET /penjual/laporan/export` atau `/download`) atau Excel (`GET /penjual/laporan/export-excel`).<br>3. `LaporanPenjualService::buildReportData()` menyusun metrik toko dan daftar produk.<br>4. Sistem mengembalikan berkas PDF (DomPDF A4 Landscape) atau buku kerja `.xlsx` 2 lembar (*Ringkasan* & *Daftar Produk*) melalui `LaporanPenjualExport` & `XlsxWriter`. |
+| **Alur Utama** | 1. Penjual memilih filter `week_offset` (`<= 0`, rentang mingguan 7 hari) pada `/penjual/laporan`.<br>2. Penjual memilih unduh PDF (`GET /penjual/laporan/pdf`) atau Excel (`GET /penjual/laporan/sheet`).<br>3. `LaporanPenjualService::getSummary()` menyusun metrik toko dan daftar performa.<br>4. Sistem mengembalikan berkas PDF (DomPDF A4 Portrait) atau buku kerja `.xlsx` 5 sheet (*Ringkasan*, *Top 5 Produk*, *Views Harian*, *Produk Diunggah*, *Ulasan*) melalui `XlsxWriter`. |
 | **Pascakondisi** | Berkas `.pdf` atau `.xlsx` terunduh ke perangkat penjual. |
-| **Rujukan Kode** | `app/Http/Controllers/Penjual/LaporanController.php#L14-L53`, `app/Services/LaporanPenjualService.php#L14-L162`, `app/Exports/LaporanPenjualExport.php#L15-L163` |
+| **Rujukan Kode** | `app/Http/Controllers/Penjual/LaporanController.php`, `app/Services/LaporanPenjualService.php`, `app/Support/XlsxWriter.php` |
 
 ---
 
@@ -277,17 +277,17 @@ flowchart LR
 | :--- | :--- |
 | **Aktor** | Admin |
 | **Prasyarat** | Login sebagai `admin` aktif; produk berada dalam antrean moderasi (`status = 'pending'` atau `pending_action IS NOT NULL`). |
-| **Alur Utama (Approve)** | 1. Admin meninjau produk di `/admin/produk/{produk}` (termasuk tabel komparasi *diff* jika `pending_action == 'update'`).<br>2. Admin menyetujui ajuan (`PATCH /admin/produk/{produk}/status` dengan `status = 'aktif'`).<br>3. - Jika `create`: `status` menjadi `'aktif'`, `pending_action = null`.<br>   - Jika `update`: nilai di `pending_changes` disalin ke kolom utama produk (dan foto lama dihapus jika diganti), `status = 'aktif'`, `pending_action = null`, `pending_changes = null`.<br>   - Jika `delete`: berkas foto produk dihapus dari storage dan baris produk dihapus permanen dari database (`$produk->delete()`). |
+| **Alur Utama (Approve)** | 1. Admin meninjau produk di `/admin/produk/{produk}` (termasuk tabel komparasi *diff* jika `pending_action == 'update'`).<br>2. Admin menyetujui ajuan (`PATCH /admin/produk/{produk}/update-status` dengan `status = 'aktif'`).<br>3. - Jika `create`: `status` menjadi `'aktif'`, `pending_action = null`.<br>   - Jika `update`: nilai di `pending_changes` disalin ke kolom utama produk (dan foto lama dihapus jika diganti), `status = 'aktif'`, `pending_action = null`, `pending_changes = null`.<br>   - Jika `delete`: berkas foto produk dihapus dari storage dan baris produk dihapus permanen dari database (`$produk->delete()`). |
 | **Alur Utama (Reject)** | 1. Admin menolak ajuan (`status = 'ditolak'`) disertai `alasan_ditolak` (wajib diisi, maks 500 karakter).<br>2. - Jika produk sudah `aktif` (`update`/`delete` ditolak): foto sementara di `pending_changes` dihapus, `pending_action = null`, `pending_changes = null`, `alasan_ditolak` disimpan, dan **`status` produk tetap `'aktif'`**. <br>   - Jika produk baru (`create` ditolak): `status` menjadi `'ditolak'`, `pending_action = null`, dan `alasan_ditolak` disimpan. |
 | **Pascakondisi** | Status produk diperbarui sesuai keputusan moderasi dan berkas foto yatim (*orphan files*) dibersihkan. |
-| **Rujukan Kode** | `app/Http/Controllers/Admin/ProdukController.php#L61-L163`, `app/Http/Controllers/Api/AdminModerationController.php#L47-L166` |
+| **Rujukan Kode** | `app/Http/Controllers/Admin/ProdukController.php` |
 
 ### UC-017: Mengelola Kategori Produk
 | Atribut | Spesifikasi |
 | :--- | :--- |
 | **Aktor** | Admin |
 | **Prasyarat** | Login sebagai `admin` aktif. |
-| **Alur Utama** | 1. Admin membuat (`POST /admin/kategori`), mengubah (`PUT /admin/kategori/{kategori}`), atau menghapus (`DELETE /admin/kategori/{kategori}`) kategori.<br>2. Sistem menghasilkan `slug` otomatis dari `nama` kategori. |
+| **Alur Utama** | 1. Admin membuat (`POST /admin/categories`), mengubah (`PUT /admin/categories/{category}`), atau menghapus (`DELETE /admin/categories/{category}`) kategori.<br>2. Sistem menghasilkan `slug` otomatis dari `nama` kategori. |
 | **Alur Alternatif** | - **A1 (Menghapus kategori yang masih memiliki produk):** Sistem menolak penghapusan jika `$kategori->produk()->count() > 0` (`Admin\KategoriController@destroy#L68-L72`). |
 | **Pascakondisi** | Master kategori diperbarui. |
 | **Rujukan Kode** | `app/Http/Controllers/Admin/KategoriController.php#L14-L79` |
@@ -315,17 +315,17 @@ flowchart LR
 | :--- | :--- |
 | **Aktor** | Admin |
 | **Prasyarat** | Login sebagai `admin` aktif. |
-| **Alur Utama** | 1. Admin menyaring laporan di `/admin/laporan` berdasarkan periode (`daily`, `weekly`, `monthly`, `yearly`, `custom`), `penjual_id`, `kategori_id`, `status`, dan kata kunci.<br>2. Admin mengunduh PDF (`GET /admin/laporan/export` atau `/download`) atau Excel (`GET /admin/laporan/export-excel`).<br>3. `LaporanAdminService::buildReportData()` menghitung ringkasan global, performa per toko, dan detail produk.<br>4. Sistem menghasilkan PDF (DomPDF A4 Landscape) atau buku kerja `.xlsx` 3 lembar (*Ringkasan & Statistik*, *Performa Penjual*, *Daftar Produk*) via `LaporanAdminExport` & `XlsxWriter`. |
+| **Alur Utama** | 1. Admin menyaring laporan di `/admin/laporan` (termasuk sub-halaman `/admin/laporan/produk`, `/ulasan`, dan detail penjual `/admin/laporan/penjual/{penjual}`) berdasarkan periode (`weekly`, `monthly`, `week_offset`).<br>2. Admin mengunduh PDF (`GET /admin/laporan/penjual/pdf`, `/ulasan/pdf`, `/pdf`, atau `/penjual/{penjual}/pdf`) maupun Excel (`GET /admin/laporan/penjual/sheet`, `/ulasan/sheet`, `/penjual/{penjual}/sheet`, atau `/admin/penjual/export`).<br>3. `LaporanAdminService` menyusun metrik ringkasan global, performa toko, dan ulasan.<br>4. Sistem menghasilkan PDF (DomPDF) atau buku kerja `.xlsx` multi-sheet melalui `XlsxWriter` & `StylesSheet`. |
 | **Pascakondisi** | Berkas laporan analitik `.pdf` atau `.xlsx` terunduh ke perangkat Admin. |
-| **Rujukan Kode** | `app/Http/Controllers/Admin/LaporanController.php#L14-L53`, `app/Services/LaporanAdminService.php#L15-L296`, `app/Exports/LaporanAdminExport.php#L15-L261` |
+| **Rujukan Kode** | `app/Http/Controllers/Admin/LaporanController.php`, `app/Services/LaporanAdminService.php`, `app/Support/XlsxWriter.php` |
 
 ---
 
 ## 8. Rujukan Kode
 
-- `routes/web.php#L1-L107`
-- `routes/auth.php#L1-L66`
-- `routes/api.php#L1-L77`
+- `routes/web.php`
+- `routes/auth.php`
+- `routes/api.php`
 - `app/Http/Controllers/Public/`
 - `app/Http/Controllers/Penjual/`
 - `app/Http/Controllers/Admin/`

@@ -3,8 +3,8 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | Architecture Decision Records (ADR) SiswaMart |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
 | **Status** | Final (Source-Code Backed) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
 | **Sumber Data** | Kode sumber `app/`, `routes/`, `database/migrations/`, `public/index.php`, `docs/01-prd/PRD.md` |
@@ -42,7 +42,7 @@
 - **Status:** Diterima & Diimplementasikan (`[Implemented]`)
 - **Konteks:** SiswaMart digunakan di lingkungan sekolah (SMK) di mana transaksi antara pembeli (siswa/guru/warga sekolah) dan penjual (siswa wirausaha) dilakukan secara tatap muka di lingkungan sekolah/kelas (*Cash on Delivery* / pre-order langsung). Mengimplementasikan *payment gateway* komersial dan manajemen logistik pengiriman ekspedisi akan menambah biaya transaksi dan kerumitan operasional yang tidak diperlukan oleh siswa.
 - **Keputusan:**
-  1. Mengarahkan pemesanan langsung ke nomor WhatsApp penjual melalui rute pelacakan `GET /produk/{produk:slug}/whatsapp` (`Public\ProdukController::trackWhatsapp`).
+  1. Mengarahkan pemesanan langsung ke nomor WhatsApp penjual melalui rute pelacakan `GET /{penjual:slug}/{produk:slug}/whatsapp` (dengan fallback redirect `301` dari rute lama `GET /produk/{produk:slug}/whatsapp`, ditangani `Public\ProdukController::trackWhatsapp`).
   2. Mencatat setiap klik ke tabel `produk_views_logs` dengan `type = 'whatsapp'` sebelum melakukan *redirect* HTTP `302` ke `https://wa.me/{nomor}?text={pesan}`.
   3. Menyesuaikan templat pesan otomatis berdasarkan status toko (`status_toko = 'buka'` vs `'tutup'`) dan memblokir pemesanan jika `stok = 'habis'`.
   4. Menyediakan kontrak rute `/api/cart*` yang secara eksplisit mengembalikan HTTP `501 Not Implemented` (`Api\CartController`) sebagai penanda arsitektur bahwa fitur keranjang belanja internal ditangguhkan ke roadmap masa depan.
@@ -80,7 +80,7 @@
   1. Membangun layanan `CommentModerationService` yang dieksekusi secara sinkron **sebelum** ulasan disimpan ke database.
   2. Menggabungkan kamus statis `resources/data/badwords-list.json` (350 kata) dengan tabel database `bad_words` dan `whitelists`, lalu menyimpannya dalam cache selama 24 jam (`86400` detik).
   3. Menerapkan normalisasi berlapis: konversi angka/simbol *leetspeak* (`0->o`, `1->i`, `3->e`, `4->a`, `5->s`, `7->t`, `@->a`, `$->s`), pemangkasan karakter berulang (`>2` karakter menjadi `1`), dan pencocokan batas kata (*word boundary* `\b`).
-  4. Jika ditemukan kata kasar, ulasan **ditolak pada tahap validasi** dengan pesan bahasa Indonesia dan tidak disimpan ke tabel `ulasan` (`Public\UlasanController::store` & `Api\ReviewController::store`). Selain itu, rute ulasan dibatasi dengan *rate limiter* (`throttle:3,1` di Web dan `throttle:10,1` di API).
+  4. Jika ditemukan kata kasar, ulasan **ditolak pada tahap validasi** dengan pesan bahasa Indonesia dan tidak disimpan ke tabel `ulasan` (`Public\UlasanController::store` & `Api\ReviewController::store`). Selain itu, rute pengiriman ulasan dibatasi dengan *rate limiter* (`throttle:3,1` di Web maupun API).
 - **Konsekuensi:**
   - (+) Ulasan yang sopan langsung tayang tanpa membebani admin dengan antrean moderasi manual.
   - (+) Admin tetap memiliki wewenang pasca-publikasi untuk menghapus ulasan dan menjalankan audit massal (`php artisan comments:audit-clean`).
@@ -114,7 +114,7 @@
 - **Konsekuensi:**
   - (+) Ekspor `.xlsx` multi-sheet dengan *styling* penuh (header warna, zebra striping, *freeze pane*, format mata uang Rupiah) berjalan cepat, hemat memori, dan bebas ketergantungan ekstensi server.
   - (+) Aman dari serangan *CSV/Excel Formula Injection*.
-- **Rujukan Kode:** `app/Support/XlsxWriter.php#L1-L429`, `app/Exports/Concerns/StylesSheet.php#L230-L245`, `app/Exports/LaporanAdminExport.php#L1-L261`, `app/Exports/LaporanPenjualExport.php#L1-L163`.
+- **Rujukan Kode:** `app/Support/XlsxWriter.php`, `app/Exports/Concerns/StylesSheet.php`, `app/Http/Controllers/Admin/LaporanController.php`, `app/Http/Controllers/Penjual/LaporanController.php`.
 
 ---
 

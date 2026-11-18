@@ -5,8 +5,8 @@
 | Atribut | Detail |
 |---|---|
 | **Judul Dokumen** | Indeks Utama Dokumentasi Proyek SiswaMart |
-| **Versi Dokumen** | 1.1.0 |
-| **Tanggal Pembaruan** | 27 Oktober 2026 |
+| **Versi Dokumen** | 1.2.0 |
+| **Tanggal Pembaruan** | 18 November 2026 |
 | **Status** | Final (*Source-Code Backed*) |
 | **Penulis** | Tim Pengembang & Dokumentasi Teknis SiswaMart (SMK RPL) |
 | **Sumber Data** | Kode sumber aktual (`app/`, `routes/`, `database/`, `resources/`, `config/`, `tests/`), output `php artisan route:list`, `php artisan migrate:status`, dan eksekusi PHPUnit |
@@ -38,20 +38,20 @@ Dokumentasi ini merupakan satu set dokumen rekayasa perangkat lunak lengkap untu
 
 ## 2. Ringkasan Statistik Proyek Terverifikasi
 
-Seluruh angka di bawah ini diambil langsung dari berkas proyek dan perintah CLI per **27 Oktober 2026**:
+Seluruh angka di bawah ini diambil langsung dari berkas proyek dan perintah CLI per **18 November 2026**:
 
 | Metrik | Nilai Aktual | Sumber Verifikasi |
 |---|---|---|
-| **Versi PHP Target / Platform** | `^8.3` (`8.3.30`) | `composer.json#L9`, `composer.json#L85` |
+| **Versi PHP Target / Platform** | `^8.3` (`8.3.33` lokal, `8.5` hosting) | `composer.json#L9`, `composer.json#L85` |
 | **Versi Laravel Framework** | `^13.38` (`v13.38.0` terinstal) | `composer.json#L11`, `composer.lock` |
-| **Paket Backend Utama** | `barryvdh/laravel-dompdf` (`v3.1.2`), `laravel/sanctum` (`v4.3.3`), `laravel/socialite` (`v5.31.0`), `laravel/breeze` (`v2.4.2`) | `composer.json#L10-L25`, `composer.lock` |
+| **Paket Backend Utama** | `barryvdh/laravel-dompdf` (`v3.1.2`), `laravel/sanctum` (`v4.3.3`), `laravel/socialite` (`^5.31`), `laravel/breeze` (`^2.4`) | `composer.json#L10-L25`, `composer.lock` |
 | **Paket Frontend Utama** | `tailwindcss` (`^4.0.7`), `@tailwindcss/vite` (`^4.0.7`), `alpinejs` (`^3.14.9`), `vite` (`^6.2.4`) | `package.json#L8-L14` |
-| **Total Rute Terdaftar** | **102 rute** (32 Admin, 26 API, 19 Auth/Profil/Preview, 12 Penjual, 9 Publik, 4 Sistem/Framework) | `php artisan route:list --json` |
+| **Total Rute Terdaftar** | **120 rute** (37 Admin, 37 API `/api/*` & `/api/v1/*`, 19 Auth/Profil/Preview, 12 Penjual, 11 Publik, 4 Sistem/Framework) | `php artisan route:list --json` |
 | **Total Model Eloquent** | **9 model** (`User`, `Penjual`, `Produk`, `Kategori`, `Ulasan`, `ProdukViewLog`, `BadWord`, `Whitelist`, `CommentModerationLog`) | `app/Models/*.php` |
-| **Total Berkas Migrasi** | **27 berkas migrasi** (27 `Ran` / Batch 1–9, 0 `Pending` pada DB lokal saat ini; 5 migrasi Batch 9 bertanggal `2026_10_15` adalah *ex-pending*) | `php artisan migrate:status`, `database/migrations/` |
-| **Total Tabel Basis Data Aktif** | **19 tabel** (9 tabel domain aplikasi + 2 tabel fitur/token `notifications` & `personal_access_tokens` + 7 tabel infrastruktur Laravel + 1 tabel `migrations`) | `SHOW TABLES` pada DB `siswamartid` |
-| **Total Berkas Uji Otomatis** | **10 berkas test** di `tests/Feature/` (**75 test method**, **427 assertions**; hasil aktual: **74 Lulus**, **1 Gagal** karena data produk toko lokal) | `php vendor/phpunit/phpunit/phpunit` |
-| **Total Skenario Uji Black-Box** | **38 kasus uji** (`TC-001` s.d. `TC-038`) | `Pengujian_Black_Box_SiswaMart.xlsx` |
+| **Total Berkas Migrasi** | **32 berkas migrasi** (`32 Ran` / Batch 1–14, `0 Pending` pada DB lokal & hosting) | `php artisan migrate:status`, `database/migrations/` |
+| **Tabel & Objek Basis Data Aktif** | **19 tabel dasar** + **1 SQL View** (`v_katalog_produk_aktif`), **2 Stored Routines** (`fn_hitung_rating_produk`, `sp_rekap_toko`), dan **1 Trigger** (`trg_produk_set_approved_at`) | `SHOW FULL TABLES`, `information_schema` |
+| **Total Berkas Uji Otomatis** | **14 berkas test** di `tests/Feature/` (**129 test method**, **776 assertions**; hasil aktual: **129 Lulus / 0 Gagal**) | `php vendor/phpunit/phpunit/phpunit` |
+| **Total Skenario Uji Black-Box** | **38 kasus uji** (`TC-001` s.d. `TC-038`) | `docs/08-pengujian/TEST_CASE.md` |
 
 ---
 
@@ -96,9 +96,9 @@ docs/
 │   ├── ARSITEKTUR.md                  # Arsitektur berlapis, struktur direktori, alur request, komponen
 │   └── ADR.md                         # Architecture Decision Records (WhatsApp order, staging produk, dll.)
 ├── 04-database/
-│   ├── ERD.md                         # Diagram Relasi Entitas (Mermaid ERD) skema aktual 19 tabel
-│   ├── KAMUS_DATA.md                  # Spesifikasi lengkap kolom, tipe, indeks, dan FK seluruh tabel
-│   └── MIGRASI.md                     # Inventaris 27 migrasi, status batch, tujuan, & urutan eksekusi
+│   ├── ERD.md                         # Diagram Relasi Entitas (Mermaid ERD) skema aktual 19 tabel & objek SQL
+│   ├── KAMUS_DATA.md                  # Spesifikasi lengkap kolom, tipe, indeks, FK, View, Routine & Trigger
+│   └── MIGRASI.md                     # Inventaris 32 migrasi (Batch 1–14), status, tujuan, & urutan eksekusi
 ├── 05-desain/
 │   ├── USE_CASE.md                    # Diagram & spesifikasi detail 20 Use Case (Pengunjung, Penjual, Admin)
 │   ├── ACTIVITY_SEQUENCE.md           # Flowchart/Activity, Sequence, & State Diagram alur utama
@@ -114,11 +114,11 @@ docs/
 │   └── FAQ_TROUBLESHOOTING.md         # Tanya jawab & solusi kendala teknis umum
 ├── 08-pengujian/
 │   ├── RENCANA_PENGUJIAN.md           # Strategi, cakupan, lingkungan, dan kriteria kelulusan pengujian
-│   ├── TEST_CASE.md                   # Tabel 38 Test Case Black-Box + pemetaan 10 suite test otomatis
-│   └── HASIL_PENGUJIAN.md             # Laporan eksekusi nyata 75 test PHPUnit & analisis kegagalan
+│   ├── TEST_CASE.md                   # Tabel 38 Test Case Black-Box + pemetaan 14 suite test otomatis
+│   └── HASIL_PENGUJIAN.md             # Laporan eksekusi nyata 129 test PHPUnit (100% lulus)
 ├── 09-operasional/
 │   ├── INSTALASI.md                   # Panduan instalasi lokal (Laragon), variabel .env, migrate & seeder
-│   ├── DEPLOYMENT.md                  # Panduan deployment ke hosting cPanel/DirectAdmin & VPS
+│   ├── DEPLOYMENT.md                  # Panduan deployment ke hosting DirectAdmin/cPanel & VPS (siswamart.app)
 │   └── KEAMANAN.md                    # Kontrol keamanan terverifikasi, rate limiting, moderasi, & mitigasi RSK
 └── 10-proyek/
     ├── ROADMAP.md                     # Peta jalan pengembangan masa depan per fase & ketergantungan
@@ -146,5 +146,5 @@ docs/
 - [`package.json`](../package.json) — Definisi dependensi frontend (Tailwind CSS v4, Alpine.js, Vite).
 - [`bootstrap/app.php`](../bootstrap/app.php) — Konfigurasi routing, alias middleware, trusted proxy, dan JSON exception rendering.
 - [`routes/web.php`](../routes/web.php), [`routes/auth.php`](../routes/auth.php), [`routes/api.php`](../routes/api.php) — Definisi seluruh rute aplikasi.
-- [`database/migrations/`](../database/migrations/) — 27 berkas migrasi skema basis data.
-- [`tests/Feature/`](../tests/Feature/) — 10 berkas pengujian otomatis PHPUnit.
+- [`database/migrations/`](../database/migrations/) — 32 berkas migrasi skema & objek SQL basis data.
+- [`tests/Feature/`](../tests/Feature/) — 14 berkas pengujian otomatis PHPUnit (`129` test).

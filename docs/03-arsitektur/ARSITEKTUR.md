@@ -87,7 +87,7 @@ Sistem dibagi ke dalam **5 lapisan logis** dengan pemisahan tanggung jawab yang 
    - `App\Services\CommentModerationService` (`app/Services/CommentModerationService.php`): Mesin pemfilteran kata kasar (*profanity*), normalisasi *leetspeak*, dan *whitelist* dengan cache 24 jam.
    - `App\Services\AdminNotificationService` (`app/Services/AdminNotificationService.php`): Orkestrasi pembuatan notifikasi database ke seluruh akun admin aktif.
    - `App\Services\LaporanAdminService` & `App\Services\LaporanPenjualService`: Agregasi metrik, pemfilteran lintas dimensi, dan penyusunan dataset laporan.
-   - `App\Exports\LaporanAdminExport`, `App\Exports\LaporanPenjualExport`, `App\Exports\Concerns\StylesSheet`, dan `App\Support\XlsxWriter`: Pembuatan buku kerja `.xlsx` multi-sheet dengan sanitasi formula CSV/Excel.
+   - `App\Exports\Concerns\StylesSheet` dan `App\Support\XlsxWriter`: Pembuatan buku kerja `.xlsx` multi-sheet dengan sanitasi formula CSV/Excel.
 
 5. **Lapisan Model & Persistensi Data (Data Access & Persistence Layer)**
    - **9 Model Eloquent** di `app/Models/`: `User`, `Penjual`, `Kategori`, `Produk`, `Ulasan`, `ProdukViewLog`, `BadWord`, `Whitelist`, dan `CommentModerationLog`.
@@ -101,39 +101,40 @@ Sistem dibagi ke dalam **5 lapisan logis** dengan pemisahan tanggung jawab yang 
 siswamartid/
 ├── app/
 │   ├── Console/Commands/           # Perintah CLI: AuditCleanCommentsCommand, LoadBadWordsCommand
-│   ├── Exports/                    # LaporanAdminExport, LaporanPenjualExport, Concerns/StylesSheet
+│   ├── Exports/                    # Concerns/StylesSheet (styling & sanitasi OpenXML .xlsx)
 │   ├── Http/
 │   │   ├── Controllers/
-│   │   │   ├── Admin/              # 7 kontroler panel Admin (Dashboard, Penjual, Produk, Kategori, Komentar, Laporan, Notification)
-│   │   │   ├── Api/                # 11 kontroler REST API (ApiController, Auth, Product, Category, Seller, Review, Profile, SellerProduct, AdminModeration, Notification, Cart)
-│   │   │   ├── Auth/               # 10 kontroler autentikasi Web & Google OAuth (GoogleAuthController, dll.)
-│   │   │   ├── Penjual/            # 4 kontroler panel Penjual (Dashboard, Produk, Profil, Laporan)
-│   │   │   ├── Public/             # 4 kontroler etalase publik (Home, Kategori, Produk, Ulasan)
+│   │   │   ├── Admin/              # 8 kontroler panel Admin (Dashboard, Penjual, Produk, Kategori, Komentar, Laporan, Notification, AdminController)
+│   │   │   ├── Api/                # 9 kontroler REST API (ApiController, Auth, Product, Category, Seller, Review, Profile, Notification, Cart)
+│   │   │   ├── Auth/               # Autentikasi Web & Google OAuth (GoogleAuthController, PasswordReset, dll.)
+│   │   │   ├── Penjual/            # 3 kontroler panel Penjual (Dashboard, Produk, Laporan)
+│   │   │   ├── Public/             # 5 kontroler etalase publik (Home, Kategori, Produk, Ulasan, Sitemap)
 │   │   │   └── ProfileController.php
 │   │   ├── Middleware/             # EnsureAdmin, EnsurePenjual, EnsureUserIsActive
 │   │   └── Requests/               # Auth/LoginRequest, ProfileUpdateRequest
 │   ├── Models/                     # 9 model Eloquent (User, Penjual, Kategori, Produk, Ulasan, ProdukViewLog, BadWord, Whitelist, CommentModerationLog)
 │   ├── Notifications/              #AdminActivityNotification, BrandedResetPassword, BrandedVerifyEmail
 │   ├── Providers/                  # AppServiceProvider
-│   ├── Services/                   # CommentModerationService, AdminNotificationService, LaporanAdminService, LaporanPenjualService
+│   ├── Services/                   # CommentModerationService, AdminNotificationService, LaporanAdminService, LaporanPenjualService, PdfFilenameService, WhatsappUrlService
 │   ├── Support/                    # XlsxWriter (generator OpenXML .xlsx murni PHP)
 │   └── View/Components/            # AppLayout, GuestLayout
 ├── bootstrap/
-│   └── app.php                     # Registrasi rute, alias middleware, & exception handler JSON 422
-├── config/                         # 11 berkas konfigurasi (app, auth, cache, database, dompdf, filesystems, logging, mail, queue, sanctum, services, session)
+│   └── app.php                     # Registrasi rute, alias middleware, trusted proxy, & JSON exception handler
+├── config/                         # Berkas konfigurasi Laravel (app, auth, cache, database, dompdf, filesystems, sanctum, services, session, dll.)
 ├── database/
 │   ├── factories/                  # UserFactory
-│   ├── migrations/                 # 27 berkas migrasi skema database
-│   └── seeders/                    # DatabaseSeeder, AdminUserSeeder, KategoriSeeder, PenjualPromptsSeeder, ProdukSeeder, BadWordsSeeder
+│   ├── migrations/                 # 32 berkas migrasi skema database & objek SQL (Batch 1–14)
+│   └── seeders/                    # DatabaseSeeder, AdminSeeder, KategoriSeeder, PenjualSeeder, ProdukSeeder, BadWordSeeder, WhitelistSeeder
 ├── docs/                           # Dokumentasi teknis proyek lengkap (01-prd s.d. 10-proyek)
-├── public/                         # Document root (index.php multi-path, css/siswamart-theme.css, css/homepage.css, deploy-helper.php)
+├── public/                         # Document root (index.php multi-path, .htaccess 301 canonical, robots.txt, css/, fonts/)
 ├── resources/
 │   ├── css/app.css                 # Entrypoint Tailwind CSS v4
 │   ├── data/badwords-list.json     # Kamus dasar kata terlarang (350 kata)
 │   ├── js/                         # app.js, bootstrap.js
-│   └── views/                      # Template Blade (admin/, penjual/, public/, auth/, layouts/, components/, emails/)
+│   └── views/                      # 86 template Blade (admin/, penjual/, public/, auth/, layouts/, components/, emails/)
 ├── routes/                         # web.php, auth.php, api.php, console.php
-└── tests/                          # 10 berkas pengujian otomatis (Feature & Unit)
+├── scripts/deploy/                 # Skrip packaging DirectAdmin (create-siswamart-root-zip.ps1 & deploy-helper.php)
+└── tests/                          # 14 berkas pengujian otomatis PHPUnit (129 test)
 ```
 
 ---
@@ -146,7 +147,7 @@ siswamartid/
 | **Query Scope Pattern** | Mengenkapsulasi aturan visibilitas etalase publik (`status = aktif` DAN `penjual.user.is_active = true`) serta antrean moderasi (`status = pending` ATAU `pending_action IS NOT NULL`) di dalam model `Produk`. | `app/Models/Produk.php#L47-L60` |
 | **State Preservation / Draft Shadowing (`pending_changes`)** | Perubahan produk aktif oleh penjual disimpan dalam kolom JSON `pending_changes` dengan penanda `pending_action = 'update'` tanpa menimpa kolom utama sampai disetujui admin. | `app/Http/Controllers/Penjual/ProdukController.php#L140-L157`, `app/Http/Controllers/Admin/ProdukController.php#L61-L163` |
 | **Pipeline / Chain of Responsibility (Middleware)** | Pemeriksaan berjenjang autentikasi sesi/token, status keaktifan akun (`EnsureUserIsActive`), dan otorisasi peran (`EnsureAdmin`, `EnsurePenjual`). | `bootstrap/app.php#L18-L25`, `app/Http/Middleware/` |
-| **Template Method / Trait Mixin** | Penggunaan trait `StylesSheet` untuk menyamakan skema warna, border, format mata uang, dan sanitasi teks antara `LaporanAdminExport` dan `LaporanPenjualExport`. | `app/Exports/Concerns/StylesSheet.php#L10-L246` |
+| **Template Method / Trait Mixin** | Penggunaan trait `StylesSheet` untuk menyamakan skema warna, border, format mata uang, dan sanitasi teks pada ekspor `.xlsx` Admin dan Penjual. | `app/Exports/Concerns/StylesSheet.php` |
 
 ---
 
@@ -170,24 +171,24 @@ flowchart TB
     end
 
     subgraph Controllers["Lapisan Kontroler (app/Http/Controllers)"]
-        PubCtrl["Public Controllers (Home, Kategori, Produk, Ulasan)"]
-        PenjualCtrl["Penjual Controllers (Dashboard, Produk, Profil, Laporan)"]
+        PubCtrl["Public Controllers (Home, Kategori, Produk, Ulasan, Sitemap)"]
+        PenjualCtrl["Penjual Controllers (Dashboard, Produk, Laporan)"]
         AdminCtrl["Admin Controllers (Dashboard, Penjual, Produk, Kategori, Komentar, Laporan, Notification)"]
         AuthCtrl["Auth Controllers (Login, GoogleAuth, PasswordReset)"]
-        ApiCtrl["API Controllers (Auth, Product, Category, Seller, Review, SellerProduct, AdminModeration, Cart)"]
+        ApiCtrl["API Controllers (Auth, Product, Category, Seller, Review, Profile, Notification, Cart)"]
     end
 
     subgraph Services["Lapisan Layanan & Ekspor (app/Services & app/Support)"]
         ModSvc["CommentModerationService"]
         NotifSvc["AdminNotificationService"]
-        RepAdminSvc["LaporanAdminService & LaporanAdminExport"]
-        RepSellerSvc["LaporanPenjualService & LaporanPenjualExport"]
-        Xlsx["XlsxWriter & DomPDF"]
+        RepAdminSvc["LaporanAdminService & Admin\\LaporanController"]
+        RepSellerSvc["LaporanPenjualService & Penjual\\LaporanController"]
+        Xlsx["XlsxWriter, StylesSheet & DomPDF"]
     end
 
     subgraph Persistence["Lapisan Data & Eksternal"]
         Models["Eloquent Models (9 Model)"]
-        MySQL[("Database MySQL (19 Tabel)")]
+        MySQL[("Database MySQL (19 Tabel + 4 Objek SQL)")]
         Storage[("Public Storage (produk/ & penjual/)")]
         GoogleOAuth["Google OAuth 2.0 API"]
         WhatsApp["WhatsApp Web / App (wa.me)"]

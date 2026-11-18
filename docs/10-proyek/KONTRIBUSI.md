@@ -3,8 +3,8 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | Panduan Kontribusi, Konvensi Kode, dan Alur Pengembangan SiswaMart |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
 | **Status** | Final (Source-Code Backed) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
 | **Sumber Data** | `composer.json`, `app/`, `database/migrations/`, `tests/` |
@@ -46,8 +46,8 @@ Proyek menggunakan perpaduan istilah Bahasa Indonesia untuk entitas domain bisni
 | :--- | :--- | :--- |
 | **Model & Tabel Domain Inti** | Bahasa Indonesia (`PascalCase` untuk Model, `snake_case` tunggal untuk tabel melalui `$table`) | Model `Produk` (`$table = 'produk'`), `Penjual` (`$table = 'penjual'`), `Kategori` (`$table = 'kategori'`), `Ulasan` (`$table = 'ulasan'`). |
 | **Kontroler Web** | Dikelompokkan berdasarkan namespace peran (`Admin\`, `Penjual\`, `Public\`, `Auth\`) | `Admin\ProdukController`, `Penjual\ProdukController`, `Public\ProdukController`. |
-| **Kontroler & Rute REST API** | Bahasa Inggris di dalam namespace `App\Http\Controllers\Api\` dengan nama rute berawalan `api.` | `Api\ProductController` (`api.products.index`), `Api\SellerProductController` (`api.seller.products.store`). |
-| **Nama Rute Web** | Berawalan konteks peran (`public.*`, `penjual.*`, `admin.*`) | `public.produk.show`, `penjual.produk.store`, `admin.produk.update_status`. |
+| **Kontroler & Rute REST API** | Bahasa Inggris di dalam namespace `App\Http\Controllers\Api\` tanpa prefiks paksa atau sesuai endpoint | `Api\ProductController` (`GET /api/products`), `Api\SellerController@dashboard` (`GET /api/seller/dashboard`). |
+| **Nama Rute Web** | Berawalan konteks peran (`public.*`, `penjual.*`, `admin.*`) | `public.produk.show`, `penjual.produk.store`, `admin.produk.updateStatus`. |
 | **Variabel CSS Desain** | Berawalan `--sm-*` di `siswamart-theme.css` | `--sm-primary`, `--sm-ink`, `--sm-accent`, `--sm-surface`. |
 
 ---
@@ -128,5 +128,5 @@ php vendor/phpunit/phpunit/phpunit
 - `composer.json#L1-L97`
 - `app/Http/Controllers/Api/ApiController.php#L1-L39`
 - `database/migrations/2026_10_15_000001_align_local_schema_with_erd.php#L1-L250`
-- `tests/Feature/ReportDownloadTest.php#L1-L30`
+- `tests/Feature/LaporanPdfTest.php` & `tests/Feature/SiswaMartRefinementRegressionTest.php`
 - `tests/Feature/AdminAndPenjualFilteringAndPaginationTest.php#L1-L40`

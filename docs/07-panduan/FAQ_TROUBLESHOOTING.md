@@ -3,11 +3,11 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | FAQ dan Panduan Troubleshooting Masalah Umum SiswaMart |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
 | **Status** | Final (Source-Code Backed) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
-| **Sumber Data** | `config/filesystems.php`, `config/services.php`, `app/Http/Controllers/Auth/GoogleAuthController.php`, `app/Http/Controllers/Penjual/ProdukController.php`, `public/deploy-helper.php` |
+| **Sumber Data** | `config/filesystems.php`, `config/services.php`, `app/Http/Controllers/Auth/GoogleAuthController.php`, `app/Http/Controllers/Penjual/ProdukController.php`, `scripts/deploy/deploy-helper.php` |
 
 ---
 
@@ -57,7 +57,7 @@ Berkas yang diunggah disimpan di `storage/app/public/produk/`, sedangkan web ser
 
 ### Kasus 2C: Error `Error 400: redirect_uri_mismatch` dari Google
 - **Penyebab:** Nilai `GOOGLE_REDIRECT_URI` di `.env` tidak sama persis dengan *Authorized redirect URIs* di Google Cloud Console.
-- **Solusi:** Pastikan URI callback di Google Cloud Console dan `.env` bernilai identik, misalnya `http://localhost/auth/google/callback` atau `https://domain-sekolah.sch.id/auth/google/callback` (`config/services.php#L39`).
+- **Solusi:** Pastikan URI callback di Google Cloud Console dan `.env` bernilai identik, misalnya `http://localhost/auth/google/callback` di lokal atau `https://siswamart.app/auth/google/callback` di produksi (`config/services.php`).
 
 ---
 
@@ -112,7 +112,7 @@ php artisan optimize:clear
 - **Solusi untuk Admin (Jika Terjadi False Positive):** Jika kata yang terdeteksi sebenarnya adalah kata sopan/istilah produk yang wajar, Admin dapat menambahkan frasa tersebut ke tabel `whitelists` lalu membersihkan cache kamus moderasi (`Cache::forget('comment_moderation.whitelist')` atau `php artisan cache:clear`).
 
 ### Kasus 6B: Error `429 Too Many Requests`
-- **Penyebab:** Rute pengiriman ulasan dibatasi maksimal **3 kali per menit** di Web (`throttle:3,1`) dan klik WhatsApp dibatasi **30 kali per menit** (`throttle:30,1`).
+- **Penyebab:** Rute pengiriman ulasan dibatasi maksimal **3 kali per menit** di Web maupun API (`throttle:3,1`), klik WhatsApp dibatasi **30 kali per menit** (`throttle:30,1`), dan akses halaman detail produk dibatasi **60 kali per menit** (`throttle:60,1`).
 - **Solusi:** Tunggu 60 detik sebelum mencoba mengirim ulang.
 
 ---

@@ -3,8 +3,8 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | Glosarium Istilah Domain Bisnis dan Teknis SiswaMart |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
 | **Status** | Final (Source-Code Backed) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
 | **Sumber Data** | Seluruh model, kontroler, service, migrasi, dan dokumen `docs/` SiswaMart |
@@ -45,7 +45,7 @@
 | **`alasan_ditolak`** | Catatan umpan balik dari Admin (maksimal 500 karakter) yang wajib diisi saat Admin menolak ajuan moderasi produk (`status = 'ditolak'`). | `app/Http/Controllers/Admin/ProdukController.php#L65` |
 | **Status Produk (`produk.status`)** | Siklus hidup publikasi produk: `'draft'` (konsep), `'pending'` (menunggu moderasi awal), `'aktif'` (tayang di publik), dan `'ditolak'` (pengajuan produk baru ditolak Admin). | `2026_10_15_000002_normalize_erd_status_values.php` |
 | **Status Stok (`produk.stok`)** | Tingkat ketersediaan barang: `'tersedia'` (*Ready Stock*), `'po'` (*Pre-Order*), dan `'habis'` (*Out of Stock* — memblokir tombol pemesanan WhatsApp). | `app/Http/Controllers/Public/ProdukController.php#L79-L83` |
-| **Status Toko (`penjual.status_toko`)** | Status operasional toko penjual: `'buka'` (melayani pesanan normal) atau `'tutup'` (menampilkan lencana *Toko Tutup* dan mengubah teks pesan WhatsApp menjadi konfirmasi jam buka). | `app/Http/Controllers/Penjual/ProfilController.php#L90-L105` |
+| **Status Toko (`penjual.status_toko`)** | Status operasional toko penjual: `'buka'` (melayani pesanan normal) atau `'tutup'` (menampilkan lencana *Toko Tutup* dan mengubah teks pesan WhatsApp menjadi pemberitahuan toko sedang tutup). | `app/Http/Controllers/Penjual/DashboardController.php` |
 
 ---
 
@@ -68,7 +68,7 @@
 | **`ProdukViewLog` (`produk_views_logs`)** | Model dan tabel analitik berwaktu yang mencatat dua jenis interaksi pengunjung: `'view'` (saat halaman detail produk dibuka) dan `'whatsapp'` (saat tombol pesan via WhatsApp diklik). | `app/Models/ProdukViewLog.php` |
 | **`XlsxWriter`** | Generator berkas OpenXML `.xlsx` murni PHP di `app/Support/XlsxWriter.php` yang membangun dokumen Excel multi-sheet lengkap dengan *styling* dan pengarsipan ZIP internal tanpa memerlukan pustaka pihak ketiga. | `app/Support/XlsxWriter.php` |
 | **Soft Neubrutalism / Playful Tactile** | Karakteristik desain antarmuka SiswaMart yang memadukan sudut membulat (`28px`), garis tepi tinta tegas (`2.5px solid #1F3550`), dan bayangan offset padat (`4px 4px 0 #1F3550`). | `public/css/siswamart-theme.css`, `public/css/homepage.css` |
-| **`DatabaseTransactions`** | Trait pengujian Laravel yang membungkus setiap metode test di dalam transaksi database dan membatalkannya (`ROLLBACK`) di akhir test sehingga data lokal tetap aman. | `tests/Feature/ReportDownloadTest.php#L15` |
+| **`DatabaseTransactions`** | Trait pengujian Laravel yang membungkus setiap metode test di dalam transaksi database dan membatalkannya (`ROLLBACK`) di akhir test sehingga data lokal tetap aman. | `tests/Feature/LaporanPdfTest.php`, `tests/Feature/SiswaMartRefinementRegressionTest.php` |
 
 ---
 

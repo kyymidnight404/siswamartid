@@ -76,7 +76,7 @@ Pada halaman detail moderasi (`resources/views/admin/produk/show.blade.php`), pe
 2. **`update` (Perubahan Produk Aktif):** Sistem menampilkan **Tabel Perbandingan Perubahan (*Diff*)** yang menyandingkan **Nilai Saat Ini (Tayang di Publik)** vs **Nilai Baru yang Diajukan Penjual** (termasuk pratinjau foto lama vs foto baru).
 3. **`delete` (Permintaan Hapus Produk):** Penjual meminta agar produk dihapus dari sistem.
 
-### 4.2 Menyetujui (`Approve`) atau Menolak (`Reject`) (`PATCH /admin/produk/{produk}/status`)
+### 4.2 Menyetujui (`Approve`) atau Menolak (`Reject`) (`PATCH /admin/produk/{produk}/update-status`)
 - **Klik Setujui (`status = 'aktif'`):**
   - Untuk `create`: Produk langsung tayang di publik.
   - Untuk `update`: Data di `pending_changes` disalin ke kolom utama produk dan foto lama digantikan foto baru.
@@ -89,9 +89,9 @@ Pada halaman detail moderasi (`resources/views/admin/produk/show.blade.php`), pe
 
 ## 5. Mengelola Master Kategori Produk
 
-Buka menu **Kategori** (`GET /admin/kategori` — `Admin\KategoriController`):
+Buka menu **Kategori** (`GET /admin/categories` — `Admin\KategoriController`):
 - **Tambah / Edit Kategori:** Masukkan `nama` kategori (slug dibuat otomatis) dan `icon` opsional.
-- **Hapus Kategori (`DELETE /admin/kategori/{kategori}`):** Kategori **tidak dapat dihapus** apabila masih ada produk yang terhubung ke kategori tersebut (`BR-KAT-01`). Pindahkan atau hapus produk terkait terlebih dahulu.
+- **Hapus Kategori (`DELETE /admin/categories/{category}`):** Kategori **tidak dapat dihapus** apabila masih ada produk yang terhubung ke kategori tersebut (`BR-KAT-01`). Pindahkan atau hapus produk terkait terlebih dahulu.
 
 ---
 
@@ -112,35 +112,31 @@ Ikon **Lonceng Notifikasi** di bilah atas panel Admin (`Admin\NotificationContro
 - Pengunjung mengirimkan ulasan baru pada produk.
 
 Aksi yang tersedia:
-- Klik item notifikasi (`GET /admin/notifikasi/{id}/baca`) untuk menandai telah dibaca sekaligus langsung menuju halaman produk/ulasan terkait.
-- Klik **Tandai Semua Dibaca** (`PATCH /admin/notifikasi/baca-semua`) atau buka halaman penuh `/admin/notifikasi` untuk menghapus riwayat notifikasi (`DELETE /admin/notifikasi/hapus-semua`).
+- Gunakan tab filter **Semua**, **Produk**, atau **Ulasan** pada dropdown lonceng untuk menyaring pemberitahuan dengan cepat.
+- Klik item notifikasi (`POST /admin/notifikasi/{id}/baca`) untuk menandai telah dibaca sekaligus langsung menuju halaman produk/ulasan terkait di host aktif.
+- Klik **Tandai Semua Dibaca** (`POST /admin/notifikasi/baca-semua`) atau klik **Lihat Semua Notifikasi** untuk membuka halaman riwayat lengkap `/admin/notifikasi` dengan filter kategori dan paginasi.
 
 ---
 
 ## 8. Mengunduh Laporan Analitik Global (PDF & Excel `.xlsx`)
 
-1. Buka menu **Laporan Analitik** (`GET /admin/laporan` — `Admin\LaporanController@index`).
-2. Pilih filter laporan sesuai kebutuhan:
-   - **Periode Waktu (`period`):** Harian (`daily`), Mingguan (`weekly`), Bulanan (`monthly`), Tahunan (`yearly`), atau Rentang Tanggal Kustom (`custom`: `start_date` s.d. `end_date`).
-   - **Filter Tambahan:** Toko Penjual (`penjual_id`), Kategori (`kategori_id`), Status Produk (`status`), dan Kata Kunci (`search`).
+1. Buka menu **Laporan Analitik** (`GET /admin/laporan` — `Admin\LaporanController@index`, beserta sub-laporan `/admin/laporan/produk`, `/admin/laporan/ulasan`, dan detail `/admin/laporan/penjual/{penjual}`).
+2. Pilih filter periode (`weekly` / `monthly`, serta `week_offset` atau rentang periodenya).
 3. Klik tombol **Download Laporan**:
-   - **Download PDF (`GET /admin/laporan/export`):** Menghasilkan dokumen PDF resmi A4 Landscape.
-   - **Download Excel (`GET /admin/laporan/export-excel`):** Menghasilkan buku kerja `.xlsx` berisi **3 Lembar Kerja (Sheets)**:
-     1. *Ringkasan & Statistik* (KPI global & distribusi kategori)
-     2. *Performa Penjual* (peringkat toko, jumlah produk, tayangan, klik WA, rating)
-     3. *Daftar Produk* (rincian lengkap per item produk)
+   - **Download PDF (`GET /admin/laporan/penjual/pdf`, `/ulasan/pdf`, `/penjual/{penjual}/pdf`, `/pdf`):** Menghasilkan dokumen PDF resmi A4 siap cetak.
+   - **Download Excel (`GET /admin/laporan/penjual/sheet`, `/ulasan/sheet`, `/penjual/{penjual}/sheet`, dan master toko `GET /admin/penjual/export`):** Menghasilkan buku kerja `.xlsx` multi-sheet terformat via `XlsxWriter`.
 
 ---
 
 ## 9. Rujukan Kode
 
-- `routes/web.php#L31-L69`
-- `app/Http/Controllers/Admin/DashboardController.php#L14-L98`
-- `app/Http/Controllers/Admin/PenjualController.php#L18-L246`
-- `app/Http/Controllers/Admin/ProdukController.php#L15-L163`
-- `app/Http/Controllers/Admin/KategoriController.php#L14-L79`
-- `app/Http/Controllers/Admin/KomentarController.php#L14-L66`
-- `app/Http/Controllers/Admin/NotificationController.php#L13-L108`
-- `app/Http/Controllers/Admin/LaporanController.php#L14-L53`
-- `app/Services/LaporanAdminService.php#L15-L296`
-- `app/Exports/LaporanAdminExport.php#L15-L261`
+- `routes/web.php`
+- `app/Http/Controllers/Admin/DashboardController.php`
+- `app/Http/Controllers/Admin/PenjualController.php`
+- `app/Http/Controllers/Admin/ProdukController.php`
+- `app/Http/Controllers/Admin/KategoriController.php`
+- `app/Http/Controllers/Admin/KomentarController.php`
+- `app/Http/Controllers/Admin/NotificationController.php`
+- `app/Http/Controllers/Admin/LaporanController.php`
+- `app/Services/LaporanAdminService.php`
+- `app/Support/XlsxWriter.php`

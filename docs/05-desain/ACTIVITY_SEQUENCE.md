@@ -3,8 +3,8 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | Activity (Flowchart), Sequence, dan State Diagram Alur Utama SiswaMart |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
 | **Status** | Final (Source-Code Backed) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
 | **Sumber Data** | `Public\ProdukController`, `Public\UlasanController`, `Penjual\ProdukController`, `Admin\ProdukController`, `CommentModerationService`, `LaporanAdminService`, `LaporanPenjualService` |
@@ -25,7 +25,7 @@
 
 ## 1. Alur 1: Melihat Detail Produk & Pencatatan Analitik Kunjungan (`view`)
 
-Rute: `GET /produk/{produk:slug}` (`Public\ProdukController@show`, `throttle:60,1`).
+Rute: `GET /{penjual:slug}/{produk:slug}` (`Public\ProdukController@show`, `throttle:60,1`; rute legacy `GET /produk/{slug}` melakukan redirect `301`).
 
 ### 1.1 Sequence Diagram Lihat Produk
 
@@ -38,7 +38,7 @@ sequenceDiagram
     participant Model as Produk & ProdukViewLog
     participant DB as MySQL Database
 
-    Visitor->>Route: GET /produk/{slug}
+    Visitor->>Route: GET /{toko}/{produk}
     alt Melebihi 60 req/menit
         Route-->>Visitor: HTTP 429 Too Many Requests
     else Dalam batas kuota
@@ -61,7 +61,7 @@ sequenceDiagram
 
 ## 2. Alur 2: Klik Pemesanan WhatsApp & Penyesuaian Status Toko (`whatsapp`)
 
-Rute: `GET /produk/{produk:slug}/whatsapp` (`Public\ProdukController@trackWhatsapp`, `throttle:30,1`).
+Rute: `GET /{penjual:slug}/{produk:slug}/whatsapp` (`Public\ProdukController@trackWhatsapp`, `throttle:30,1`; rute legacy `GET /produk/{slug}/whatsapp` melakukan redirect `301`).
 
 ### 2.1 Activity Flowchart Klik WhatsApp
 
@@ -88,7 +88,7 @@ flowchart TD
 
 ## 3. Alur 3: Pengiriman Ulasan Tamu dengan Filter Kata Kasar (`CommentModerationService`)
 
-Rute: `POST /produk/{produk:slug}/ulasan` (`Public\UlasanController@store`, `throttle:3,1`) dan `POST /api/products/{produk:slug}/reviews` (`Api\ReviewController@store`, `throttle:10,1`).
+Rute: `POST /{penjual:slug}/{produk:slug}/ulasan` (`Public\UlasanController@store`, `throttle:3,1`) dan `POST /api/products/{product}/reviews` (`Api\ReviewController@store`, `throttle:3,1`).
 
 ### 3.1 Sequence Diagram Kirim Ulasan & Filter Kata Kasar
 
@@ -102,7 +102,7 @@ sequenceDiagram
     participant Ulasan as Model Ulasan
     participant NotifSvc as AdminNotificationService
 
-    Visitor->>Ctrl: POST /produk/{slug}/ulasan (guest_username, rating, komentar)
+    Visitor->>Ctrl: POST /{toko}/{produk}/ulasan (guest_username, rating, komentar)
     Ctrl->>Ctrl: Cek produk.status == 'aktif' & penjual.user.is_active
     Ctrl->>Ctrl: Validasi dasar (guest_username max:100, rating 1..5, komentar max:1000)
     Ctrl->>ModSvc: moderateComment(guest_username)
@@ -160,7 +160,7 @@ flowchart TD
 
 ## 5. Alur 5: Moderasi Produk (`Approve` / `Reject`) oleh Admin & State Machine Produk
 
-Rute: `PATCH /admin/produk/{produk}/status` (`Admin\ProdukController@updateStatus`) dan `PATCH /api/admin/moderation/products/{produk}/status` (`Api\AdminModerationController@updateStatus`).
+Rute: `PATCH /admin/produk/{produk}/update-status` (`Admin\ProdukController@updateStatus`).
 
 ### 5.1 Sequence Diagram Moderasi Produk oleh Admin
 
@@ -172,7 +172,7 @@ sequenceDiagram
     participant Storage as Public Disk Storage
     participant DB as Tabel produk (MySQL)
 
-    Admin->>Ctrl: PATCH /admin/produk/{produk}/status (status: 'aktif' | 'ditolak', alasan_ditolak)
+    Admin->>Ctrl: PATCH /admin/produk/{produk}/update-status (status: 'aktif' | 'ditolak', alasan_ditolak)
     Ctrl->>Ctrl: Validasi status & wajib alasan_ditolak jika 'ditolak'
     Ctrl->>Ctrl: Deteksi action = produk.pending_action ?? (produk.status == 'pending' ? 'create' : null)
 
@@ -228,8 +228,8 @@ stateDiagram-v2
 ## 6. Alur 6: Pembuatan dan Pengunduhan Laporan PDF & Excel (`.xlsx`)
 
 Rute:
-- Admin: `GET /admin/laporan/export` (PDF), `GET /admin/laporan/export-excel` (Excel).
-- Penjual: `GET /penjual/laporan/export` (PDF), `GET /penjual/laporan/export-excel` (Excel).
+- Admin: `GET /admin/laporan/penjual/pdf`, `GET /admin/laporan/ulasan/pdf`, `GET /admin/laporan/penjual/sheet`, `GET /admin/laporan/ulasan/sheet` (beserta laporan detail penjual).
+- Penjual: `GET /penjual/laporan/pdf` (PDF A4 Portrait), `GET /penjual/laporan/sheet` (Excel 5 sheet).
 
 ### 6.1 Sequence Diagram Unduh Laporan PDF & Excel
 
@@ -239,24 +239,23 @@ sequenceDiagram
     actor User as Admin / Penjual
     participant Ctrl as LaporanController (Admin / Penjual)
     participant Svc as LaporanAdminService / LaporanPenjualService
-    participant Export as LaporanAdminExport / LaporanPenjualExport
+    participant Style as StylesSheet Concern
     participant Writer as XlsxWriter / DomPDF
     participant DB as MySQL Database
 
-    User->>Ctrl: GET /laporan/export atau /laporan/export-excel (query filter)
-    Ctrl->>Svc: buildReportData(Request $request)
-    Svc->>DB: Query agregasi Produk, Penjual, Ulasan, & ProdukViewLog sesuai filter tanggal/status/kategori
+    User->>Ctrl: GET .../pdf atau .../sheet (filter period / week_offset)
+    Ctrl->>Svc: Ambil metrik ringkasan & detail laporan
+    Svc->>DB: Query agregasi Produk, Penjual, Ulasan, & ProdukViewLog sesuai periode
     DB-->>Svc: Koleksi data & metrik statistik
-    Svc-->>Ctrl: Array reportData terstruktur
+    Svc-->>Ctrl: Array data laporan terstruktur
 
-    alt Format Unduhan == PDF (/export atau /download)
-        Ctrl->>Writer: Pdf::loadView('.../laporan/pdf', reportData)->setPaper('a4', 'landscape')
+    alt Format Unduhan == PDF (.../pdf)
+        Ctrl->>Writer: Pdf::loadView(..., reportData)->setPaper(...)
         Writer-->>Ctrl: Binary PDF stream
-        Ctrl-->>User: HTTP 200 (Content-Type: application/pdf, Content-Disposition: attachment)
-    else Format Unduhan == Excel (/export-excel)
-        Ctrl->>Export: download(reportData, filename.xlsx)
-        Export->>Export: Sanitasi teks (StylesSheet::sanitizeText mencegah Formula Injection)
-        Export->>Writer: XlsxWriter::download(sheets, styles, filename)
+        Ctrl-->>User: HTTP 200 (Content-Type: application/pdf)
+    else Format Unduhan == Excel (.../sheet)
+        Ctrl->>Style: Sanitasi teks (StylesSheet::sanitizeText mencegah Formula Injection)
+        Ctrl->>Writer: XlsxWriter::download(sheets, filename.xlsx)
         Writer->>Writer: Bangun XML OpenXML + paketkan ZIP (ZipArchive / fallback pure-PHP CRC32)
         Writer-->>User: HTTP 200 (Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
     end
@@ -266,13 +265,12 @@ sequenceDiagram
 
 ## 7. Rujukan Kode
 
-- `app/Http/Controllers/Public/ProdukController.php#L15-L120`
-- `app/Http/Controllers/Public/UlasanController.php#L18-L62`
-- `app/Services/CommentModerationService.php#L18-L361`
-- `app/Http/Controllers/Penjual/ProdukController.php#L61-L246`
-- `app/Http/Controllers/Admin/ProdukController.php#L61-L163`
-- `app/Http/Controllers/Admin/LaporanController.php#L14-L53`
-- `app/Http/Controllers/Penjual/LaporanController.php#L14-L53`
-- `app/Exports/LaporanAdminExport.php#L15-L261`
-- `app/Exports/LaporanPenjualExport.php#L15-L163`
-- `app/Support/XlsxWriter.php#L1-L429`
+- `app/Http/Controllers/Public/ProdukController.php`
+- `app/Http/Controllers/Public/UlasanController.php`
+- `app/Services/CommentModerationService.php`
+- `app/Http/Controllers/Penjual/ProdukController.php`
+- `app/Http/Controllers/Admin/ProdukController.php`
+- `app/Http/Controllers/Admin/LaporanController.php`
+- `app/Http/Controllers/Penjual/LaporanController.php`
+- `app/Exports/Concerns/StylesSheet.php`
+- `app/Support/XlsxWriter.php`
