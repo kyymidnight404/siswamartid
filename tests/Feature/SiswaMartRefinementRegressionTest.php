@@ -626,4 +626,88 @@ class SiswaMartRefinementRegressionTest extends TestCase
         $this->assertNotNull($savedNotif);
         $this->assertSame('/admin/produk/99', $savedNotif->data['url'] ?? null);
     }
+
+    public function test_database_view_function_procedure_and_trigger_work_correctly(): void
+    {
+        if (! in_array(\Illuminate\Support\Facades\DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            $this->markTestSkipped('MySQL/MariaDB SQL objects only.');
+        }
+
+        // Buat produk awal status 'pending' dan approved_at = null untuk menguji trigger BEFORE UPDATE
+        $product = Produk::create([
+            'penjual_id' => $this->seller->id,
+            'kategori_id' => $this->category->id,
+            'nama' => 'Risoles Mayo DB Object Test',
+            'slug' => 'risoles-mayo-db-'.uniqid(),
+            'deskripsi' => 'Produk uji objek SQL.',
+            'harga' => 4500,
+            'stok' => 'tersedia',
+            'status' => 'pending',
+            'approved_at' => null,
+            'views' => 17,
+        ]);
+
+        // Belum tampil di SQL View saat status masih 'pending'
+        $this->assertNull(
+            \Illuminate\Support\Facades\DB::table('v_katalog_produk_aktif')->where('id', $product->id)->first()
+        );
+
+        // Trigger trg_produk_set_approved_at otomatis mengisi approved_at saat status diubah jadi 'aktif'
+        \Illuminate\Support\Facades\DB::table('produk')
+            ->where('id', $product->id)
+            ->update(['status' => 'aktif']);
+
+        $product->refresh();
+        $this->assertNotNull($product->approved_at);
+
+        // Tambahkan 2 ulasan disetujui (5 & 4 => avg 4.50) + 1 ulasan ditolak (tidak ikut rata-rata)
+        Ulasan::create([
+            'produk_id' => $product->id,
+            'guest_username' => 'Penguji Satu',
+            'rating' => 5,
+            'komentar' => 'Mantap sekali!',
+            'status' => 'approved',
+            'moderation_status' => 'approved',
+        ]);
+        Ulasan::create([
+            'produk_id' => $product->id,
+            'guest_username' => 'Penguji Dua',
+            'rating' => 4,
+            'komentar' => 'Enak dan renyah.',
+            'status' => 'approved',
+            'moderation_status' => 'approved',
+        ]);
+        Ulasan::create([
+            'produk_id' => $product->id,
+            'guest_username' => 'Penguji Ditolak',
+            'rating' => 1,
+            'komentar' => 'Ditolak moderasi',
+            'status' => 'ditolak',
+            'moderation_status' => 'rejected',
+        ]);
+
+        // Verifikasi SQL View v_katalog_produk_aktif
+        $viewRow = \Illuminate\Support\Facades\DB::table('v_katalog_produk_aktif')
+            ->where('id', $product->id)
+            ->first();
+        $this->assertNotNull($viewRow);
+        $this->assertSame($this->seller->nama_toko, $viewRow->nama_toko);
+        $this->assertSame(2, (int) $viewRow->jumlah_ulasan);
+        $this->assertSame('4.50', number_format((float) $viewRow->rata_rata_rating, 2, '.', ''));
+
+        // Verifikasi Stored Function fn_hitung_rating_produk
+        $fnResult = \Illuminate\Support\Facades\DB::selectOne(
+            'SELECT fn_hitung_rating_produk(?) AS avg_rating',
+            [$product->id]
+        );
+        $this->assertSame('4.50', number_format((float) $fnResult->avg_rating, 2, '.', ''));
+
+        // Verifikasi Stored Procedure sp_rekap_toko (views tidak terduplikasi oleh 3 baris ulasan)
+        $spRows = \Illuminate\Support\Facades\DB::select('CALL sp_rekap_toko(?)', [$this->seller->id]);
+        $this->assertCount(1, $spRows);
+        $this->assertSame(1, (int) $spRows[0]->total_produk);
+        $this->assertSame(1, (int) $spRows[0]->total_produk_aktif);
+        $this->assertSame(17, (int) $spRows[0]->total_views);
+        $this->assertSame('4.50', number_format((float) $spRows[0]->rata_rata_rating, 2, '.', ''));
+    }
 }

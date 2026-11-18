@@ -3,11 +3,11 @@
 | Informasi Dokumen | Detail |
 | :--- | :--- |
 | **Judul** | Daftar, Status, dan Urutan Migrasi Database SiswaMart |
-| **Versi** | `1.1.0` |
-| **Tanggal** | 27 Oktober 2026 |
+| **Versi** | `1.2.0` |
+| **Tanggal** | 18 November 2026 |
 | **Status** | Final (Source-Code & `php artisan migrate:status` Verified) |
 | **Penulis** | Tim Dokumentasi Teknis & Rekayasa Perangkat Lunak |
-| **Sumber Data** | Output aktual `php artisan migrate:status` dan 27 berkas di `database/migrations/` |
+| **Sumber Data** | Output aktual `php artisan migrate:status` dan 32 berkas di `database/migrations/` |
 
 ---
 
@@ -25,8 +25,8 @@
 ## 1. Ringkasan Eksekusi Migrasi
 
 Berdasarkan pemeriksaan langsung perintah `php artisan migrate:status` pada database `siswamartid`:
-- **Total Berkas Migrasi:** **27 berkas** (`database/migrations/`).
-- **Status di Database Lokal (`siswamartid`):** **27 `Ran` (100% telah dijalankan)** dalam **9 Batch** (`Batch 1` s.d. `Batch 9`), **0 `Pending`**.
+- **Total Berkas Migrasi:** **32 berkas** (`database/migrations/`).
+- **Status di Database Lokal (`siswamartid`):** **32 `Ran` (100% telah dijalankan)** dalam **14 Batch** (`Batch 1` s.d. `Batch 14`), **0 `Pending`**.
 - **Catatan Penting tentang Batch 9:** Lima migrasi bertanggal `2026_10_15_000001` s.d. `2026_10_15_000005` yang sebelumnya tercatat *Pending* pada dokumen `ERD.md` lama kini sudah berstatus **`Ran` pada Batch 9** di database lokal. Namun, bagi server staging/produksi yang belum diperbarui sejak 14 Oktober 2026, kelima migrasi ini wajib dijalankan secara berurutan.
 
 ---
@@ -62,6 +62,11 @@ Berdasarkan pemeriksaan langsung perintah `php artisan migrate:status` pada data
 | 25 | `2026_10_15_000003_remove_admin_creator_from_penjual` | `9` | `Ran` *(Ex-Pending)* | `penjual` | Menghapus kolom sementara `created_by_admin_id` dari tabel `penjual`. |
 | 26 | `2026_10_15_000004_add_product_moderation_requests` | `9` | `Ran` *(Ex-Pending)* | `produk` | Menambah kolom `pending_action` (`varchar(20)`) dan `pending_changes` (`json`) untuk alur moderasi dua tahap. |
 | 27 | `2026_10_15_000005_add_google_id_to_users_table` | `9` | `Ran` *(Ex-Pending)* | `users` | Menambah kolom `google_id` (`varchar(255) nullable` UK) untuk integrasi login Google OAuth. |
+| 28 | `2026_11_05_000001_add_approved_at_to_produk_table` | `10` | `Ran` | `produk` | Menambah kolom `approved_at` (`timestamp nullable`) dan backfill waktu persetujuan produk aktif. |
+| 29 | `2026_11_09_000001_add_performance_composite_indexes` | `11` | `Ran` | `produk`, `ulasan`, `penjual`, `notifications` | Menambah indeks komposit untuk mempercepat query katalog publik, moderasi ulasan, dan notifikasi. |
+| 30 | `2026_11_11_000001_ensure_cache_table_value_is_medium_text` | `12` | `Ran` | `cache` | Memastikan kolom `cache.value` bertipe `MEDIUMTEXT` di MySQL/MariaDB. |
+| 31 | `2026_11_17_000001_add_slug_to_penjual_and_scope_produk_slug` | `13` | `Ran` | `penjual`, `produk` | Menambah kolom unik `penjual.slug` dan mengubah indeks unik `produk.slug` menjadi komposit `(penjual_id, slug)`. |
+| 32 | `2026_11_18_000001_add_database_views_routines_and_triggers` | `14` | `Ran` | `produk`, `penjual`, `kategori`, `ulasan` *(SQL Objects)* | Membuat SQL View `v_katalog_produk_aktif`, Stored Function `fn_hitung_rating_produk`, Stored Procedure `sp_rekap_toko`, dan Trigger `trg_produk_set_approved_at`. |
 
 ---
 
