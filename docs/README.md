@@ -148,3 +148,18 @@ docs/
 - [`routes/web.php`](../routes/web.php), [`routes/auth.php`](../routes/auth.php), [`routes/api.php`](../routes/api.php) — Definisi seluruh rute aplikasi.
 - [`database/migrations/`](../database/migrations/) — 32 berkas migrasi skema & objek SQL basis data.
 - [`tests/Feature/`](../tests/Feature/) — 14 berkas pengujian otomatis PHPUnit (`129` test).
+
+
+---
+
+## 7. Dokumentasi SiswaMart Mobile
+
+Dokumen khusus aplikasi Flutter Android dan iOS tersedia di [11-mobile/README.md](11-mobile/README.md).
+
+| Dokumen | Isi |
+|---|---|
+| [PRD Mobile](11-mobile/PRD_MOBILE.md) | Visi, scope MVP, fitur, acceptance criteria, dan roadmap |
+| [Mobile App Architecture](11-mobile/MOBILE_APP_ARCHITECTURE.md) | Arsitektur Flutter dan integrasi dengan Laravel existing |
+| [Mobile API Specification](11-mobile/API_SPECIFICATION.md) | Kontrak API untuk mobile, status endpoint, gap, dan test checklist |
+
+Dokumentasi mobile harus dibaca bersama [06-api/API.md](06-api/API.md), [03-arsitektur/ARSITEKTUR.md](03-arsitektur/ARSITEKTUR.md), dan [05-desain/DESIGN_SYSTEM.md](05-desain/DESIGN_SYSTEM.md). Gunakan spesifikasi mobile sebagai panduan implementasi, tetapi verifikasi setiap perubahan terhadap source code aktual.
